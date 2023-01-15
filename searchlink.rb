@@ -2785,8 +2785,8 @@ APPLESCRIPT
       url, title = itunes('iPadSoftware', search_terms, dev, @cfg['itunes_affiliate'])
 
     when /^s$/ # software search (google)
-      excludes = %w[postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
-      url, title = ddg(%(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} (app OR mac)))
+      excludes = %w[apple.com postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
+      url, title = ddg(%(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} app))
       link_text = title if link_text == '' && !@titleize
     when /^tmdb/
       url, title = tmdb(search_type, search_terms)

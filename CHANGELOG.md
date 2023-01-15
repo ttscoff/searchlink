@@ -1,3 +1,11 @@
+### 2.3.9
+
+2023-01-15 10:29
+
+#### IMPROVED
+
+- Allow space before per-document meta keys to allow nesting in YAML headers
+
 ### 2.3.8
 
 2023-01-15 07:27
