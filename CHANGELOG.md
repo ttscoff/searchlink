@@ -1,14 +1,3 @@
-#### 2.3.3
-
-- Fix Pinboard caching
-- Add DuckDuckGo Zero Click search
-- Fix Safari history and bookmark search
-- Add Firefox history and bookmark search
-- Add Edge and Brave history and bookmark search
-- Run SearchLink on a single fully-qualified URL to turn it into a Markdown link with the page title as linked text
-- Run SearchLink on a url ending in : to turn it into a reference link with title generated from hostname and/or url path
-- Add !yt YouTube search
-
 #### 2.2.30
 
 - Mastodon profile link conversion
