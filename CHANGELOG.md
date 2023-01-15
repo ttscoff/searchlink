@@ -1,14 +1,20 @@
 ### 2.3.10
 
-2023-01-15 11:15
+2023-01-15 13:23
 
 #### NEW
 
 - Add Arc history and bookmark search
 
+#### IMPROVED
+
+- De-slugify reference titles when pulled from URL path, remove extensions
+- Fallback title when gather fails to get a page title
+
 #### FIXED
 
 - Method misspelling for brave and edge bookmark search
+- Creating reference title when URL has no path
 
 ### 2.3.9
 

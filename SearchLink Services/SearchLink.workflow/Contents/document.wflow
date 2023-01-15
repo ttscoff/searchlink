@@ -1621,12 +1621,17 @@ APPLESCRIPT
 
     parts = url.hostname.split(/\./)
     domain = if parts.count &gt; 1
-               parts.slice(-2, 1).join('.')
+               parts.slice(-2, 1).join('')
              else
-               parts.join('.')
+               parts.join('')
              end
 
     path = url.path.split(%r{/}).last
+    if path
+      path.gsub!(/-/, ' ').gsub!(/\.\w{2-4}$/, '')
+    else
+      path = domain
+    end
 
     path.length &gt; domain.length ? path : domain
   end
@@ -2612,7 +2617,7 @@ APPLESCRIPT
       end
     end
 
-    return `#{gather} --title-only '#{url.strip}'` if gather
+    return `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'` if gather
 
     begin
       # source = %x{/usr/bin/curl -sSL '#{url.strip}'}
