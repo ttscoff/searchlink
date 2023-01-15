@@ -15,11 +15,11 @@ It works in a few ways:
 - Run a single search and have the results put on your clipboard, perfect for using from scripts and launchers (e.g. LaunchBar or Alfred).
 - The "bracket" format, which allows you to just *write*, marking things to link as you go. When you're done, you can run it on the full document and --- if your queries were good --- have your links generated automatically without ever opening a browser.
 
-This has replaced the "Auto-link web search" service in the [Markdown Service Tools](/projects/markdown-service-tools/ "Markdown Service Tools - Brett Terpstra"). The difference is that you can now mark links and specify how they should be searched for, as well as provide alternate query terms for linked text.
+This has replaced the "Auto-link web search" service in the [Markdown Service Tools](https://brettterpstra.com/projects/markdown-service-tools/ "Markdown Service Tools - Brett Terpstra"). The difference is that you can now mark links and specify how they should be searched for, as well as provide alternate query terms for linked text.
 
-<!--JEKYLL
 Here's a video tutorial from Aaron Dowd ([@thepodcastdude](https://twitter.com/thepodcastdude)):
 
+<!--JEKYLL
 {% youtube QD-u6JP83us 853 480 %}
 
 And here some tutorial posts:
@@ -27,15 +27,25 @@ And here some tutorial posts:
 {% series_list SearchLink Tips %}
 -->
 
+<!--GITHUB-->
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QD-u6JP83us" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<!--END GITHUB-->
+
 ### Documentation
 
+<!--GITHUB-->
 The documentation has [moved to a wiki](https://github.com/ttscoff/searchlink/wiki).
+<!--END GITHUB-->
+<!--JEKYLL[Go to the Docs Wiki](https://github.com/ttscoff/searchlink/wiki){:.btn}-->
 
 ### Download
 
 There will likely be updates to this as I solve more problems, so keep an eye on this page for new versions. The current source code is [available on GitHub](https://github.com/ttscoff/searchlink).
 
 <!--JEKYLL{% download 70 %}-->
+
+<!--JEKYLL[Latest release on GitHub](https://github.com/ttscoff/searchlink/releases/latest/){:.btn.btn--alt}-->
+
 <!--GITHUB-->
 Download the SearchLinkX.X.X.zip file from the [latest release](https://github.com/ttscoff/searchlink/releases/latest/).
 <!--END GITHUB-->
