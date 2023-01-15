@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.8'
+VERSION = '2.3.9'
 
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
@@ -1340,7 +1340,7 @@ APPLESCRIPT
 
     options = %w[debug country_code inline prefix_random include_titles validate_links]
     options.each do |o|
-      if input =~ /^#{o}:\s+(.*?)$/
+      if input =~ /^ *#{o}:\s+(\S+)$/
         val = Regexp.last_match(1).strip
         val = true if val =~ /true/i
         val = false if val =~ /false/i
