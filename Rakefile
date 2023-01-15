@@ -1,5 +1,22 @@
 require 'rake/clean'
 
+# desc 'Update Services'
+# task :update_services do
+#   new_contents = IO.read('searchlink.rb')
+#   services = ['SearchLink', 'SearchLink File']
+#   services.each do |file|
+#     wflow = "/Users/ttscoff/Library/Services/#{file}.workflow/Contents/document.wflow"
+#     $stderr.puts "Updating #{wflow}"
+#     contents = IO.read(wflow)
+#     contents.sub!(%r{(<key>COMMAND_STRING</key>.*?<string>).*?(\n</string>)}m, "\\1#{new_contents.strip}\\2")
+#     puts contents
+#     File.open(wflow, 'w') do |f|
+#       f.puts contents
+#     end
+#   end
+#   $stderr.puts "Services updated: #{services.join(", ")}"
+# end
+
 desc 'Development version check'
 task :ver do
   gver = `git ver`

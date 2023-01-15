@@ -1,6 +1,18 @@
+### 2.3.8
+
+2023-01-15 07:19
+
+#### IMPROVED
+
+- Testing deploy automation
+
 ### 2.3.7
 
-2023-01-15 07:01
+2023-01-15 07:02
+
+#### IMPROVED
+
+- Testing deploy automation
 
 ### 2.3.5
 
