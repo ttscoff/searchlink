@@ -1692,6 +1692,7 @@ APPLESCRIPT
       spell
       pb
       yt
+      yte
     ].concat(@cfg['custom_site_searches'].keys)
   end
 
@@ -1715,7 +1716,7 @@ APPLESCRIPT
       'r',
       'sp(ell)?',
       'pb',
-      'yt'
+      'yte?'
     ]
   end
 
@@ -2813,8 +2814,20 @@ APPLESCRIPT
       url, title = ddg(search_terms)
     when /^z(ero)?/
       url, title = zero_click(search_terms)
-    when /^yt$/
+    when /^yte?$/
       url, title = ddg("site:youtube.com #{search_terms}")
+
+      if search_type =~ /e$/ && url =~ /watch\?v=(\S+)/
+        id = Regexp.last_match(1)
+        url = 'embed'
+        title = [
+          %(<iframe width="560" height="315" src="https://www.youtube.com/embed/#{id}"),
+          %(title="YouTube video player" frameborder="0"),
+          %(allow="accelerometer; autoplay; clipboard-write; encrypted-media;),
+          %(gyroscope; picture-in-picture; web-share"),
+          %(allowfullscreen></iframe>)
+        ].join(' ')
+      end
     when /^pb$/
       url, title = pinboard(search_terms)
     when /^wiki$/

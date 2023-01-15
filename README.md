@@ -5,10 +5,10 @@ A macOS Service for Markdown writers that allows you to add hyperlinks while wri
 <!--README-->
 ### Introduction
 
-<!--JEKYLL{% img alignright /uploads/2023/01/searchlink-text_01.png 400 400 "searchlink-text_01.png" %}-->
+<!--JEKYLL{% img alignright /uploads/2023/01/searchlink-text-short-400.jpg 400 142 "searchlink-text-short-400.jpg" %}-->
 
 <!--GITHUB-->
-![](images/searchlink-text.png)
+![](images/searchlink-text-short-400.jpg)
 <!--END GITHUB-->
 
 SearchLink is a System Service for macOS which handles searching multiple sources and automatically generating Markdown links for text.
