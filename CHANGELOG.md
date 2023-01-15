@@ -1,3 +1,15 @@
+### 2.3.12
+
+2023-01-15 16:52
+
+#### NEW
+
+- Use `!yte SEARCH` to create a YouTube embed iframe
+
+#### IMPROVED
+
+- Point help links to wiki, add wiki/docs command
+
 ### 2.3.10
 
 2023-01-15 13:23
