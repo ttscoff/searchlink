@@ -63,7 +63,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.8'
+VERSION = '2.3.9'
 
 # SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
@@ -1401,7 +1401,7 @@ APPLESCRIPT
 
     options = %w[debug country_code inline prefix_random include_titles validate_links]
     options.each do |o|
-      if input =~ /^#{o}:\s+(.*?)$/
+      if input =~ /^ *#{o}:\s+(\S+)$/
         val = Regexp.last_match(1).strip
         val = true if val =~ /true/i
         val = false if val =~ /false/i
@@ -2846,8 +2846,8 @@ APPLESCRIPT
       url, title = itunes('iPadSoftware', search_terms, dev, @cfg['itunes_affiliate'])
 
     when /^s$/ # software search (google)
-      excludes = %w[postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
-      url, title = ddg(%(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} (app OR mac)))
+      excludes = %w[apple.com postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
+      url, title = ddg(%(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} app))
       link_text = title if link_text == '' &amp;&amp; !@titleize
     when /^tmdb/
       url, title = tmdb(search_type, search_terms)

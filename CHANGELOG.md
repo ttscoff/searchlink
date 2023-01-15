@@ -1,10 +1,11 @@
 ### 2.3.9
 
-2023-01-15 10:29
+2023-01-15 10:47
 
 #### IMPROVED
 
 - Allow space before per-document meta keys to allow nesting in YAML headers
+- Refine software (!s) search. Ignore apple.com links, don't include "mac" in search terms
 
 ### 2.3.8
 
