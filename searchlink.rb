@@ -579,16 +579,18 @@ class SearchLink
         # etc. Multiple types can be strung together: !hshcb (Safari
         # History and Chrome bookmarks).
         history_types:
-        - chrome_history
-        - chrome_bookmarks
         - safari_bookmarks
         - safari_history
-        - firefox_bookmarks
-        - firefox_history
-        - edge_bookmarks
-        - edge_history
-        - brave_bookmarks
-        - brave_history
+        # - chrome_history
+        # - chrome_bookmarks
+        # - firefox_bookmarks
+        # - firefox_history
+        # - edge_bookmarks
+        # - edge_history
+        # - brave_bookmarks
+        # - brave_history
+        # - arc_history
+        # - arc_bookmarks
         # Pinboard search
         # You can find your api key here: https://pinboard.in/settings/password
         pinboard_api_key: ''
@@ -1599,21 +1601,36 @@ APPLESCRIPT
   def all_possible_searches
     %w[
       h
+      hs
       hsh
       hshb
+      hsbh
       hsb
+      hc
       hch
       hcb
       hchb
+      hcbh
+      hf
       hfh
       hfb
       hfhb
+      hfbh
+      he
       heh
       heb
       hehb
+      hebh
+      hb
       hbh
       hbb
       hbhb
+      hbbh
+      ha
+      hah
+      hab
+      habh
+      hahb
       a
       imov
       g
@@ -1671,7 +1688,7 @@ APPLESCRIPT
 
   def valid_searches
     [
-      'h(([scfbe])([hb])?)*',
+      'h(([scfabe])([hb])?)*',
       'a',
       'imov',
       'g',
@@ -1699,6 +1716,17 @@ APPLESCRIPT
     valid = true if @cfg['custom_site_searches'].keys.include? term
     notify("Invalid search#{did_you_mean(term)}", term) unless valid
     valid
+  end
+
+  def search_arc_history(term)
+    # Google history
+    history_file = File.expand_path('~/Library/Application Support/Arc/User Data/Default/History')
+    if File.exist?(history_file)
+      notify('Searching Arc History', term)
+      search_chromium_history(history_file, term)
+    else
+      false
+    end
   end
 
   def search_brave_history(term)
@@ -1760,12 +1788,23 @@ APPLESCRIPT
     [bm['url'], bm['title'], date]
   end
 
+  def search_arc_bookmarks(term)
+    bookmarks_file = File.expand_path('~/Library/Application Support/Arc/User Data/Default/Bookmarks')
+
+    if File.exist?(bookmarks_file)
+      notify('Searching Brave Bookmarks', term)
+      return search_chromium_bookmarks(bookmarks_file, term)
+    end
+
+    false
+  end
+
   def search_brave_bookmarks(term)
     bookmarks_file = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Bookmarks')
 
     if File.exist?(bookmarks_file)
       notify('Searching Brave Bookmarks', term)
-      return search_chromiumn_bookmarks(bookmarks_file, term)
+      return search_chromium_bookmarks(bookmarks_file, term)
     end
 
     false
@@ -1776,7 +1815,7 @@ APPLESCRIPT
 
     if File.exist?(bookmarks_file)
       notify('Searching Brave Bookmarks', term)
-      return search_chromiumn_bookmarks(bookmarks_file, term)
+      return search_chromium_bookmarks(bookmarks_file, term)
     end
 
     false
@@ -1993,6 +2032,10 @@ APPLESCRIPT
                              search_brave_history(term)
                            when 'brave_bookmarks'
                              search_brave_bookmarks(term)
+                           when 'arc_history'
+                             search_arc_history(term)
+                           when 'arc_bookmarks'
+                             search_arc_bookmarks(term)
                            else
                              false
                            end
@@ -2677,13 +2720,13 @@ APPLESCRIPT
       url = false
     when /^hook$/
       url, title = search_hook(search_terms)
-    when /^h(([scf])([hb])?)*$/
+    when /^h(([scfabe])([hb])?)*$/
       mtch = Regexp.last_match(1)
       str = mtch
       types = []
       if str =~ /s([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length > 1 || t.empty?
           types.push('safari_history')
           types.push('safari_bookmarks')
         elsif t == 'h'
@@ -2695,7 +2738,7 @@ APPLESCRIPT
 
       if str =~ /c([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length > 1 || t.empty?
           types.push('chrome_bookmarks')
           types.push('chrome_history')
         elsif t == 'h'
@@ -2707,7 +2750,7 @@ APPLESCRIPT
 
       if str =~ /f([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length > 1 || t.empty?
           types.push('firefox_bookmarks')
           types.push('firefox_history')
         elsif t == 'h'
@@ -2719,7 +2762,7 @@ APPLESCRIPT
 
       if str =~ /e([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length > 1 || t.empty?
           types.push('edge_bookmarks')
           types.push('edge_history')
         elsif t == 'h'
@@ -2731,13 +2774,25 @@ APPLESCRIPT
 
       if str =~ /b([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length > 1 || t.empty?
           types.push('brave_bookmarks')
           types.push('brave_history')
         elsif t == 'h'
           types.push('brave_history')
         elsif t == 'b'
           types.push('brave_bookmarks')
+        end
+      end
+
+      if str =~ /a([hb]*)/
+        t = Regexp.last_match(1)
+        if t.length > 1 || t.empty?
+          types.push('arc_bookmarks')
+          types.push('arc_history')
+        elsif t == 'h'
+          types.push('arc_history')
+        elsif t == 'b'
+          types.push('arc_bookmarks')
         end
       end
 
