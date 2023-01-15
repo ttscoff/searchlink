@@ -1,3 +1,15 @@
+### 2.3.10
+
+2023-01-15 11:15
+
+#### NEW
+
+- Add Arc history and bookmark search
+
+#### FIXED
+
+- Method misspelling for brave and edge bookmark search
+
 ### 2.3.9
 
 2023-01-15 10:47

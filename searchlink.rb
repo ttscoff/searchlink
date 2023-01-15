@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.9'
+VERSION = '2.3.10'
 
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
@@ -1560,12 +1560,13 @@ APPLESCRIPT
 
     parts = url.hostname.split(/\./)
     domain = if parts.count > 1
-               parts.slice(-2, 1).join('.')
+               parts.slice(-2, 1).join('')
              else
-               parts.join('.')
+               parts.join('')
              end
 
     path = url.path.split(%r{/}).last
+    path ||= domain
 
     path.length > domain.length ? path : domain
   end
