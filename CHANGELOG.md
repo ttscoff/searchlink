@@ -1,98 +1,116 @@
-#### 2.2.30
+### 2.3.5
+
+2023-01-15 06:42
+
+#### NEW
+
+- Add DuckDuckGo Zero Click search
+- Add Firefox history and bookmark search
+- Add Edge and Brave history and bookmark search
+- Run SearchLink on a single fully-qualified URL to turn it into a Markdown link with the page title as linked text
+- Run SearchLink on a url ending in : to turn it into a reference link with title generated from hostname and/or url path
+- Add !yt YouTube search
+
+#### FIXED
+
+- Fix Pinboard caching
+- Fix Safari history and bookmark search
+
+### 2.2.30
 
 - Mastodon profile link conversion
 - Pinboard query/matching improvements
 
-#### 2.2.29
+### 2.2.29
 
 - Fall back to including extended description search if Pinboard title/tags search has no results
 
-#### 2.2.28
+### 2.2.28
 
 - Add The Movie Database searching
 
-#### 2.2.27
+### 2.2.27
 
 - Fix for DuckDuckGo returning gzipped data
 
-#### 2.2.26
+### 2.2.26
 
 - Fix embed urls for iTunes searches
 - Allow aspell to be discovered on M1 Macs running homebrew
 
-#### 2.2.25
+### 2.2.25
 
 - Code refactoring
 - Fix missing !lsong search
 - Fix for handling empty search types, e.g. `[brett terpstra]()`
 
-#### 2.2.24
+### 2.2.24
 
 - throttle rapid requests when there are more than 5 searches
 - handle nil result error
 
-#### 2.2.22
+### 2.2.22
 
 - Add `s` modifier to custom search replacements to slugify all search terms
 
-#### 2.2.21
+### 2.2.21
 
 - Add !hook search for searching Hook.app bookmarks
 - Code cleanup
 
-#### 2.2.20
+### 2.2.20
 
 - Fix for space encoding in returned links
 
-#### 2.2.19
+### 2.2.19
 
 - Remove old Bing references
 - Fix for social linking
 
-#### 2.2.17
+### 2.2.17
 
 - Fix for DuckDuckGo server changes
 
-#### 2.2.16
+### 2.2.16
 
 - More handling for social handles (Instagram, LinkedIn)
 - Templating for social handle output
 
-#### 2.2.15
+### 2.2.15
 
 - Hotfix for search results returning raw DuckDuckGo links
 
-#### 2.2.14
+### 2.2.14
 
 - Skip SEO crud removal from titles until the script is more reliable
 
-#### 2.2.13
+### 2.2.13
 
 - Restore functionality allowing empty link text to be replaced with page title
 - Config option `empty_uses_page_title:`
 - If link text is '%', force using page title (`[%](!g SearhLink)`)
 
-#### 2.2.12
+### 2.2.12
 
 - Fix for changes in DuckDuckGo
 
-#### 2.2.11
+### 2.2.11
 
 - Add advanced option to Jump To SearchLink Error service to allow only jumping to line, not character position or selection. (significantly faster in most cases)
 - Update Apple Music embed code for responsive embed
 - Fix output when running an Apple Music embed search using naked syntax
 
-#### 2.2.10
+### 2.2.10
 
 - Avoid running a search when parens do not contain a bang search, e.g. `[this search](should not run)`
 - Count `#fragment` links as urls and don't run search
 
 
-#### 2.2.9
+### 2.2.9
 
 - Restored "Jump to SearchLink Error" Service in download
 
-#### 2.2.8
+### 2.2.8
 
 - Skipped a few increments in version numbering. Feature, not bug
 - !imov search for iTunes store movie links
@@ -100,11 +118,11 @@
 - Switched `!def` (definition) searches using Wordnik
 - Pinboard bookmark search
 
-#### 2.2.4
+### 2.2.4
 
 - Wikipedia API was erroring out on Sierra due to Ruby 2.0 SSL handling, replaced with a curl/scrape hack
 
-#### 2.2.3
+### 2.2.3
 
 - Replaced Bing search with DuckDuckGo, as Bing has now deprecated their search api as well
 - Updated Amazon affiliate linking format
@@ -114,17 +132,17 @@
     - Single line: `!@fb username`
     - Link format: `[username](!@fb)`
 
-#### 2.2.2
+### 2.2.2
 
 - Fix for wiki searches
 - Select just the word "help" for a list of available searches (and custom searches)
 
-#### 2.2.0
+### 2.2.0
 
 - Bing search fallback due to deprecated ([4 years ago](http://googlecode.blogspot.com/2010/11/introducing-google-apis-console-and-our.html)) Google APIs potentially being shut down soon
     - Can be forced with `!b`
 
-##### Simpler syntax and new syntax options
+#### Simpler syntax and new syntax options
 
 * quotes no longer required around additional search terms
 * if search terms in parenthesis start with a "+", they're appended to the link text for the search, otherwise they replace it
@@ -166,7 +184,8 @@
         - **!hsbh** searches safari bookmarks and history
         - **!chsb** searches chrome history and safari bookmarks
         - **!h** searches all configured types from ~/.searchlink
-##### New configuration options
+
+#### New configuration options
 
 - ~/.searchlink
     - config option to validate links (validate_links)
@@ -217,7 +236,7 @@
 
                 => [Martha Stewart](http://www.marthastewart.com/ "Martha Stewart - Recipes, DIY, Home Decor &amp; Crafts")
 
-##### Output formatting improvements
+#### Output formatting improvements
 
 - link format only forces inline if a single line (no newlines) is selected
 - groups new reference definitions with any existing definitions at end of selection to keep full-document selections looking tidy
@@ -227,7 +246,7 @@
 - reports and errors are removed and replaced when running on a full document
 - Jump to SearchLink Error service accepts a highlighted error line and jumps to its position in the document, highlighting the offending match
 
-##### CLI improvements
+#### CLI improvements
 
 - can run on a file if path(s) are passed as an argument (SearchLink File service)
 - set `SL_SILENT=false` on the command line for verbose output
@@ -241,7 +260,7 @@
 - `-no-backup`
     - default is to create a \*.bak file when overwriting
 
-#### 2.1
+### 2.1
 
 - copy config options to `~/.searchlink` to preserve across upgrades
     - Config file is created on first run if it doesn't exist
