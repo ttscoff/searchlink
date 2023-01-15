@@ -63,7 +63,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.0'
+VERSION = '2.3.2'
 
 # SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
