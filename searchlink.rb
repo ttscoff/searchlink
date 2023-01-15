@@ -749,7 +749,7 @@ set _res to display dialog "#{text}" buttons {"OK", "More help"} default button 
 return button returned of _res
 APPLESCRIPT
     `.strip
-    `open http://brettterpstra.com/projects/searchlink` if res == 'More help'
+    `open https://github.com/ttscoff/searchlink/wiki` if res == 'More help'
   end
 
   def help_cli
@@ -768,10 +768,14 @@ APPLESCRIPT
         help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
       else
         $stdout.puts "SearchLink v#{VERSION}"
-        $stdout.puts 'See http://brettterpstra.com/projects/searchlink/ for help'
+        $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
       end
       print input
-      Process.exit
+      Process.exit 0
+    elsif input.strip =~ /^(wiki|docs)$/i
+      warn "Opening wiki in browser"
+      `open https://github.com/ttscoff/searchlink/wiki`
+      Process.exit 0
     end
 
     @cfg['inline'] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
