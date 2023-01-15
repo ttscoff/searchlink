@@ -1566,7 +1566,11 @@ APPLESCRIPT
              end
 
     path = url.path.split(%r{/}).last
-    path ||= domain
+    if path
+      path.gsub!(/-/, ' ').gsub!(/\.\w{2-4}$/, '')
+    else
+      path = domain
+    end
 
     path.length > domain.length ? path : domain
   end
@@ -2552,7 +2556,7 @@ APPLESCRIPT
       end
     end
 
-    return `#{gather} --title-only '#{url.strip}'` if gather
+    return `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'` if gather
 
     begin
       # source = %x{/usr/bin/curl -sSL '#{url.strip}'}
