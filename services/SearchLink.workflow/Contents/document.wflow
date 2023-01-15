@@ -1,10 +1,71 @@
-#!/usr/bin/env ruby
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>520</string>
+	<key>AMApplicationVersion</key>
+	<string>2.10</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<true/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>2.0.3</string>
+				<key>AMApplication</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>AMParameterProperties</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<dict/>
+					<key>CheckedForUserDefaultShell</key>
+					<dict/>
+					<key>inputMethod</key>
+					<dict/>
+					<key>shell</key>
+					<dict/>
+					<key>source</key>
+					<dict/>
+				</dict>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>ActionBundlePath</key>
+				<string>/System/Library/Automator/Run Shell Script.action</string>
+				<key>ActionName</key>
+				<string>Run Shell Script</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<string>#!/usr/bin/env ruby
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.1'
+VERSION = '2.3.0'
 
-# SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
+# SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
 require 'net/https'
 require 'uri'
@@ -19,7 +80,7 @@ require 'time'
 require 'json'
 require 'erb'
 
-if RUBY_VERSION.to_f > 1.9
+if RUBY_VERSION.to_f &gt; 1.9
   Encoding.default_external = Encoding::UTF_8
   Encoding.default_internal = Encoding::UTF_8
 end
@@ -29,7 +90,7 @@ PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
 # Array helpers
 class Array
   def longest_element
-    group_by(&:size).max.last[0]
+    group_by(&amp;:size).max.last[0]
   end
 end
 
@@ -45,17 +106,17 @@ class ::String
 
   def clean
     gsub(/\n+/, ' ')
-      .gsub(/"/, '&quot')
+      .gsub(/"/, '&amp;quot')
       .gsub(/\|/, '-')
-      .gsub(/([&?]utm_[scm].+=[^&\s!,.)\]]++?)+(&.*)/, '\2')
-      .sub(/\?&/, '').strip
+      .gsub(/([&amp;?]utm_[scm].+=[^&amp;\s!,.)\]]++?)+(&amp;.*)/, '\2')
+      .sub(/\?&amp;/, '').strip
   end
 
   # convert itunes to apple music link
   def to_am
     input = dup
     input.sub!(%r{/itunes\.apple\.com}, 'geo.itunes.apple.com')
-    append = input =~ %r{\?[^/]+=} ? '&app=music' : '?app=music'
+    append = input =~ %r{\?[^/]+=} ? '&amp;app=music' : '?app=music'
     input + append
   end
 
@@ -64,7 +125,7 @@ class ::String
     path.sub!(%r{/?$}, '/')
     path.sub!(%r{/[^/]+[.\-][^/]+/$}, '')
     path.gsub!(%r{(^/|/$)}, '')
-    path.split(%r{/}).delete_if { |section| section =~ /^\d+$/ || section.length < 5 }
+    path.split(%r{/}).delete_if { |section| section =~ /^\d+$/ || section.length &lt; 5 }
   end
 
   def close_punctuation!
@@ -72,16 +133,16 @@ class ::String
   end
 
   def close_punctuation
-    return self unless self =~ /[“‘\[(<]/
+    return self unless self =~ /[“‘\[(&lt;]/
 
     words = split(/\s+/)
 
     punct_chars = {
-      '“' => '”',
-      '‘' => '’',
-      '[' => ']',
-      '(' => ')',
-      '<' => '>'
+      '“' =&gt; '”',
+      '‘' =&gt; '’',
+      '[' =&gt; ']',
+      '(' =&gt; ')',
+      '&lt;' =&gt; '&gt;'
     }
 
     left_punct = []
@@ -110,21 +171,21 @@ class ::String
     path = url.path
     root_page = path =~ %r{^/?$} ? true : false
 
-    title.gsub!(/\s*(&ndash;|&mdash;)\s*/, ' - ')
-    title.gsub!(/&[lr]dquo;/, '"')
-    title.gsub!(/&[lr]dquo;/, "'")
+    title.gsub!(/\s*(&amp;ndash;|&amp;mdash;)\s*/, ' - ')
+    title.gsub!(/&amp;[lr]dquo;/, '"')
+    title.gsub!(/&amp;[lr]dquo;/, "'")
 
     seo_title_separators = %w[| « - – · :]
 
     begin
       re_parts = []
 
-      host_parts = host.sub(/(?:www\.)?(.*?)\.[^.]+$/, '\1').split(/\./).delete_if { |p| p.length < 3 }
+      host_parts = host.sub(/(?:www\.)?(.*?)\.[^.]+$/, '\1').split(/\./).delete_if { |p| p.length &lt; 3 }
       h_re = !host_parts.empty? ? host_parts.map { |seg| seg.downcase.split(//).join('.?') }.join('|') : ''
       re_parts.push(h_re) unless h_re.empty?
 
       # p_re = path.path_elements.map{|seg| seg.downcase.split(//).join('.?') }.join('|')
-      # re_parts.push(p_re) if p_re.length > 0
+      # re_parts.push(p_re) if p_re.length &gt; 0
 
       site_re = "(#{re_parts.join('|')})"
 
@@ -132,7 +193,7 @@ class ::String
 
       while title.downcase.gsub(/[^a-z]/i, '') =~ /#{site_re}/i
 
-        break if dead_switch > 5
+        break if dead_switch &gt; 5
 
         seo_title_separators.each_with_index do |sep, i|
           parts = title.split(/ ?#{Regexp.escape(sep)} +/)
@@ -147,15 +208,15 @@ class ::String
           unless parts.empty?
             parts.delete_if do |pt|
               compressed = pt.strip.downcase.gsub(/[^a-z]/i, '')
-              compressed =~ /#{site_re}/ && pt =~ seps ? !root_page : false
+              compressed =~ /#{site_re}/ &amp;&amp; pt =~ seps ? !root_page : false
             end
           end
 
           title = if parts.empty?
                     longest
-                  elsif parts.length < 2
+                  elsif parts.length &lt; 2
                     parts.join(sep)
-                  elsif parts.length > 2
+                  elsif parts.length &gt; 2
                     parts.longest_element.strip
                   else
                     parts.join(sep)
@@ -163,7 +224,7 @@ class ::String
         end
         dead_switch += 1
       end
-    rescue StandardError => e
+    rescue StandardError =&gt; e
       return self unless $cfg['debug']
       warn 'Error processing title'
       p e
@@ -177,7 +238,7 @@ class ::String
       title = seo_parts.longest_element.strip if seo_parts.length.positive?
     end
 
-    title && title.length > 5 ? title.gsub(/\s+/, ' ') : self
+    title &amp;&amp; title.length &gt; 5 ? title.gsub(/\s+/, ' ') : self
   end
 
   def truncate!(max)
@@ -185,16 +246,16 @@ class ::String
   end
 
   def truncate(max)
-    return self if length < max
+    return self if length &lt; max
 
     max -= 3
     counter = 0
     trunc_title = ''
 
     words = split(/\s+/)
-    while trunc_title.length < max && counter < words.length
+    while trunc_title.length &lt; max &amp;&amp; counter &lt; words.length
       trunc_title += " #{words[counter]}"
-      break if trunc_title.length + 1 > max
+      break if trunc_title.length + 1 &gt; max
 
       counter += 1
     end
@@ -220,7 +281,7 @@ class ::String
   end
 
   def split_hooks
-    split(/\^\^/).map(&:split_hook)
+    split(/\^\^/).map(&amp;:split_hook)
   end
 
   def matches_score(terms, separator: ' ', start_word: true)
@@ -317,16 +378,16 @@ module Plist
       @listener = listener
     end
 
-    TEXT       = /([^<]+)/
-    XMLDECL_PATTERN = /<\?xml\s+(.*?)\?>*/um
-    DOCTYPE_PATTERN = /\s*<!DOCTYPE\s+(.*?)(\[|>)/um
-    COMMENT_START = /\A<!--/u
-    COMMENT_END = /.*?-->/um
+    TEXT       = /([^&lt;]+)/
+    XMLDECL_PATTERN = /&lt;\?xml\s+(.*?)\?&gt;*/um
+    DOCTYPE_PATTERN = /\s*&lt;!DOCTYPE\s+(.*?)(\[|&gt;)/um
+    COMMENT_START = /\A&lt;!--/u
+    COMMENT_END = /.*?--&gt;/um
 
     def parse
       plist_tags = PTag::mappings.keys.join('|')
-      start_tag  = /<(#{plist_tags})([^>]*)>/i
-      end_tag    = /<\/(#{plist_tags})[^>]*>/i
+      start_tag  = /&lt;(#{plist_tags})([^&gt;]*)&gt;/i
+      end_tag    = /&lt;\/(#{plist_tags})[^&gt;]*&gt;/i
 
       require 'strscan'
 
@@ -376,13 +437,13 @@ module Plist
     end
   end
 
-  class PList < PTag
+  class PList &lt; PTag
     def to_ruby
       children.first.to_ruby if children.first
     end
   end
 
-  class PDict < PTag
+  class PDict &lt; PTag
     def to_ruby
       dict = Hash.new
       key = nil
@@ -400,19 +461,19 @@ module Plist
     end
   end
 
-  class PKey < PTag
+  class PKey &lt; PTag
     def to_ruby
       CGI::unescapeHTML(text || '')
     end
   end
 
-  class PString < PTag
+  class PString &lt; PTag
     def to_ruby
       CGI::unescapeHTML(text || '')
     end
   end
 
-  class PArray < PTag
+  class PArray &lt; PTag
     def to_ruby
       children.collect do |c|
         c.to_ruby
@@ -420,45 +481,45 @@ module Plist
     end
   end
 
-  class PInteger < PTag
+  class PInteger &lt; PTag
     def to_ruby
       text.to_i
     end
   end
 
-  class PTrue < PTag
+  class PTrue &lt; PTag
     def to_ruby
       true
     end
   end
 
-  class PFalse < PTag
+  class PFalse &lt; PTag
     def to_ruby
       false
     end
   end
 
-  class PReal < PTag
+  class PReal &lt; PTag
     def to_ruby
       text.to_f
     end
   end
 
   require 'date'
-  class PDate < PTag
+  class PDate &lt; PTag
     def to_ruby
       DateTime.parse(text)
     end
   end
 
   require 'base64'
-  class PData < PTag
+  class PData &lt; PTag
     def to_ruby
       data = Base64.decode64(text.gsub(/\s+/, ''))
 
       begin
         return Marshal.load(data)
-      rescue Exception => e
+      rescue Exception =&gt; e
         io = StringIO.new
         io.write data
         io.rewind
@@ -486,7 +547,7 @@ class SearchLink
   def initialize(opt = {})
     @printout = opt[:echo] || false
     unless File.exist? File.expand_path('~/.searchlink')
-      default_config = <<~ENDCONFIG
+      default_config = &lt;&lt;~ENDCONFIG
         # set to true to have an HTML comment included detailing any errors
         # Can be disabled per search with `--d`, or enabled with `++d`.
         debug: true
@@ -525,15 +586,15 @@ class SearchLink
         empty_uses_page_title: false
 
         # Formatting for social links, use %service%, %user%, and %url%
-        # E.g. "%user% on %service%" => "ttscoff on Twitter"
-        #      "%service%/%user%" => "Twitter/ttscoff"
-        #      "%url%" => "twitter.com/ttscoff"
+        # E.g. "%user% on %service%" =&gt; "ttscoff on Twitter"
+        #      "%service%/%user%" =&gt; "Twitter/ttscoff"
+        #      "%url%" =&gt; "twitter.com/ttscoff"
         social_template: "%service%/%user%"
 
         # append affiliate link info to iTunes urls, empty quotes for none
         # example:
-        # itunes_affiliate: "&at=10l4tL&ct=searchlink"
-        itunes_affiliate: "&at=10l4tL&ct=searchlink"
+        # itunes_affiliate: "&amp;at=10l4tL&amp;ct=searchlink"
+        itunes_affiliate: "&amp;at=10l4tL&amp;ct=searchlink"
 
         # to create Amazon affiliate links, set amazon_partner to your amazon
         # affiliate tag
@@ -542,7 +603,7 @@ class SearchLink
 
         # To create custom abbreviations for Google Site Searches,
         # add to (or replace) the hash below.
-        # "abbreviation" => "site.url",
+        # "abbreviation" =&gt; "site.url",
         # This allows you, for example to use [search term](!bt)
         # as a shortcut to search brettterpstra.com (using a site-specific
         # Google search). Keys in this list can override existing
@@ -571,8 +632,8 @@ class SearchLink
           spark: macsparky.com
           man: http://man.cx/$term
           dev: developer.apple.com
-          nq: http://nerdquery.com/?media_only=0&query=$term&search=1&category=-1&catid=&type=and&results=50&db=0&prefix=0
-          gs: http://scholar.google.com/scholar?btnI&hl=en&q=$term&btnG=&as_sdt=80006
+          nq: http://nerdquery.com/?media_only=0&amp;query=$term&amp;search=1&amp;category=-1&amp;catid=&amp;type=and&amp;results=50&amp;db=0&amp;prefix=0
+          gs: http://scholar.google.com/scholar?btnI&amp;hl=en&amp;q=$term&amp;btnG=&amp;as_sdt=80006
         # Remove or comment (with #) history searches you don't want
         # performed by `!h`. You can force-enable them per search, e.g.
         # `!hsh` (Safari History only), `!hcb` (Chrome Bookmarks only),
@@ -630,8 +691,8 @@ class SearchLink
 
     # append affiliate link info to iTunes urls, empty quotes for none
     # example:
-    # $itunes_affiliate = "&at=10l4tL&ct=searchlink"
-    @cfg['itunes_affiliate'] ||= '&at=10l4tL&ct=searchlink'
+    # $itunes_affiliate = "&amp;at=10l4tL&amp;ct=searchlink"
+    @cfg['itunes_affiliate'] ||= '&amp;at=10l4tL&amp;ct=searchlink'
 
     # to create Amazon affiliate links, set amazon_partner to your amazon
     # affiliate tag
@@ -640,13 +701,13 @@ class SearchLink
 
     # To create custom abbreviations for Google Site Searches,
     # add to (or replace) the hash below.
-    # "abbreviation" => "site.url",
+    # "abbreviation" =&gt; "site.url",
     # This allows you, for example to use [search term](!bt)
     # as a shortcut to search brettterpstra.com. Keys in this
     # hash can override existing search triggers.
     @cfg['custom_site_searches'] ||= {
-      'bt' => 'brettterpstra.com',
-      'imdb' => 'imdb.com'
+      'bt' =&gt; 'brettterpstra.com',
+      'imdb' =&gt; 'imdb.com'
     }
 
     # confirm existence of links generated from custom search replacements
@@ -724,7 +785,7 @@ class SearchLink
   end
 
   def help_text
-    text = <<~EOHELP
+    text = &lt;&lt;~EOHELP
       -- [Available searches] -------------------
       #{available_searches}
     EOHELP
@@ -741,7 +802,7 @@ class SearchLink
     text += help_text
     text += "\nClick \\\"More Help\\\" for additional information"
     text.gsub!(/\n/, '\\\n')
-    res = `osascript <<'APPLESCRIPT'
+    res = `osascript &lt;&lt;'APPLESCRIPT'
 set _res to display dialog "#{text}" buttons {"OK", "More help"} default button "OK" with title "SearchLink Help"
 
 return button returned of _res
@@ -772,7 +833,7 @@ APPLESCRIPT
       Process.exit
     end
 
-    @cfg['inline'] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
+    @cfg['inline'] = true if input.scan(/\]\(/).length == 1 &amp;&amp; input.split(/\n/).length == 1
     @errors = {}
     @report = []
 
@@ -781,8 +842,8 @@ APPLESCRIPT
     counter_links = 0
     counter_errors = 0
 
-    input.sub!(/\n?<!-- Report:.*?-->\n?/m, '')
-    input.sub!(/\n?<!-- Errors:.*?-->\n?/m, '')
+    input.sub!(/\n?&lt;!-- Report:.*?--&gt;\n?/m, '')
+    input.sub!(/\n?&lt;!-- Errors:.*?--&gt;\n?/m, '')
 
     input.scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| links[match[1].strip] = match[0] }
 
@@ -799,13 +860,13 @@ APPLESCRIPT
     highest_marker = 0
     input.scan(/^\s{,3}\[(?:#{prefix})?(\d+)\]: /).each do
       m = Regexp.last_match
-      highest_marker = m[1].to_i if m[1].to_i > highest_marker
+      highest_marker = m[1].to_i if m[1].to_i &gt; highest_marker
     end
 
     footnote_counter = 0
     input.scan(/^\s{,3}\[\^(?:#{prefix})?fn(\d+)\]: /).each do
       m = Regexp.last_match
-      footnote_counter = m[1].to_i if m[1].to_i > footnote_counter
+      footnote_counter = m[1].to_i if m[1].to_i &gt; footnote_counter
     end
 
     if input =~ /\[(.*?)\]\((.*?)\)/
@@ -864,7 +925,7 @@ APPLESCRIPT
           link_text = this_match[1] || ''
           link_info = parse_arguments(this_match[2].strip).strip || ''
 
-          if link_text.strip == '' && link_info =~ /".*?"/
+          if link_text.strip == '' &amp;&amp; link_info =~ /".*?"/
             link_info.gsub!(/"(.*?)"/) do
               m = Regexp.last_match(1)
               link_text = m if link_text == ''
@@ -872,7 +933,7 @@ APPLESCRIPT
             end
           end
 
-          if link_info.strip =~ /:$/ && line.strip == match
+          if link_info.strip =~ /:$/ &amp;&amp; line.strip == match
             ref_title = true
             link_info.sub!(/\s*:\s*$/, '')
           end
@@ -900,23 +961,23 @@ APPLESCRIPT
             else
               note = m[1].strip
               footnote_counter += 1
-              ref = if !link_text.empty? && link_text.scan(/\s/).empty?
+              ref = if !link_text.empty? &amp;&amp; link_text.scan(/\s/).empty?
                       link_text
                     else
-                      format('%<p>sfn%<c>04d', p: prefix, c: footnote_counter)
+                      format('%&lt;p&gt;sfn%&lt;c&gt;04d', p: prefix, c: footnote_counter)
                     end
               add_footer "[^#{ref}]: #{note}"
               res = "[^#{ref}]"
               cursor_difference += (@match_length - res.length)
               @match_length = res.length
-              add_report("#{match_string} => Footnote #{ref}")
+              add_report("#{match_string} =&gt; Footnote #{ref}")
               res
             end
-          elsif (link_text == '' && link_info == '') || url?(link_info)
+          elsif (link_text == '' &amp;&amp; link_info == '') || url?(link_info)
             add_error("Invalid search", match) unless url?(link_info)
             match
           else
-            link_info = link_text if !link_text.empty? && link_info == ''
+            link_info = link_text if !link_text.empty? &amp;&amp; link_info == ''
 
             search_type = ''
             search_terms = ''
@@ -933,7 +994,7 @@ APPLESCRIPT
               search_terms.strip!
 
               # if the link text is just '%' replace with title regardless of config settings
-              if link_text == '%' && search_terms && !search_terms.empty?
+              if link_text == '%' &amp;&amp; search_terms &amp;&amp; !search_terms.empty?
                 @titleize = true
                 link_text = ''
               end
@@ -954,10 +1015,10 @@ APPLESCRIPT
             elsif link_info =~ /^!/
               search_word = link_info.match(/^!(\S+)/)
 
-              if search_word && valid_search?(search_word[1])
+              if search_word &amp;&amp; valid_search?(search_word[1])
                 search_type = search_word[1] unless search_word.nil?
                 search_terms = link_text
-              elsif search_word && search_word[1] =~ /^(\S+\.)+\S+$/
+              elsif search_word &amp;&amp; search_word[1] =~ /^(\S+\.)+\S+$/
                 search_type = 'g'
                 search_terms = "site:#{search_word[1]} #{link_text}"
               else
@@ -966,10 +1027,10 @@ APPLESCRIPT
                 search_terms = false
               end
 
-            elsif link_text && !link_text.empty? && (link_info.nil? || link_info.empty?)
+            elsif link_text &amp;&amp; !link_text.empty? &amp;&amp; (link_info.nil? || link_info.empty?)
               search_type = 'g'
               search_terms = link_text
-            elsif link_info && !link_info.empty?
+            elsif link_info &amp;&amp; !link_info.empty?
               search_type = 'g'
               search_terms = link_info
             else
@@ -978,11 +1039,11 @@ APPLESCRIPT
               search_terms = false
             end
 
-            if search_type && !search_terms.empty?
+            if search_type &amp;&amp; !search_terms.empty?
               @cfg['custom_site_searches'].each do |k, v|
                 next unless search_type == k
 
-                link_text = search_terms if !@titleize && link_text == ''
+                link_text = search_terms if !@titleize &amp;&amp; link_text == ''
                 v = parse_arguments(v, { no_restore: true })
                 if v =~ %r{^(/|http)}i
                   search_type = 'r'
@@ -991,12 +1052,12 @@ APPLESCRIPT
                   if !tokens.empty?
                     highest_token = 0
                     tokens.each do |token|
-                      if token =~ /(\d+)[ds]?$/ && Regexp.last_match(1).to_i > highest_token
+                      if token =~ /(\d+)[ds]?$/ &amp;&amp; Regexp.last_match(1).to_i &gt; highest_token
                         highest_token = Regexp.last_match(1).to_i
                       end
                     end
                     terms_p = search_terms.split(/ +/)
-                    if terms_p.length > highest_token
+                    if terms_p.length &gt; highest_token
                       remainder = terms_p[highest_token - 1..-1].join(' ')
                       terms_p = terms_p[0..highest_token - 2]
                       terms_p.push(remainder)
@@ -1035,22 +1096,22 @@ APPLESCRIPT
               end
             end
 
-            if search_type && search_terms
+            if search_type &amp;&amp; search_terms
               # warn "Searching #{search_type} for #{search_terms}"
               search_count += 1
               url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
 
               if url
-                title = titleize(url) if @titleize && title == ''
+                title = titleize(url) if @titleize &amp;&amp; title == ''
 
-                link_text = title if link_text == '' && title
+                link_text = title if link_text == '' &amp;&amp; title
                 force_title = search_type =~ /def/ ? true : false
 
                 if link_only || search_type =~ /sp(ell)?/ || url == 'embed'
                   url = title if url == 'embed'
                   cursor_difference += @match_length - url.length
                   @match_length = url.length
-                  add_report("#{match_string} => #{url}")
+                  add_report("#{match_string} =&gt; #{url}")
                   url
                 elsif ref_title
                   unless links.key? url
@@ -1062,12 +1123,12 @@ APPLESCRIPT
                   res = make_link('inline', link_text, url, title: title, force_title: force_title)
                   cursor_difference += @match_length - res.length
                   @match_length = res.length
-                  add_report("#{match_string} => #{url}")
+                  add_report("#{match_string} =&gt; #{url}")
                   res
                 else
                   unless links.key? url
                     highest_marker += 1
-                    links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
+                    links[url] = format('%&lt;pre&gt;s%&lt;m&gt;04d', pre: prefix, m: highest_marker)
                     add_footer make_link('ref_title', links[url], url, title: title, force_title: force_title)
                   end
 
@@ -1075,7 +1136,7 @@ APPLESCRIPT
                   res = make_link(type, link_text, links[url], title: false, force_title: force_title)
                   cursor_difference += @match_length - res.length
                   @match_length = res.length
-                  add_report("#{match_string} => #{url}")
+                  add_report("#{match_string} =&gt; #{url}")
                   res
                 end
               else
@@ -1096,7 +1157,7 @@ APPLESCRIPT
       end
       warn "\n" unless SILENT
 
-      input = out.delete_if { |l| l.strip =~ /^<!--DELETE-->$/ }.join("\n")
+      input = out.delete_if { |l| l.strip =~ /^&lt;!--DELETE--&gt;$/ }.join("\n")
 
       if @cfg['inline']
         add_output "#{input}\n"
@@ -1190,7 +1251,7 @@ APPLESCRIPT
         terms.strip!
 
         if valid_search?(type) || type =~ /^(\S+\.)+\S+$/
-          if type && terms && !terms.empty?
+          if type &amp;&amp; terms &amp;&amp; !terms.empty?
             @cfg['custom_site_searches'].each do |k, v|
               next unless type == k
 
@@ -1204,10 +1265,10 @@ APPLESCRIPT
                   highest_token = 0
                   tokens.each do |token|
                     t = Regexp.last_match(1)
-                    highest_token = t.to_i if token =~ /(\d+)d?$/ && t.to_i > highest_token
+                    highest_token = t.to_i if token =~ /(\d+)d?$/ &amp;&amp; t.to_i &gt; highest_token
                   end
                   terms_p = terms.split(/ +/)
-                  if terms_p.length > highest_token
+                  if terms_p.length &gt; highest_token
                     remainder = terms_p[highest_token - 1..-1].join(' ')
                     terms_p = terms_p[0..highest_token - 2]
                     terms_p.push(remainder)
@@ -1351,7 +1412,7 @@ APPLESCRIPT
       next if skip_flags
 
       while input =~ /^#{o}:\s+(.*?)$/ || input =~ /--(no-)?#{o}/
-        next unless input =~ /--(no-)?#{o}/ && !skip_flags
+        next unless input =~ /--(no-)?#{o}/ &amp;&amp; !skip_flags
 
         unless @prev_config.key? o
           @prev_config[o] = @cfg[o]
@@ -1366,7 +1427,7 @@ APPLESCRIPT
   end
 
   def restore_prev_config
-    @prev_config&.each do |k, v|
+    @prev_config&amp;.each do |k, v|
       @cfg[k] = v
       $stderr.print "\r\033[0KReset config: #{k} = #{@cfg[k]}\n" unless SILENT
     end
@@ -1374,9 +1435,9 @@ APPLESCRIPT
   end
 
   def make_link(type, text, url, title: false, force_title: false)
-    text = title || titleize(url) if @titleize && text == ''
+    text = title || titleize(url) if @titleize &amp;&amp; text == ''
 
-    title = title && (@cfg['include_titles'] || force_title) ? %( "#{title.clean}") : ''
+    title = title &amp;&amp; (@cfg['include_titles'] || force_title) ? %( "#{title.clean}") : ''
 
     case type
     when 'ref_title'
@@ -1389,7 +1450,7 @@ APPLESCRIPT
   end
 
   def add_output(str)
-    print str if @printout && !@clipboard
+    print str if @printout &amp;&amp; !@clipboard
     @output += str
   end
 
@@ -1416,7 +1477,7 @@ APPLESCRIPT
       end
 
       output = @footer.sort.join("\n").strip
-      output += "\n\n" if !output.empty? && !footnotes.empty?
+      output += "\n\n" if !output.empty? &amp;&amp; !footnotes.empty?
       output += footnotes.join("\n\n") unless footnotes.empty?
       return output.gsub(/\n{3,}/, "\n\n")
     end
@@ -1449,11 +1510,11 @@ APPLESCRIPT
   end
 
   def print_report
-    return if (@cfg['inline'] && @originput.split(/\n/).length == 1) || @clipboard
+    return if (@cfg['inline'] &amp;&amp; @originput.split(/\n/).length == 1) || @clipboard
 
     return if @report.empty?
 
-    out = "\n<!-- Report:\n#{@report.join("\n")}\n-->\n"
+    out = "\n&lt;!-- Report:\n#{@report.join("\n")}\n--&gt;\n"
     add_output out
   end
 
@@ -1461,7 +1522,7 @@ APPLESCRIPT
     return if @errors.empty?
 
     out = ''
-    inline = if @originput.split(/\n/).length > 1
+    inline = if @originput.split(/\n/).length &gt; 1
                false
              else
                @cfg['inline'] || @originput.split(/\n/).length == 1
@@ -1483,7 +1544,7 @@ APPLESCRIPT
     unless out == ''
       sep = inline ? ' ' : "\n"
       out.sub!(/\| /, '')
-      out = "#{sep}<!-- #{type}:#{sep}#{out}-->#{sep}"
+      out = "#{sep}&lt;!-- #{type}:#{sep}#{out}--&gt;#{sep}"
     end
     if @clipboard
       warn out
@@ -1539,9 +1600,9 @@ APPLESCRIPT
       notify('Error validating', uri_str)
       false
     end
-  rescue StandardError => e
+  rescue StandardError =&gt; e
     notify('Error validating', uri_str)
-    add_error('link validation', "Possibly invalid => #{uri_str} (#{e})")
+    add_error('link validation', "Possibly invalid =&gt; #{uri_str} (#{e})")
     true
   end
 
@@ -1550,14 +1611,14 @@ APPLESCRIPT
   end
 
   def only_url?(input)
-    input =~ %r{(?i)^((http|https)://)?([\w\-_]+(\.[\w\-_]+)+)([\w\-.,@?^=%&amp;:/~+#]*[\w\-@^=%&amp;/~+#])?$}
+    input =~ %r{(?i)^((http|https)://)?([\w\-_]+(\.[\w\-_]+)+)([\w\-.,@?^=%&amp;amp;:/~+#]*[\w\-@^=%&amp;amp;/~+#])?$}
   end
 
   def ref_title_for_url(url)
     url = URI.parse(url) if url.is_a?(String)
 
     parts = url.hostname.split(/\./)
-    domain = if parts.count > 1
+    domain = if parts.count &gt; 1
                parts.slice(-2, 1).join('.')
              else
                parts.join('.')
@@ -1565,7 +1626,7 @@ APPLESCRIPT
 
     path = url.path.split(%r{/}).last
 
-    path.length > domain.length ? path : domain
+    path.length &gt; domain.length ? path : domain
   end
 
   def url_to_link(input, type)
@@ -1587,7 +1648,7 @@ APPLESCRIPT
   def best_search_match(term)
     searches = all_possible_searches.dup
     searches.select do |s|
-      s.matches_score(term, separator: '', start_word: false) > 8
+      s.matches_score(term, separator: '', start_word: false) &gt; 8
     end
   end
 
@@ -1997,7 +2058,7 @@ APPLESCRIPT
                              false
                            end
 
-        results << { 'url' => url, 'title' => title, 'date' => date } if url
+        results &lt;&lt; { 'url' =&gt; url, 'title' =&gt; title, 'date' =&gt; date } if url
       end
 
       if results.empty?
@@ -2019,7 +2080,7 @@ APPLESCRIPT
         urls = extract_chrome_bookmarks(json['children'], urls)
       elsif json['type'] == 'url'
         date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
-        urls << { 'url' => json['url'], 'title' => json['name'], 'date' => date }
+        urls &lt;&lt; { 'url' =&gt; json['url'], 'title' =&gt; json['name'], 'date' =&gt; date }
       else
         json.each { |_, v| urls = extract_chrome_bookmarks(v, urls) }
       end
@@ -2040,9 +2101,9 @@ APPLESCRIPT
            else
              'multi'
            end
-    body = `/usr/bin/curl -sSL 'https://api.themoviedb.org/3/search/#{type}?query=#{ERB::Util.url_encode(terms)}&api_key=2bd76548656d92517f14d64766e87a02'`
+    body = `/usr/bin/curl -sSL 'https://api.themoviedb.org/3/search/#{type}?query=#{ERB::Util.url_encode(terms)}&amp;api_key=2bd76548656d92517f14d64766e87a02'`
     data = JSON.parse(body)
-    if data.key?('results') && data['results'].count.positive?
+    if data.key?('results') &amp;&amp; data['results'].count.positive?
       res = data['results'][0]
       type = res['media_type'] if type == 'multi'
       id = res['id']
@@ -2061,14 +2122,14 @@ APPLESCRIPT
 
   def wiki(terms)
     ## Hack to scrape wikipedia result
-    body = `/usr/bin/curl -sSL 'https://en.wikipedia.org/wiki/Special:Search?search=#{ERB::Util.url_encode(terms)}&go=Go'`
+    body = `/usr/bin/curl -sSL 'https://en.wikipedia.org/wiki/Special:Search?search=#{ERB::Util.url_encode(terms)}&amp;go=Go'`
     return unless body
 
-    body = body.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    body = body.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
 
     begin
       title = body.match(/"wgTitle":"(.*?)"/)[1]
-      url = body.match(/<link rel="canonical" href="(.*?)"/)[1]
+      url = body.match(/&lt;link rel="canonical" href="(.*?)"/)[1]
     rescue StandardError
       return false
     end
@@ -2076,18 +2137,18 @@ APPLESCRIPT
     [url, title]
 
     ## Removed because Ruby 2.0 does not like https connection to wikipedia without using gems?
-    # uri = URI.parse("https://en.wikipedia.org/w/api.php?action=query&format=json&prop=info&inprop=url&titles=#{CGI.escape(terms)}")
+    # uri = URI.parse("https://en.wikipedia.org/w/api.php?action=query&amp;format=json&amp;prop=info&amp;inprop=url&amp;titles=#{CGI.escape(terms)}")
     # req = Net::HTTP::Get.new(uri.path)
     # req['Referer'] = "http://brettterpstra.com"
     # req['User-Agent'] = "SearchLink (http://brettterpstra.com)"
 
     # res = Net::HTTP.start(uri.host, uri.port,
-    #   :use_ssl => true,
-    #   :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |https|
+    #   :use_ssl =&gt; true,
+    #   :verify_mode =&gt; OpenSSL::SSL::VERIFY_NONE) do |https|
     #     https.request(req)
     #   end
 
-    # if RUBY_VERSION.to_f > 1.9
+    # if RUBY_VERSION.to_f &gt; 1.9
     #   body = res.body.force_encoding('utf-8')
     # else
     #   body = res.body
@@ -2106,9 +2167,9 @@ APPLESCRIPT
   end
 
   def zero_click(terms)
-    url = URI.parse("http://api.duckduckgo.com/?q=#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
+    url = URI.parse("http://api.duckduckgo.com/?q=#{ERB::Util.url_encode(terms)}&amp;format=json&amp;no_redirect=1&amp;no_html=1&amp;skip_disambig=1")
     res = Net::HTTP.get_response(url).body
-    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
 
     result = JSON.parse(res)
     return ddg(terms) unless result
@@ -2116,7 +2177,7 @@ APPLESCRIPT
     wiki_link = result['AbstractURL'] || result['Redirect']
     title = result['Heading'] || false
 
-    if !wiki_link.empty? && !title.empty?
+    if !wiki_link.empty? &amp;&amp; !title.empty?
       [wiki_link, title]
     else
       ddg(terms)
@@ -2124,20 +2185,20 @@ APPLESCRIPT
   end
 
   # Search apple music
-  # terms => search terms (unescaped)
-  # media => music, podcast
-  # entity => optional: artist, song, album, podcast
-  # returns {:type=>,:id=>,:url=>,:title}
+  # terms =&gt; search terms (unescaped)
+  # media =&gt; music, podcast
+  # entity =&gt; optional: artist, song, album, podcast
+  # returns {:type=&gt;,:id=&gt;,:url=&gt;,:title}
   def applemusic(terms, media = 'music', entity = '')
     aff = @cfg['itunes_affiliate']
     output = {}
 
-    url = URI.parse("http://itunes.apple.com/search?term=#{ERB::Util.url_encode(terms)}&country=#{@cfg['country_code']}&media=#{media}&entity=#{entity}")
+    url = URI.parse("http://itunes.apple.com/search?term=#{ERB::Util.url_encode(terms)}&amp;country=#{@cfg['country_code']}&amp;media=#{media}&amp;entity=#{entity}")
     res = Net::HTTP.get_response(url).body
-    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
     res.gsub!(/(?mi)[\x00-\x08\x0B-\x0C\x0E-\x1F]/, '')
     json = JSON.parse(res)
-    return false unless json['resultCount']&.positive?
+    return false unless json['resultCount']&amp;.positive?
 
     result = json['results'][0]
 
@@ -2174,19 +2235,19 @@ APPLESCRIPT
   def itunes(entity, terms, dev, aff = nil)
     aff ||= @cfg['itunes_affiliate']
 
-    url = URI.parse("http://itunes.apple.com/search?term=#{ERB::Util.url_encode(terms)}&country=#{@cfg['country_code']}&entity=#{entity}")
+    url = URI.parse("http://itunes.apple.com/search?term=#{ERB::Util.url_encode(terms)}&amp;country=#{@cfg['country_code']}&amp;entity=#{entity}")
     res = Net::HTTP.get_response(url).body
-    res = res.force_encoding('utf-8').encode # if RUBY_VERSION.to_f > 1.9
+    res = res.force_encoding('utf-8').encode # if RUBY_VERSION.to_f &gt; 1.9
 
     begin
       json = JSON.parse(res)
-    rescue StandardError => e
+    rescue StandardError =&gt; e
       add_error('Invalid response', "Search for #{terms}: (#{e})")
       return false
     end
     return false unless json
 
-    return false unless json['resultCount']&.positive?
+    return false unless json['resultCount']&amp;.positive?
 
     result = json['results'][0]
     case entity
@@ -2195,7 +2256,7 @@ APPLESCRIPT
       output_url = result['trackViewUrl']
       output_title = result['trackName']
     when /(mac|iPad)Software/
-      output_url = dev && result['sellerUrl'] ? result['sellerUrl'] : result['trackViewUrl']
+      output_url = dev &amp;&amp; result['sellerUrl'] ? result['sellerUrl'] : result['trackViewUrl']
       output_title = result['trackName']
     when /(musicArtist|song|album)/
       case result['wrapperType']
@@ -2213,7 +2274,7 @@ APPLESCRIPT
       output_url = result['collectionViewUrl']
       output_title = result['collectionName']
     end
-    return false unless output_url && output_title
+    return false unless output_url &amp;&amp; output_title
 
     return [output_url, output_title] if dev
 
@@ -2221,9 +2282,9 @@ APPLESCRIPT
   end
 
   def lastfm(entity, terms)
-    url = URI.parse("http://ws.audioscrobbler.com/2.0/?method=#{entity}.search&#{entity}=#{ERB::Util.url_encode(terms)}&api_key=2f3407ec29601f97ca8a18ff580477de&format=json")
+    url = URI.parse("http://ws.audioscrobbler.com/2.0/?method=#{entity}.search&amp;#{entity}=#{ERB::Util.url_encode(terms)}&amp;api_key=2f3407ec29601f97ca8a18ff580477de&amp;format=json")
     res = Net::HTTP.get_response(url).body
-    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
     json = JSON.parse(res)
     return false unless json['results']
 
@@ -2245,9 +2306,9 @@ APPLESCRIPT
   end
 
   def define(terms)
-    url = URI.parse("http://api.duckduckgo.com/?q=!def+#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
+    url = URI.parse("http://api.duckduckgo.com/?q=!def+#{ERB::Util.url_encode(terms)}&amp;format=json&amp;no_redirect=1&amp;no_html=1&amp;skip_disambig=1")
     res = Net::HTTP.get_response(url).body
-    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
 
     result = JSON.parse(res)
 
@@ -2255,7 +2316,7 @@ APPLESCRIPT
       wiki_link = result['Redirect'] || false
       title = terms
 
-      if !wiki_link.empty? && !title.empty?
+      if !wiki_link.empty? &amp;&amp; !title.empty?
         return [wiki_link, title]
       end
     end
@@ -2263,9 +2324,9 @@ APPLESCRIPT
     def_url = "https://www.wordnik.com/words/#{ERB::Util.url_encode(terms)}"
     body = `/usr/bin/curl -sSL '#{def_url}'`
     if body =~ /id="define"/
-      first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]
-      parts = first_definition.match(%r{<abbr title="partOfSpeech">(.*?)</abbr> (.*?)$})
-      return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(/ *<\/?.*?> /, '')]
+      first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?&lt;li&gt;)([\s\S]*?)&lt;/li&gt;})[1]
+      parts = first_definition.match(%r{&lt;abbr title="partOfSpeech"&gt;(.*?)&lt;/abbr&gt; (.*?)$})
+      return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(/ *&lt;\/?.*?&gt; /, '')]
     end
 
     false
@@ -2274,7 +2335,7 @@ APPLESCRIPT
   end
 
   def pinboard_bookmarks
-    bookmarks = `/usr/bin/curl -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{@cfg['pinboard_api_key']}&format=json"`
+    bookmarks = `/usr/bin/curl -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{@cfg['pinboard_api_key']}&amp;format=json"`
     bookmarks = bookmarks.force_encoding('utf-8')
     bookmarks.gsub!(/[^[:ascii:]]/) do |non_ascii|
       non_ascii.force_encoding('utf-8')
@@ -2287,7 +2348,7 @@ APPLESCRIPT
 
     bookmarks = JSON.parse(bookmarks)
     updated = Time.now
-    { 'update_time' => updated, 'bookmarks' => bookmarks }
+    { 'update_time' =&gt; updated, 'bookmarks' =&gt; bookmarks }
   end
 
   def save_pinboard_cache(cache)
@@ -2323,11 +2384,11 @@ APPLESCRIPT
         cache = pinboard_bookmarks
         save_pinboard_cache(cache)
       end
-      updated = JSON.parse(`/usr/bin/curl -sSL 'https://api.pinboard.in/v1/posts/update?auth_token=#{@cfg['pinboard_api_key']}&format=json'`)
+      updated = JSON.parse(`/usr/bin/curl -sSL 'https://api.pinboard.in/v1/posts/update?auth_token=#{@cfg['pinboard_api_key']}&amp;format=json'`)
       last_bookmark = Time.parse(updated['update_time'])
-      if cache&.key?('update_time')
+      if cache&amp;.key?('update_time')
         last_update = cache['update_time']
-        refresh_cache = true if last_update < last_bookmark
+        refresh_cache = true if last_update &lt; last_bookmark
       else
         refresh_cache = true
       end
@@ -2425,13 +2486,13 @@ APPLESCRIPT
 
   # Search bookmark paths and addresses. Return array of bookmark hashes.
   def search_hook(search)
-    path_matches = `osascript <<'APPLESCRIPT'
+    path_matches = `osascript &lt;&lt;'APPLESCRIPT'
       set searchString to "#{search.strip}"
       tell application "Hook"
         set _marks to every bookmark whose name contains searchString or path contains searchString or address contains searchString
         set _out to {}
         repeat with _hook in _marks
-          set _out to _out & (name of _hook & "||" & address of _hook & "||" & path of _hook)
+          set _out to _out &amp; (name of _hook &amp; "||" &amp; address of _hook &amp; "||" &amp; path of _hook)
         end repeat
         set {astid, AppleScript's text item delimiters} to {AppleScript's text item delimiters, "^^"}
         set _output to _out as string
@@ -2447,11 +2508,11 @@ APPLESCRIPT
   end
 
   def google(terms, define = false)
-    uri = URI.parse("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&filter=1&rsz=small&q=#{ERB::Util.url_encode(terms)}")
+    uri = URI.parse("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&amp;filter=1&amp;rsz=small&amp;q=#{ERB::Util.url_encode(terms)}")
     req = Net::HTTP::Get.new(uri.request_uri)
     req['Referer'] = 'http://brettterpstra.com'
     res = Net::HTTP.start(uri.host, uri.port) { |http| http.request(req) }
-    body = if RUBY_VERSION.to_f > 1.9
+    body = if RUBY_VERSION.to_f &gt; 1.9
              res.body.force_encoding('utf-8')
            else
              res.body
@@ -2464,8 +2525,8 @@ APPLESCRIPT
     return false if result.nil?
 
     output_url = result['unescapedUrl']
-    output_title = if define && output_url =~ /dictionary/
-                     result['content'].gsub(/<\/?.*?>/, '')
+    output_title = if define &amp;&amp; output_url =~ /dictionary/
+                     result['content'].gsub(/&lt;\/?.*?&gt;/, '')
                    else
                      result['titleNoFormatting']
                    end
@@ -2502,7 +2563,7 @@ APPLESCRIPT
 
     gather = false
     ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
-      if File.exist?(File.join(root, 'gather')) && File.executable?(File.join(root, 'gather'))
+      if File.exist?(File.join(root, 'gather')) &amp;&amp; File.executable?(File.join(root, 'gather'))
         gather = File.join(root, 'gather')
         break
       end
@@ -2518,7 +2579,7 @@ APPLESCRIPT
 
       if res.code.to_i == 200
         source = res.body
-        title = source ? source.match(%r{<title>(.*)</title>}im) : nil
+        title = source ? source.match(%r{&lt;title&gt;(.*)&lt;/title&gt;}im) : nil
 
         title = title.nil? ? nil : title[1].strip
       end
@@ -2533,7 +2594,7 @@ APPLESCRIPT
       # Skipping SEO removal until it's more reliable
       # title.remove_seo(url.strip)
       title
-    rescue StandardError => e
+    rescue StandardError =&gt; e
       warn "Error retrieving title for #{url.strip}"
       raise e
     end
@@ -2560,7 +2621,7 @@ APPLESCRIPT
           output += w
         else
           spell_res.sub!(/.*?: /, '')
-          results = spell_res.split(/, /).delete_if { |word| phrase =~ /^[a-z]/ && word =~ /[A-Z]/ }
+          results = spell_res.split(/, /).delete_if { |word| phrase =~ /^[a-z]/ &amp;&amp; word =~ /[A-Z]/ }
           output += results[0]
         end
       else
@@ -2579,7 +2640,7 @@ APPLESCRIPT
     title = m[1]
     type = m[2]
     id = m[3]
-    az_url = "http://www.amazon.com/#{type}p/product/#{id}/ref=as_li_ss_tl?ie=UTF8&linkCode=ll1&tag=#{amazon_partner}"
+    az_url = "http://www.amazon.com/#{type}p/product/#{id}/ref=as_li_ss_tl?ie=UTF8&amp;linkCode=ll1&amp;tag=#{amazon_partner}"
     [az_url, title]
   end
 
@@ -2629,7 +2690,7 @@ APPLESCRIPT
 
     case search_type
     when /^r$/ # simple replacement
-      if @cfg['validate_links'] && !valid_link?(search_terms)
+      if @cfg['validate_links'] &amp;&amp; !valid_link?(search_terms)
         return [false, "Link not valid: #{search_terms}", link_text]
       end
 
@@ -2683,7 +2744,7 @@ APPLESCRIPT
       types = []
       if str =~ /s([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length &gt; 1
           types.push('safari_history')
           types.push('safari_bookmarks')
         elsif t == 'h'
@@ -2695,7 +2756,7 @@ APPLESCRIPT
 
       if str =~ /c([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length &gt; 1
           types.push('chrome_bookmarks')
           types.push('chrome_history')
         elsif t == 'h'
@@ -2707,7 +2768,7 @@ APPLESCRIPT
 
       if str =~ /f([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length &gt; 1
           types.push('firefox_bookmarks')
           types.push('firefox_history')
         elsif t == 'h'
@@ -2719,7 +2780,7 @@ APPLESCRIPT
 
       if str =~ /e([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length &gt; 1
           types.push('edge_bookmarks')
           types.push('edge_history')
         elsif t == 'h'
@@ -2731,7 +2792,7 @@ APPLESCRIPT
 
       if str =~ /b([hb]*)/
         t = Regexp.last_match(1)
-        if t.length > 1
+        if t.length &gt; 1
           types.push('brave_bookmarks')
           types.push('brave_history')
         elsif t == 'h'
@@ -2757,7 +2818,7 @@ APPLESCRIPT
       url, title = wiki(search_terms)
     when /^def$/ # wikipedia/dictionary search
       # title, definition, definition_link, wiki_link = zero_click(search_terms)
-      # if search_type == 'def' && definition_link != ''
+      # if search_type == 'def' &amp;&amp; definition_link != ''
       #   url = definition_link
       #   title = definition.gsub(/'+/,"'")
       # elsif wiki_link != ''
@@ -2766,7 +2827,7 @@ APPLESCRIPT
       # end
       fix = spell(search_terms)
 
-      if fix && search_terms.downcase != fix.downcase
+      if fix &amp;&amp; search_terms.downcase != fix.downcase
         add_error('Spelling', "Spelling altered for '#{search_terms}' to '#{fix}'")
         search_terms = fix
         link_text = fix
@@ -2787,10 +2848,10 @@ APPLESCRIPT
     when /^s$/ # software search (google)
       excludes = %w[postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
       url, title = ddg(%(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} (app OR mac)))
-      link_text = title if link_text == '' && !@titleize
+      link_text = title if link_text == '' &amp;&amp; !@titleize
     when /^tmdb/
       url, title = tmdb(search_type, search_terms)
-      link_text = title if link_text == '' && !@titleize
+      link_text = title if link_text == '' &amp;&amp; !@titleize
     when /^am/ # apple music search
       stype = search_type.downcase.sub(/^am/, '')
       otype = 'link'
@@ -2813,11 +2874,11 @@ APPLESCRIPT
 
       return [false, "Not found: #{search_terms}", link_text] unless result
 
-      # {:type=>,:id=>,:url=>,:title=>}
-      if otype == 'embed' && result[:type] =~ /(album|song)/
+      # {:type=&gt;,:id=&gt;,:url=&gt;,:title=&gt;}
+      if otype == 'embed' &amp;&amp; result[:type] =~ /(album|song)/
         url = 'embed'
         if result[:type] =~ /song/
-          link = %(https://embed.music.apple.com/#{@cfg['country_code'].downcase}/album/#{result[:album]}?i=#{result[:id]}&app=music#{@cfg['itunes_affiliate']})
+          link = %(https://embed.music.apple.com/#{@cfg['country_code'].downcase}/album/#{result[:album]}?i=#{result[:id]}&amp;app=music#{@cfg['itunes_affiliate']})
           height = 150
         else
           link = %(https://embed.music.apple.com/#{@cfg['country_code'].downcase}/album/#{result[:id]}?app=music#{@cfg['itunes_affiliate']})
@@ -2825,11 +2886,11 @@ APPLESCRIPT
         end
 
         title = [
-          %(<iframe src="#{link}" allow="autoplay *; encrypted-media *;"),
+          %(&lt;iframe src="#{link}" allow="autoplay *; encrypted-media *;"),
           %(frameborder="0" height="#{height}"),
           %(style="width:100%;max-width:660px;overflow:hidden;background:transparent;"),
           %(sandbox="allow-forms allow-popups allow-same-origin),
-          %(allow-scripts allow-top-navigation-by-user-activation"></iframe>)
+          %(allow-scripts allow-top-navigation-by-user-activation"&gt;&lt;/iframe&gt;)
         ].join(' ')
       else
         url = result[:url]
@@ -2867,7 +2928,7 @@ APPLESCRIPT
       link_text = @titleize ? title : search_terms
     end
 
-    if url && @cfg['validate_links'] && !valid_link?(url) && search_type !~ /^sp(ell)?/
+    if url &amp;&amp; @cfg['validate_links'] &amp;&amp; !valid_link?(url) &amp;&amp; search_type !~ /^sp(ell)?/
       [false, "Not found: #{url}", link_text]
     elsif !url
       [false, "No results: #{url}", link_text]
@@ -2900,10 +2961,10 @@ if !ARGV.empty?
   end
 
   files.each do |file|
-    if File.exist?(file) && `file -b "#{file}"|grep -c text`.to_i.positive?
-      input = RUBY_VERSION.to_f > 1.9 ? IO.read(file).force_encoding('utf-8') : IO.read(file)
+    if File.exist?(file) &amp;&amp; `file -b "#{file}"|grep -c text`.to_i.positive?
+      input = RUBY_VERSION.to_f &gt; 1.9 ? IO.read(file).force_encoding('utf-8') : IO.read(file)
 
-      FileUtils.cp(file, "#{file}.bak") if backup && overwrite
+      FileUtils.cp(file, "#{file}.bak") if backup &amp;&amp; overwrite
 
       sl.parse(input)
 
@@ -2919,7 +2980,7 @@ if !ARGV.empty?
     end
   end
 else
-  input = RUBY_VERSION.to_f > 1.9 ? $stdin.read.force_encoding('utf-8').encode : $stdin.read
+  input = RUBY_VERSION.to_f &gt; 1.9 ? $stdin.read.force_encoding('utf-8').encode : $stdin.read
 
   sl.parse(input)
   if sl.clipboard
@@ -2928,3 +2989,322 @@ else
     print sl.output
   end
 end
+</string>
+					<key>CheckedForUserDefaultShell</key>
+					<true/>
+					<key>inputMethod</key>
+					<integer>0</integer>
+					<key>shell</key>
+					<string>/usr/bin/ruby</string>
+					<key>source</key>
+					<string></string>
+				</dict>
+				<key>BundleIdentifier</key>
+				<string>com.apple.RunShellScript</string>
+				<key>CFBundleVersion</key>
+				<string>2.0.3</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>Class Name</key>
+				<string>RunShellScriptAction</string>
+				<key>InputUUID</key>
+				<string>1B92DCEB-5863-44D2-BBFD-E97F0318316D</string>
+				<key>Keywords</key>
+				<array>
+					<string>Shell</string>
+					<string>Script</string>
+					<string>Command</string>
+					<string>Run</string>
+					<string>Unix</string>
+				</array>
+				<key>OutputUUID</key>
+				<string>34FFFEE7-9E94-42F4-89C2-2F66196FF67A</string>
+				<key>UUID</key>
+				<string>348C55FD-D93F-4CDE-A8A8-DC31888F8448</string>
+				<key>UnlocalizedApplications</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>arguments</key>
+				<dict>
+					<key>0</key>
+					<dict>
+						<key>default value</key>
+						<integer>0</integer>
+						<key>name</key>
+						<string>inputMethod</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>0</string>
+					</dict>
+					<key>1</key>
+					<dict>
+						<key>default value</key>
+						<false/>
+						<key>name</key>
+						<string>CheckedForUserDefaultShell</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>1</string>
+					</dict>
+					<key>2</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>source</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>2</string>
+					</dict>
+					<key>3</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>COMMAND_STRING</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>3</string>
+					</dict>
+					<key>4</key>
+					<dict>
+						<key>default value</key>
+						<string>/bin/sh</string>
+						<key>name</key>
+						<string>shell</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>4</string>
+					</dict>
+				</dict>
+				<key>isViewVisible</key>
+				<true/>
+				<key>location</key>
+				<string>724.500000:305.000000</string>
+				<key>nibPath</key>
+				<string>/System/Library/Automator/Run Shell Script.action/Contents/Resources/Base.lproj/main.nib</string>
+			</dict>
+			<key>isViewVisible</key>
+			<true/>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>applicationBundleIDsByPath</key>
+		<dict/>
+		<key>applicationPaths</key>
+		<array/>
+		<key>backgroundColor</key>
+		<data>
+		YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9i
+		amVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGpCwwXGBki
+		KCkwVSRudWxs1Q0ODxAREhMUFRZWJGNsYXNzW05TQ29sb3JOYW1lXE5TQ29s
+		b3JTcGFjZV1OU0NhdGFsb2dOYW1lV05TQ29sb3KACIADEAaAAoAEVlN5c3Rl
+		bV8QEXN5c3RlbVB1cnBsZUNvbG9y1RobDxwNHR4fIBJcTlNDb21wb25lbnRz
+		VU5TUkdCXxASTlNDdXN0b21Db2xvclNwYWNlSzAuNSAwIDAuNSAxTxAcMC40
+		MTgxOTMzOTk5IDAgMC40MjQzMDUzMTk4ABABgAWACNMjJA0lJidUTlNJRFVO
+		U0lDQxAHgAaAB08RDEgAAAxITGlubwIQAABtbnRyUkdCIFhZWiAHzgACAAkA
+		BgAxAABhY3NwTVNGVAAAAABJRUMgc1JHQgAAAAAAAAAAAAAAAAAA9tYAAQAA
+		AADTLUhQICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+		AAAAAAAAAAAAABFjcHJ0AAABUAAAADNkZXNjAAABhAAAAGx3dHB0AAAB8AAA
+		ABRia3B0AAACBAAAABRyWFlaAAACGAAAABRnWFlaAAACLAAAABRiWFlaAAAC
+		QAAAABRkbW5kAAACVAAAAHBkbWRkAAACxAAAAIh2dWVkAAADTAAAAIZ2aWV3
+		AAAD1AAAACRsdW1pAAAD+AAAABRtZWFzAAAEDAAAACR0ZWNoAAAEMAAAAAxy
+		VFJDAAAEPAAACAxnVFJDAAAEPAAACAxiVFJDAAAEPAAACAx0ZXh0AAAAAENv
+		cHlyaWdodCAoYykgMTk5OCBIZXdsZXR0LVBhY2thcmQgQ29tcGFueQAAZGVz
+		YwAAAAAAAAASc1JHQiBJRUM2MTk2Ni0yLjEAAAAAAAAAAAAAABJzUkdCIElF
+		QzYxOTY2LTIuMQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+		AAAAAAAAAAAAAAAAAAAAWFlaIAAAAAAAAPNRAAEAAAABFsxYWVogAAAAAAAA
+		AAAAAAAAAAAAAFhZWiAAAAAAAABvogAAOPUAAAOQWFlaIAAAAAAAAGKZAAC3
+		hQAAGNpYWVogAAAAAAAAJKAAAA+EAAC2z2Rlc2MAAAAAAAAAFklFQyBodHRw
+		Oi8vd3d3LmllYy5jaAAAAAAAAAAAAAAAFklFQyBodHRwOi8vd3d3LmllYy5j
+		aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+		AABkZXNjAAAAAAAAAC5JRUMgNjE5NjYtMi4xIERlZmF1bHQgUkdCIGNvbG91
+		ciBzcGFjZSAtIHNSR0IAAAAAAAAAAAAAAC5JRUMgNjE5NjYtMi4xIERlZmF1
+		bHQgUkdCIGNvbG91ciBzcGFjZSAtIHNSR0IAAAAAAAAAAAAAAAAAAAAAAAAA
+		AAAAZGVzYwAAAAAAAAAsUmVmZXJlbmNlIFZpZXdpbmcgQ29uZGl0aW9uIGlu
+		IElFQzYxOTY2LTIuMQAAAAAAAAAAAAAALFJlZmVyZW5jZSBWaWV3aW5nIENv
+		bmRpdGlvbiBpbiBJRUM2MTk2Ni0yLjEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+		AAAAAHZpZXcAAAAAABOk/gAUXy4AEM8UAAPtzAAEEwsAA1yeAAAAAVhZWiAA
+		AAAAAEwJVgBQAAAAVx/nbWVhcwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAA
+		Ao8AAAACc2lnIAAAAABDUlQgY3VydgAAAAAAAAQAAAAABQAKAA8AFAAZAB4A
+		IwAoAC0AMgA3ADsAQABFAEoATwBUAFkAXgBjAGgAbQByAHcAfACBAIYAiwCQ
+		AJUAmgCfAKQAqQCuALIAtwC8AMEAxgDLANAA1QDbAOAA5QDrAPAA9gD7AQEB
+		BwENARMBGQEfASUBKwEyATgBPgFFAUwBUgFZAWABZwFuAXUBfAGDAYsBkgGa
+		AaEBqQGxAbkBwQHJAdEB2QHhAekB8gH6AgMCDAIUAh0CJgIvAjgCQQJLAlQC
+		XQJnAnECegKEAo4CmAKiAqwCtgLBAssC1QLgAusC9QMAAwsDFgMhAy0DOAND
+		A08DWgNmA3IDfgOKA5YDogOuA7oDxwPTA+AD7AP5BAYEEwQgBC0EOwRIBFUE
+		YwRxBH4EjASaBKgEtgTEBNME4QTwBP4FDQUcBSsFOgVJBVgFZwV3BYYFlgWm
+		BbUFxQXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkH
+		Kwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggiWCKoIvgjS
+		COcI+wkQCSUJOglPCWQJeQmPCaQJugnPCeUJ+woRCicKPQpUCmoKgQqYCq4K
+		xQrcCvMLCwsiCzkLUQtpC4ALmAuwC8gL4Qv5DBIMKgxDDFwMdQyODKcMwAzZ
+		DPMNDQ0mDUANWg10DY4NqQ3DDd4N+A4TDi4OSQ5kDn8Omw62DtIO7g8JDyUP
+		QQ9eD3oPlg+zD88P7BAJECYQQxBhEH4QmxC5ENcQ9RETETERTxFtEYwRqhHJ
+		EegSBxImEkUSZBKEEqMSwxLjEwMTIxNDE2MTgxOkE8UT5RQGFCcUSRRqFIsU
+		rRTOFPAVEhU0FVYVeBWbFb0V4BYDFiYWSRZsFo8WshbWFvoXHRdBF2UXiReu
+		F9IX9xgbGEAYZRiKGK8Y1Rj6GSAZRRlrGZEZtxndGgQaKhpRGncanhrFGuwb
+		FBs7G2MbihuyG9ocAhwqHFIcexyjHMwc9R0eHUcdcB2ZHcMd7B4WHkAeah6U
+		Hr4e6R8THz4faR+UH78f6iAVIEEgbCCYIMQg8CEcIUghdSGhIc4h+yInIlUi
+		giKvIt0jCiM4I2YjlCPCI/AkHyRNJHwkqyTaJQklOCVoJZclxyX3JicmVyaH
+		Jrcm6CcYJ0kneierJ9woDSg/KHEooijUKQYpOClrKZ0p0CoCKjUqaCqbKs8r
+		Ais2K2krnSvRLAUsOSxuLKIs1y0MLUEtdi2rLeEuFi5MLoIuty7uLyQvWi+R
+		L8cv/jA1MGwwpDDbMRIxSjGCMbox8jIqMmMymzLUMw0zRjN/M7gz8TQrNGU0
+		njTYNRM1TTWHNcI1/TY3NnI2rjbpNyQ3YDecN9c4FDhQOIw4yDkFOUI5fzm8
+		Ofk6Njp0OrI67zstO2s7qjvoPCc8ZTykPOM9Ij1hPaE94D4gPmA+oD7gPyE/
+		YT+iP+JAI0BkQKZA50EpQWpBrEHuQjBCckK1QvdDOkN9Q8BEA0RHRIpEzkUS
+		RVVFmkXeRiJGZ0arRvBHNUd7R8BIBUhLSJFI10kdSWNJqUnwSjdKfUrESwxL
+		U0uaS+JMKkxyTLpNAk1KTZNN3E4lTm5Ot08AT0lPk0/dUCdQcVC7UQZRUFGb
+		UeZSMVJ8UsdTE1NfU6pT9lRCVI9U21UoVXVVwlYPVlxWqVb3V0RXklfgWC9Y
+		fVjLWRpZaVm4WgdaVlqmWvVbRVuVW+VcNVyGXNZdJ114XcleGl5sXr1fD19h
+		X7NgBWBXYKpg/GFPYaJh9WJJYpxi8GNDY5dj62RAZJRk6WU9ZZJl52Y9ZpJm
+		6Gc9Z5Nn6Wg/aJZo7GlDaZpp8WpIap9q92tPa6dr/2xXbK9tCG1gbbluEm5r
+		bsRvHm94b9FwK3CGcOBxOnGVcfByS3KmcwFzXXO4dBR0cHTMdSh1hXXhdj52
+		m3b4d1Z3s3gReG54zHkqeYl553pGeqV7BHtje8J8IXyBfOF9QX2hfgF+Yn7C
+		fyN/hH/lgEeAqIEKgWuBzYIwgpKC9INXg7qEHYSAhOOFR4Wrhg6GcobXhzuH
+		n4gEiGmIzokziZmJ/opkisqLMIuWi/yMY4zKjTGNmI3/jmaOzo82j56QBpBu
+		kNaRP5GokhGSepLjk02TtpQglIqU9JVflcmWNJaflwqXdZfgmEyYuJkkmZCZ
+		/JpomtWbQpuvnByciZz3nWSd0p5Anq6fHZ+Ln/qgaaDYoUehtqImopajBqN2
+		o+akVqTHpTilqaYapoum/adup+CoUqjEqTepqaocqo+rAqt1q+msXKzQrUSt
+		uK4trqGvFq+LsACwdbDqsWCx1rJLssKzOLOutCW0nLUTtYq2AbZ5tvC3aLfg
+		uFm40blKucK6O7q1uy67p7whvJu9Fb2Pvgq+hL7/v3q/9cBwwOzBZ8Hjwl/C
+		28NYw9TEUcTOxUvFyMZGxsPHQce/yD3IvMk6ybnKOMq3yzbLtsw1zLXNNc21
+		zjbOts83z7jQOdC60TzRvtI/0sHTRNPG1EnUy9VO1dHWVdbY11zX4Nhk2OjZ
+		bNnx2nba+9uA3AXcit0Q3ZbeHN6i3ynfr+A24L3hROHM4lPi2+Nj4+vkc+T8
+		5YTmDeaW5x/nqegy6LzpRunQ6lvq5etw6/vshu0R7ZzuKO6070DvzPBY8OXx
+		cvH/8ozzGfOn9DT0wvVQ9d72bfb794r4Gfio+Tj5x/pX+uf7d/wH/Jj9Kf26
+		/kv+3P9t///SKissLVokY2xhc3NuYW1lWCRjbGFzc2VzXE5TQ29sb3JTcGFj
+		ZaIuL1xOU0NvbG9yU3BhY2VYTlNPYmplY3TSKisxMldOU0NvbG9yojEvAAgA
+		EQAaACQAKQAyADcASQBMAFEAUwBdAGMAbgB1AIEAjgCcAKQApgCoAKoArACu
+		ALUAyQDUAOEA5wD8AQgBJwEpASsBLQE0ATkBPwFBAUMBRQ2RDZYNoQ2qDbcN
+		ug3HDdAN1Q3dAAAAAAAAAgEAAAAAAAAAMwAAAAAAAAAAAAAAAAAADeA=
+		</data>
+		<key>backgroundColorName</key>
+		<string>systemPurpleColor</string>
+		<key>customImageFileData</key>
+		<data>
+		iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAEumlUWHRYTUw6
+		Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJX
+		NU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4
+		PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS41LjAiPgog
+		PHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAy
+		LzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjph
+		Ym91dD0iIgogICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9l
+		eGlmLzEuMC8iCiAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29t
+		L3RpZmYvMS4wLyIKICAgIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFk
+		b2JlLmNvbS9waG90b3Nob3AvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDov
+		L25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgIHhtbG5zOnhtcE1NPSJodHRw
+		Oi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgeG1sbnM6c3RFdnQ9
+		Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2
+		ZW50IyIKICAgZXhpZjpQaXhlbFhEaW1lbnNpb249IjY0IgogICBleGlmOlBp
+		eGVsWURpbWVuc2lvbj0iNjQiCiAgIGV4aWY6Q29sb3JTcGFjZT0iMSIKICAg
+		dGlmZjpJbWFnZVdpZHRoPSI2NCIKICAgdGlmZjpJbWFnZUxlbmd0aD0iNjQi
+		CiAgIHRpZmY6UmVzb2x1dGlvblVuaXQ9IjIiCiAgIHRpZmY6WFJlc29sdXRp
+		b249IjcyLjAiCiAgIHRpZmY6WVJlc29sdXRpb249IjcyLjAiCiAgIHBob3Rv
+		c2hvcDpDb2xvck1vZGU9IjMiCiAgIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJz
+		UkdCIElFQzYxOTY2LTIuMSIKICAgeG1wOk1vZGlmeURhdGU9IjIwMjAtMDEt
+		MDdUMDI6NDA6MjItMDY6MDAiCiAgIHhtcDpNZXRhZGF0YURhdGU9IjIwMjAt
+		MDEtMDdUMDI6NDA6MjItMDY6MDAiPgogICA8eG1wTU06SGlzdG9yeT4KICAg
+		IDxyZGY6U2VxPgogICAgIDxyZGY6bGkKICAgICAgc3RFdnQ6YWN0aW9uPSJw
+		cm9kdWNlZCIKICAgICAgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWZmaW5pdHkg
+		RGVzaWduZXIgKFNlcCAyMiAyMDE5KSIKICAgICAgc3RFdnQ6d2hlbj0iMjAy
+		MC0wMS0wN1QwMjo0MDoyMi0wNjowMCIvPgogICAgPC9yZGY6U2VxPgogICA8
+		L3htcE1NOkhpc3Rvcnk+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpS
+		REY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+GQoLqgAAAYFp
+		Q0NQc1JHQiBJRUM2MTk2Ni0yLjEAACiRdZG/S0JRFMc/WmGUYVBDQ4OENWmY
+		gtQSpEQFEmIGWS36/BWoPd4zIlqDVqEgaunXUH9BrUFzEBRFEE0NzUUtJa/z
+		MlAiz+He+7nfe87h3nPBGssrBb3ZC4ViSYtOBJ1z8Xmn7RkLNvFu/AlFV8ci
+		kTAN7eNOosVuPGatxnH/WnsqrStgaRUeVVStJDwpHF4tqSZvC3cruURK+FTY
+		rckFhW9NPVnlF5OzVf4yWYtFQ2DtFHZm6zhZx0pOKwjLy3EV8ivK733Ml9jT
+		xdkZWftk9KITZYIgTqYYJ0SAIUZkDuDBx6DsaJDv/cmfZllyFZlV1tBYIkuO
+		Em5RV6R6WtaM6GnxPGtm///2Vc/4fdXq9iC0PBnGWz/YtqBSNozPQ8OoHEHT
+		I1wUa/nLBzD8Lnq5prn2wbEBZ5c1LbkD55vQ86AmtMSP1CTDmsnA6wl0xKHr
+		GtoWqj37Pef4HmLr8lVXsLsHAxLvWPwGMBxnzYSHYMEAAAAJcEhZcwAACxMA
+		AAsTAQCanBgAAAbFSURBVHic7ZtZjBZFEMd/DLsseIMsK6xyqgjIuSuJ1wsh
+		kQRBQUBROVQ8MB4kGvHiQROFiAm+qDEoagLEYxF9AB9U4oMmoqBcYiQCuiBG
+		YJcrCrssfD7UjNMz2zPfdE9/ZBX+SWdnp6qrqmt6qruq54MzOL3RrkRy2wOX
+		A4P9/zcD24ATBjLKgP7+9c9AizPrSggPeBQ4BBRi7ZBP84rIGA18CzQpfZv8
+		e6NLYrUjnA+spfXA420tUKHp7wHvZOj/LlBeumHY43GKGx+0sZr+owz63+PK
+		6GLT0QQzDHjP0ty70KD/3Qa8qXDlgFrgSkeysuAawgCZC64cMNORHBPc5UKI
+		Cwd0AKY6kGOK6chymwsuHDAe6OJAjim6A2PyCnHhgJkOZNgidzDM64CLcPAU
+		cmAc0DWPgLwOmIaD9zAHyoE78wjI6wCTtb9UyLUa5HHAFGBQHuWOMASYZNvZ
+		1gETgKW2SkuA5cDNNh1tHDABeJ+2lZCUAx9g4QRTB7TFwQewcoKJAwbTdgcf
+		IHBC5rzEZAlbCIwwtUjBDuBTYDGwGvgrRm8A6oGDwDlAZ0s97ZFs8xPL/lpU
+		AsfInq8H7RjwGtDbQmcf4HWilSETvZUWOhPxrIURy4EeCfJ0tcik+mQ18J6F
+		/qcNxpeKMuB3Q+VLYgPqhGxYlgE70a/bk3zacp+3o0LzgLcNbdjl254btxkq
+		/owwuLYDngT2xXgma/RMjvHsA+YSOtLzZZvYMiX36IGvDZWq2+O6BJ4sDgha
+		ncIzw9CWr3KMG4AaQ4UFJEMEuDqFx8QBBV8WQJWFPcPTBlhsH/BIEboONwJn
+		I9PXFeb6MsdZ9LUZA2C/9BWA5iJ00xmQRWZSS10S02bA/egPMLKgFLtFW5kV
+		wH1JxCQHlAGzLRW2RcwmYUlMcsAtJG9i/ouoBibqCEkOsA4cbRjaMekcUIOc
+		vPzfcC2aZE7ngCxPvxnYBDTmNMoFGhFbmjPwPhy/EQ8MlcCtmo4HgQ+BdX7b
+		oijsg5wN1iCnvqU+I9wCrALW+7bs9O938HXX+m0ycEGs71TgCWSbrYUu61tN
+		9oBYBsyjdPuAeWRPcKqR+kNczjNpxqtZ3yH05/D9kFnyHMkFkmHAxpTBmDpg
+		AzA0xt8BuAp4AEm4ko7nZgGHFVm7SXCimmg0An0VWnvEc40xw3YkKAXZuKxK
+		GJCJA1YR3QR1B1bSulCyIMWWvsABhXe6ztjtCsMdCm0A8n2OzrjFKUoDYxs0
+		/bI6oIEwuQI5BYo/hAJSXrupiC3TFP7txGbBfQrxI+X+UOCoQtsLzEc2SpcU
+		URjgdo3BWR2gHrvH49M3SEAbBZyb0ZaPlf73BjcrkGJkAYmO3fz75ci7F3So
+		w77OtgJzB6h1gOGEgfUo8Bh2ZxpVwH5fTj1+rjNeUTpfYX5eub/MQpmKEZg7
+		IMjjOxANqFYnQAoWKLLGe0TX7XX+3wrCfP4P4KGcSjcjQSsrmpD1HmTAQ/zr
+		pcg0zoN1yvVADwlyceJQxPMAi5AImgfHESdkxSa/D8hSF2BeTjtANlABBnrA
+		QP+f/cBv/nWtwvSdA6UQ9bwJb2DLfuBXB3bsRFYXgAEe4edmGxSmYNNxAvje
+		gVJicgoaunrvB40trh6EKr+/R7inVyN8cHS1BNlFuUCVct2goauJVTfleoVv
+		yxuO7FBtaQYJNgXknVMPI1yXtdQ1+AoNfYBCXxmjubSlE/LleQHY7CEnKCA7
+		o2EK43HcIniXC0jOEcduwtegNkZzactwwkPhXR6wRiHWOFSkogrJzkDe5SMa
+		niOEwe9ioq+BS6hjXOMRXVdL9cmbKjft2FqlnQpb/h37etJ3aXnQjfBssAW4
+		NIX3MsL3cy+Oj7iRND4YZ2RZHqMQ1HzABdQ84M0M/G8p/HVFeE2g5gEF4IY4
+		wxckR2FbqJng34RxIA3VPq8uI8wDdRX6XMfQG5l2AdMiosuiKSYSLULMMOir
+		FmcOkFDTz4iOyFjUlL5XEvP1ROt5W4GRhgq7IB85qJndQlOrgZdjMpZh/lX6
+		SOAnRUYTcF2xTmOJ1tBagBcoHpA6Ik9qT8zwRdjl7h7wSkzWHl9HsZlZCbxI
+		GFALyJha/VYp6bucQciS1C92v56wNL4R6ElYhh5EtMzUDDyIBLU8mAW8Spid
+		ggzsR8WWeiRnCGzpGZOxHal7bDVR3An50Ej3G8C0dhL5qKlva5HW6OfLPGlo
+		y0HgKX8s1ugKzAG+JDql4m0b8BLR7bRrDEPiybYUO1p8W+eQ4Zdopj+d7Yxs
+		ZLoj6+ph5L2sJ6wlnCr0QqZ6D+A84E+kevUL+Qs4Z3Da4B8YvfYZh3T4jQAA
+		AABJRU5ErkJggg==
+		</data>
+		<key>customImageFileExtension</key>
+		<string>png</string>
+		<key>inputTypeIdentifier</key>
+		<string>com.apple.Automator.text</string>
+		<key>outputTypeIdentifier</key>
+		<string>com.apple.Automator.text</string>
+		<key>presentationMode</key>
+		<integer>11</integer>
+		<key>processesInput</key>
+		<false/>
+		<key>serviceInputTypeIdentifier</key>
+		<string>com.apple.Automator.text</string>
+		<key>serviceOutputTypeIdentifier</key>
+		<string>com.apple.Automator.text</string>
+		<key>serviceProcessesInput</key>
+		<false/>
+		<key>useAutomaticInputType</key>
+		<false/>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.servicesMenu</string>
+	</dict>
+</dict>
+</plist>

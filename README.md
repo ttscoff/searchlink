@@ -149,8 +149,8 @@ Default values can be specified in a `.searchlink` file in your home directory. 
 
 If you know your way around Terminal at all it should be easy enough to edit this file. If you're not a command line user, you'll want to do this from Finder:
 
-1. Open your user's Home folder in Finder using **Go->Home** or just pressing <kbd>⇧⌘H</kbd> (Shift-Command-H)
-2. Show invisible files by pressing <kbd>⇧⌘.</kbd> (Shift-Command-Period)
+1. Open your user's Home folder in Finder using **Go->Home** or just pressing <kbd>??????H</kbd> (Shift-Command-H)
+2. Show invisible files by pressing <kbd>??????.</kbd> (Shift-Command-Period)
 3. Locate `.searchlink` in the file listing (it will be visible but greyed out)
 4. Right click on `.searchlink` and choose **Open In...**
 5. Select TextEdit (or your preferred text editor)
@@ -543,7 +543,7 @@ There will likely be updates to this as I solve more problems, so keep an eye on
 
 ### Bonus for LaunchBar users
 
-With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ⌘C will copy it to your clipboard.
+With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ???C will copy it to your clipboard.
 
 Note that you don't need the normal "!!" at the end of the search string to specify that SearchLink should just return the URL, that's included in the script.
 
