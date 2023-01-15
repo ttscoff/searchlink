@@ -1,22 +1,6 @@
 ### 2.3.8
 
-2023-01-15 07:19
-
-#### IMPROVED
-
-- Testing deploy automation
-
-### 2.3.7
-
-2023-01-15 07:02
-
-#### IMPROVED
-
-- Testing deploy automation
-
-### 2.3.5
-
-2023-01-15 06:42
+2023-01-15 07:25
 
 #### NEW
 
@@ -26,6 +10,10 @@
 - Run SearchLink on a single fully-qualified URL to turn it into a Markdown link with the page title as linked text
 - Run SearchLink on a url ending in : to turn it into a reference link with title generated from hostname and/or url path
 - Add !yt YouTube search
+
+#### IMPROVED
+
+- Testing deploy automation
 
 #### FIXED
 
