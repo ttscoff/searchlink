@@ -28,7 +28,7 @@ And here some tutorial posts:
 -->
 
 <!--GITHUB-->
-<iframe width="560" height="315" src="https://www.youtube.com/embed/QD-u6JP83us" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
 <!--END GITHUB-->
 
 ### Documentation
@@ -62,7 +62,3 @@ Note that you don't need the normal "!!" at the end of the search string to spec
 <!--END GITHUB-->
 
 <!--END README-->
-
-### Changelog
-
-{% changelog searchlink.md %}
