@@ -1,4 +1,4 @@
-#### 2.3.2
+#### 2.3.3
 
 - Fix Pinboard caching
 - Add DuckDuckGo Zero Click search
