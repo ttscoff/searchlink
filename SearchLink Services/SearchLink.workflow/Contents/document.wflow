@@ -63,7 +63,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.12'
+VERSION = '2.3.13'
 
 # SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
@@ -2870,9 +2870,13 @@ APPLESCRIPT
     when /^z(ero)?/
       url, title = zero_click(search_terms)
     when /^yte?$/
-      url, title = ddg("site:youtube.com #{search_terms}")
+      if url?(search_terms) &amp;&amp; search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+        url = search_terms
+      else
+        url, title = ddg("site:youtube.com #{search_terms}")
+      end
 
-      if search_type =~ /e$/ &amp;&amp; url =~ /watch\?v=(\S+)/
+      if search_type =~ /e$/ &amp;&amp; url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
         id = Regexp.last_match(1)
         url = 'embed'
         title = [
