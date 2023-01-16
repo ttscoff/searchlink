@@ -701,12 +701,13 @@ class SearchLink
       ['tmdbt', 'The Movie Database TV search'],
       %w[sp Spelling],
       %w[pb Pinboard],
-      ["h", "Web history"],
-      ["hs[hb]", "Safari [history, bookmarks]"],
-      ["hc[hb]", "Chrome [history, bookmarks]"],
-      ["hf[hb]", "Firefox [history, bookmarks]"],
-      ["he[hb]", "Edge [history, bookmarks]"],
-      ["hb[hb]", "Brave [history, bookmarks]"]
+      ['h', 'Web history'],
+      ['hs[hb]', 'Safari [history, bookmarks]'],
+      ['hc[hb]', 'Chrome [history, bookmarks]'],
+      ['hf[hb]', 'Firefox [history, bookmarks]'],
+      ['he[hb]', 'Edge [history, bookmarks]'],
+      ['hb[hb]', 'Brave [history, bookmarks]'],
+      ['te', 'Twitter embed']
     ]
     out = ''
     searches.each { |s| out += "!#{s[0]}#{spacer(s[0])}#{s[1]}\n" }
@@ -1693,6 +1694,7 @@ APPLESCRIPT
       pb
       yt
       yte
+      te
     ].concat(@cfg['custom_site_searches'].keys)
   end
 
@@ -1716,7 +1718,8 @@ APPLESCRIPT
       'r',
       'sp(ell)?',
       'pb',
-      'yte?'
+      'yte?',
+      'te'
     ]
   end
 
@@ -1824,7 +1827,7 @@ APPLESCRIPT
     bookmarks_file = File.expand_path('~/Library/Application Support/Microsoft/Edge/Default/Bookmarks')
 
     if File.exist?(bookmarks_file)
-      notify('Searching Brave Bookmarks', term)
+      notify('Searching Edge Bookmarks', term)
       return search_chromium_bookmarks(bookmarks_file, term)
     end
 
@@ -2021,34 +2024,7 @@ APPLESCRIPT
 
     if !types.empty?
       types.each do |type|
-        url, title, date = case type
-                           when 'chrome_history'
-                             search_chrome_history(term)
-                           when 'chrome_bookmarks'
-                             search_chrome_bookmarks(term)
-                           when 'safari_bookmarks'
-                             search_safari_bookmarks(term)
-                           when 'safari_history'
-                             search_safari_history(term)
-                           when 'firefox_history'
-                             search_firefox_history(term)
-                           when 'firefox_bookmarks'
-                             search_firefox_bookmarks(term)
-                           when 'edge_history'
-                             search_edge_history(term)
-                           when 'edge_bookmarks'
-                             search_edge_bookmarks(term)
-                           when 'brave_history'
-                             search_brave_history(term)
-                           when 'brave_bookmarks'
-                             search_brave_bookmarks(term)
-                           when 'arc_history'
-                             search_arc_history(term)
-                           when 'arc_bookmarks'
-                             search_arc_bookmarks(term)
-                           else
-                             false
-                           end
+        url, title, date = send("search_#{type}", term)
 
         results << { 'url' => url, 'title' => title, 'date' => date } if url
       end
@@ -2295,6 +2271,24 @@ APPLESCRIPT
     rescue StandardError
       false
     end
+  end
+
+  def twitter_embed(tweet)
+    res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{ERB::Util.url_encode(tweet)}'`.strip
+    if res
+      begin
+        json = JSON.parse(res)
+        url = 'embed'
+        title = json['html']
+      rescue StandardError
+        add_error('Tweet Error', 'Error retrieving tweet')
+        url = false
+        title = tweet
+      end
+    else
+      return [false, 'Error retrieving tweet']
+    end
+    return [url, title]
   end
 
   def define(terms)
@@ -2850,6 +2844,13 @@ APPLESCRIPT
       end
 
       url, title = define(search_terms)
+    when /^te$/
+      if url?(search_terms) && search_terms =~ %r{^https://twitter.com/}
+        url, title = twitter_embed(search_terms)
+      else
+        add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
+        url, title = [false, false]
+      end
     when /^imov?$/ # iTunes movie search
       dev = false
       url, title = itunes('movie', search_terms, dev, @cfg['itunes_affiliate'])
@@ -2965,7 +2966,7 @@ if !ARGV.empty?
     when /^(--?)?(h(elp)?|v(ersion)?)$/
       $stdout.puts "SearchLink v#{VERSION}"
       sl.help_cli
-      $stdout.puts 'See http://brettterpstra.com/projects/searchlink/ for help'
+      $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
       Process.exit
     when /^--?(stdout)$/
       overwrite = false
