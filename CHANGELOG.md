@@ -1,3 +1,11 @@
+### 2.3.13
+
+2023-01-16 06:45
+
+#### NEW
+
+- Pass a tweet url to `!te` to create a Twitter embed
+
 ### 2.3.12
 
 2023-01-15 16:52
