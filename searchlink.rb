@@ -983,7 +983,6 @@ APPLESCRIPT
                 search_type = false
                 search_terms = false
               end
-
             elsif link_text && !link_text.empty? && (link_info.nil? || link_info.empty?)
               search_type = 'g'
               search_terms = link_text
@@ -1056,6 +1055,7 @@ APPLESCRIPT
             if search_type && search_terms
               # warn "Searching #{search_type} for #{search_terms}"
               search_count += 1
+
               url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
 
               if url
@@ -2886,7 +2886,7 @@ APPLESCRIPT
       url, title = amazon_affiliatize(az_url, @cfg['amazon_partner'])
     when /^(g|ddg)$/ # google lucky search
       url, title = ddg(search_terms)
-    when /^z(ero)?/
+    when /^z(ero)?$/
       url, title = zero_click(search_terms)
     when /^yte?$/
       if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
@@ -2950,10 +2950,10 @@ APPLESCRIPT
       excludes = %w[apple.com postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
       url, title = ddg(%(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} app))
       link_text = title if link_text == '' && !@titleize
-    when /^tmdb/
+    when /^tmdb[amt]?$/
       url, title = tmdb(search_type, search_terms)
       link_text = title if link_text == '' && !@titleize
-    when /^am/ # apple music search
+    when /^am(pod|art|alb|song)?e?$/ # apple music search
       stype = search_type.downcase.sub(/^am/, '')
       otype = 'link'
       if stype =~ /e$/
@@ -3017,7 +3017,7 @@ APPLESCRIPT
       url, title = lastfm('artist', search_terms)
     else
       if search_terms
-        if search_type =~ /.+?\.\w{2,4}$/
+        if search_type =~ /.+?\.\w{2,}$/
           url, title = ddg(%(site:#{search_type} #{search_terms}))
         else
           url, title = ddg(search_terms)
