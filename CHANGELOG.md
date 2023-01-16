@@ -1,3 +1,11 @@
+### 2.3.14
+
+2023-01-16 07:27
+
+#### IMPROVED
+
+- You can now pass a direct YouTube link (full or shortened) to !yte to convert to embed
+
 ### 2.3.13
 
 2023-01-16 06:45
