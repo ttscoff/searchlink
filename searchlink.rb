@@ -780,7 +780,6 @@ APPLESCRIPT
         `open https://github.com/ttscoff/searchlink/wiki`
       when /^v(er(s(ion)?)?)?$/
         print "[#{version_check}]"
-        version_check
       when /^up(date|grade)$/
         update_searchlink
       end
@@ -790,6 +789,10 @@ APPLESCRIPT
     @cfg['inline'] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
     @errors = {}
     @report = []
+
+    # Check for new version
+    latest_version = new_version?
+    add_report("v#{latest_version} available, run SearchLink on the word 'update' to install.") if latest_version
 
     links = {}
     @footer = []
@@ -1523,6 +1526,9 @@ APPLESCRIPT
     `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
   end
 
+  # Check for a newer version than local copy using GitHub release tag
+  #
+  # @return false if no new version, or semantic version of latest release
   def new_version?
     url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
     res = Net::HTTP.get_response(url).body
@@ -3038,13 +3044,13 @@ if !ARGV.empty?
   ARGV.each do |arg|
     case arg
     when /^(--?)?h(elp)?$/
-      version_check
+      print version_check
       puts
       sl.help_cli
       $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
       Process.exit
     when /^(--?)?v(er(s(ion)?)?)?$/
-      version_check
+      print version_check
     when /^--?(stdout)$/
       overwrite = false
     when /^--?no[\-_]backup$/
