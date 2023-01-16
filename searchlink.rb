@@ -468,9 +468,9 @@ module Plist
   end
 end
 
-module Plist
-  VERSION = '3.1.0'
-end
+# module Plist
+#   VERSION = '3.1.0'
+# end
 
 # Main SearchLink class
 class SearchLink
@@ -764,18 +764,23 @@ APPLESCRIPT
     parse_arguments(input, { only_meta: true })
     @originput = input.dup
 
-    if input.strip =~ /^help$/i
-      if SILENT
-        help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
-      else
-        $stdout.puts "SearchLink v#{VERSION}"
-        $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
+    # Handle commands like help or docs
+    if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?)$/
+      case input.strip
+      when /^help$/i
+        if SILENT
+          help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
+        else
+          $stdout.puts "SearchLink v#{VERSION}"
+          $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
+        end
+        print input
+      when /^(wiki|docs)$/i
+        warn "Opening wiki in browser"
+        `open https://github.com/ttscoff/searchlink/wiki`
+      when /^v(er(s(ion)?)?)?$/
+        print "[SearchLink v#{VERSION}]"
       end
-      print input
-      Process.exit 0
-    elsif input.strip =~ /^(wiki|docs)$/i
-      warn "Opening wiki in browser"
-      `open https://github.com/ttscoff/searchlink/wiki`
       Process.exit 0
     end
 
