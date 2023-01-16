@@ -1,6 +1,6 @@
 ### 2.3.17
 
-2023-01-16 12:11
+2023-01-16 16:42
 
 #### NEW
 
@@ -11,10 +11,12 @@
 #### IMPROVED
 
 - Run a quick version check every time and notify of updates available
+- Remove extra spaces from titles
 
 #### FIXED
 
 - Plist library version overriding SeachLink version constant
+- Overly broad regex for matching !z search types
 
 ### 2.3.16
 
