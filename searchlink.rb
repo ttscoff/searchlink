@@ -2809,9 +2809,13 @@ APPLESCRIPT
     when /^z(ero)?/
       url, title = zero_click(search_terms)
     when /^yte?$/
-      url, title = ddg("site:youtube.com #{search_terms}")
+      if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+        url = search_terms
+      else
+        url, title = ddg("site:youtube.com #{search_terms}")
+      end
 
-      if search_type =~ /e$/ && url =~ /watch\?v=(\S+)/
+      if search_type =~ /e$/ && url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
         id = Regexp.last_match(1)
         url = 'embed'
         title = [
