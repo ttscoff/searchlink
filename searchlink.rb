@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.16'
+VERSION = '2.3.17'
 
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
@@ -740,7 +740,7 @@ class SearchLink
   end
 
   def help_dialog
-    text = "[SearchLink v#{VERSION}]\n\n"
+    text = "[#{version_check}]\n\n"
     text += help_text
     text += "\nClick \\\"More Help\\\" for additional information"
     text.gsub!(/\n/, '\\\n')
@@ -765,13 +765,13 @@ APPLESCRIPT
     @originput = input.dup
 
     # Handle commands like help or docs
-    if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?)$/
+    if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
       case input.strip
       when /^help$/i
         if SILENT
           help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
         else
-          $stdout.puts "SearchLink v#{VERSION}"
+          $stdout.puts "#{version_check}"
           $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
         end
         print input
@@ -779,7 +779,10 @@ APPLESCRIPT
         warn "Opening wiki in browser"
         `open https://github.com/ttscoff/searchlink/wiki`
       when /^v(er(s(ion)?)?)?$/
-        print "[SearchLink v#{VERSION}]"
+        print "[#{version_check}]"
+        version_check
+      when /^up(date|grade)$/
+        update_searchlink
       end
       Process.exit 0
     end
@@ -1518,6 +1521,68 @@ APPLESCRIPT
     return unless @cfg['notifications']
 
     `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
+  end
+
+  def new_version?
+    url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
+    res = Net::HTTP.get_response(url).body
+    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+
+    result = JSON.parse(res)
+
+    if result
+      latest = {}
+      current = {}
+      latest_tag = result['tag_name']
+      return false if latest_tag =~ /#{VERSION}/
+
+      latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&:to_i)
+      current[:maj], current[:min], current[:patch] = VERSION.split(/\./).map(&:to_i)
+
+      behind = if latest[:maj] > current[:maj]
+                 true
+               elsif latest[:min] > current[:min]
+                 true
+               else
+                 latest[:patch] > current[:patch]
+               end
+
+      return latest_tag if behind
+    else
+      warn 'Check for new version failed.'
+    end
+
+    false
+  end
+
+  def version_check
+    latest_tag = new_version?
+    return "SearchLink v#{VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag
+
+    "SearchLink v#{VERSION}"
+  end
+
+  def update_searchlink
+    new_version = new_version?
+    if new_version
+      folder = File.expand_path('~/Downloads')
+      services = File.expand_path('~/Library/Services')
+      dl = File.join(folder, 'SearchLink.zip')
+      `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
+      Dir.chdir(folder)
+      puts `unzip -qo #{dl} -d #{folder}`
+      FileUtils.rm(dl)
+
+      ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
+        src = File.join(folder, 'SearchLink Services', wflow)
+        dest = File.join(services, wflow)
+        FileUtils.cp_r(src, dest)
+      end
+      $stderr.print "Installed SearchLink #{new_version}"
+      FileUtils.rm_rf('SearchLink Services')
+    else
+      $stderr.print "Already up to date."
+    end
   end
 
   def valid_link?(uri_str, limit = 5)
@@ -2972,11 +3037,14 @@ if !ARGV.empty?
   files = []
   ARGV.each do |arg|
     case arg
-    when /^(--?)?(h(elp)?|v(ersion)?)$/
-      $stdout.puts "SearchLink v#{VERSION}"
+    when /^(--?)?h(elp)?$/
+      version_check
+      puts
       sl.help_cli
       $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
       Process.exit
+    when /^(--?)?v(er(s(ion)?)?)?$/
+      version_check
     when /^--?(stdout)$/
       overwrite = false
     when /^--?no[\-_]backup$/
