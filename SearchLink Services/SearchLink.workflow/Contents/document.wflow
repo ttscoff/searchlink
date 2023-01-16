@@ -63,7 +63,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.15'
+VERSION = '2.3.17'
 
 # SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
@@ -529,9 +529,9 @@ module Plist
   end
 end
 
-module Plist
-  VERSION = '3.1.0'
-end
+# module Plist
+#   VERSION = '3.1.0'
+# end
 
 # Main SearchLink class
 class SearchLink
@@ -801,7 +801,7 @@ class SearchLink
   end
 
   def help_dialog
-    text = "[SearchLink v#{VERSION}]\n\n"
+    text = "[#{version_check}]\n\n"
     text += help_text
     text += "\nClick \\\"More Help\\\" for additional information"
     text.gsub!(/\n/, '\\\n')
@@ -825,24 +825,35 @@ APPLESCRIPT
     parse_arguments(input, { only_meta: true })
     @originput = input.dup
 
-    if input.strip =~ /^help$/i
-      if SILENT
-        help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
-      else
-        $stdout.puts "SearchLink v#{VERSION}"
-        $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
+    # Handle commands like help or docs
+    if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
+      case input.strip
+      when /^help$/i
+        if SILENT
+          help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
+        else
+          $stdout.puts "#{version_check}"
+          $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
+        end
+        print input
+      when /^(wiki|docs)$/i
+        warn "Opening wiki in browser"
+        `open https://github.com/ttscoff/searchlink/wiki`
+      when /^v(er(s(ion)?)?)?$/
+        print "[#{version_check}]"
+      when /^up(date|grade)$/
+        update_searchlink
       end
-      print input
-      Process.exit 0
-    elsif input.strip =~ /^(wiki|docs)$/i
-      warn "Opening wiki in browser"
-      `open https://github.com/ttscoff/searchlink/wiki`
       Process.exit 0
     end
 
     @cfg['inline'] = true if input.scan(/\]\(/).length == 1 &amp;&amp; input.split(/\n/).length == 1
     @errors = {}
     @report = []
+
+    # Check for new version
+    latest_version = new_version?
+    add_report("v#{latest_version} available, run SearchLink on the word 'update' to install.") if latest_version
 
     links = {}
     @footer = []
@@ -1574,6 +1585,71 @@ APPLESCRIPT
     return unless @cfg['notifications']
 
     `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
+  end
+
+  # Check for a newer version than local copy using GitHub release tag
+  #
+  # @return false if no new version, or semantic version of latest release
+  def new_version?
+    url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
+    res = Net::HTTP.get_response(url).body
+    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
+
+    result = JSON.parse(res)
+
+    if result
+      latest = {}
+      current = {}
+      latest_tag = result['tag_name']
+      return false if latest_tag =~ /#{VERSION}/
+
+      latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&amp;:to_i)
+      current[:maj], current[:min], current[:patch] = VERSION.split(/\./).map(&amp;:to_i)
+
+      behind = if latest[:maj] &gt; current[:maj]
+                 true
+               elsif latest[:min] &gt; current[:min]
+                 true
+               else
+                 latest[:patch] &gt; current[:patch]
+               end
+
+      return latest_tag if behind
+    else
+      warn 'Check for new version failed.'
+    end
+
+    false
+  end
+
+  def version_check
+    latest_tag = new_version?
+    return "SearchLink v#{VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag
+
+    "SearchLink v#{VERSION}"
+  end
+
+  def update_searchlink
+    new_version = new_version?
+    if new_version
+      folder = File.expand_path('~/Downloads')
+      services = File.expand_path('~/Library/Services')
+      dl = File.join(folder, 'SearchLink.zip')
+      `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
+      Dir.chdir(folder)
+      puts `unzip -qo #{dl} -d #{folder}`
+      FileUtils.rm(dl)
+
+      ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
+        src = File.join(folder, 'SearchLink Services', wflow)
+        dest = File.join(services, wflow)
+        FileUtils.cp_r(src, dest)
+      end
+      $stderr.print "Installed SearchLink #{new_version}"
+      FileUtils.rm_rf('SearchLink Services')
+    else
+      $stderr.print "Already up to date."
+    end
   end
 
   def valid_link?(uri_str, limit = 5)
@@ -3028,11 +3104,14 @@ if !ARGV.empty?
   files = []
   ARGV.each do |arg|
     case arg
-    when /^(--?)?(h(elp)?|v(ersion)?)$/
-      $stdout.puts "SearchLink v#{VERSION}"
+    when /^(--?)?h(elp)?$/
+      print version_check
+      puts
       sl.help_cli
       $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
       Process.exit
+    when /^(--?)?v(er(s(ion)?)?)?$/
+      print version_check
     when /^--?(stdout)$/
       overwrite = false
     when /^--?no[\-_]backup$/

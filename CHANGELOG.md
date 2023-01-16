@@ -1,3 +1,21 @@
+### 2.3.17
+
+2023-01-16 12:11
+
+#### NEW
+
+- Run on "version" to get the current SearchLink version
+- Run SearchLink on the word "update" or "upgrade" to automatically install the latest version (if needed)
+- Check for newer versions when running version commands
+
+#### IMPROVED
+
+- Run a quick version check every time and notify of updates available
+
+#### FIXED
+
+- Plist library version overriding SeachLink version constant
+
 ### 2.3.16
 
 2023-01-16 08:22

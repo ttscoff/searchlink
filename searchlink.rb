@@ -1395,6 +1395,7 @@ APPLESCRIPT
     text = title || titleize(url) if @titleize && text == ''
 
     title = title && (@cfg['include_titles'] || force_title) ? %( "#{title.clean}") : ''
+    title.gsub!(/[ \t]+/, ' ')
 
     case type
     when 'ref_title'
@@ -2631,7 +2632,10 @@ APPLESCRIPT
       end
     end
 
-    return `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'` if gather
+    if gather
+      title = `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'`
+      return title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+    end
 
     begin
       # source = %x{/usr/bin/curl -sSL '#{url.strip}'}
