@@ -1,3 +1,11 @@
+### 2.3.23
+
+2023-01-17 11:34
+
+#### FIXED
+
+- When returning a file from Spotlight, url encode spaces so the link works in Markdown previews
+
 ### 2.3.22
 
 2023-01-17 09:55
