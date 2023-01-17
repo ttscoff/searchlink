@@ -2659,7 +2659,9 @@ APPLESCRIPT
       result = url[0].strip || false
       return false unless result
 
-      output_url = CGI.unescape(result)
+      # output_url = CGI.unescape(result)
+      output_url = result
+
       output_title = if @cfg['include_titles'] || @titleize
                        titleize(output_url) || ''
                      else
