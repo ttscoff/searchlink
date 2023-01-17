@@ -1,3 +1,11 @@
+### 2.3.20
+
+2023-01-17 06:30
+
+#### NEW
+
+- `!file SPOTLIGHT_QUERY` will search for a local file and output a `file://` link with the filename as title
+
 ### 2.3.19
 
 2023-01-17 06:29
