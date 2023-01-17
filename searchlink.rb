@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.22'
+VERSION = '2.3.23'
 
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
@@ -1820,7 +1820,7 @@ APPLESCRIPT
     res = `mdfind '#{query}' 2>/dev/null|head -n 1`
     return [false, query] if res.strip.empty?
 
-    ["file://#{res.strip}", File.basename(res)]
+    ["file://#{res.strip.gsub(/ /, '%20')}", File.basename(res)]
   end
 
   def bitly_shorten(url, title = nil)
