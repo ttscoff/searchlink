@@ -61,7 +61,7 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			ItkaelDxCW5RMmIgy/OXbxyqNlU=
+			zUNXjUD45u4VozRV/fblIvbTw9Y=
 			</data>
 			<key>requirement</key>
 			<string>identifier document and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "47TRS7H4BH"</string>
