@@ -1,3 +1,15 @@
+### 2.3.21
+
+2023-01-17 08:45
+
+#### NEW
+
+- `!bl` will shorten a link or search result using Bit.ly. Requires access token in config.
+
+#### IMPROVED
+
+- Better scoring for matching Safari bookmarks
+
 ### 2.3.20
 
 2023-01-17 06:30

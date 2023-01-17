@@ -26,6 +26,49 @@ end
 
 PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
 
+def version_check
+  latest_tag = new_version?
+  return "SearchLink v#{VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag
+
+  "SearchLink v#{VERSION}"
+end
+
+# Check for a newer version than local copy using GitHub release tag
+#
+# @return false if no new version, or semantic version of latest release
+def new_version?
+  url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
+  res = Net::HTTP.get_response(url).body
+  res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+
+  result = JSON.parse(res)
+
+  if result
+    latest = {}
+    current = {}
+    latest_tag = result['tag_name']
+    return false if latest_tag =~ /#{VERSION}/
+
+    latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&:to_i)
+    current[:maj], current[:min], current[:patch] = VERSION.split(/\./).map(&:to_i)
+
+    behind = if latest[:maj] > current[:maj]
+               true
+             elsif latest[:min] > current[:min]
+               true
+             else
+               latest[:patch] > current[:patch]
+             end
+
+    return latest_tag if behind
+  else
+    warn 'Check for new version failed.'
+  end
+
+  false
+end
+
+
 # Array helpers
 class Array
   def longest_element
@@ -1667,48 +1710,6 @@ APPLESCRIPT
     return unless @cfg['notifications']
 
     `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
-  end
-
-  # Check for a newer version than local copy using GitHub release tag
-  #
-  # @return false if no new version, or semantic version of latest release
-  def new_version?
-    url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
-    res = Net::HTTP.get_response(url).body
-    res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
-
-    result = JSON.parse(res)
-
-    if result
-      latest = {}
-      current = {}
-      latest_tag = result['tag_name']
-      return false if latest_tag =~ /#{VERSION}/
-
-      latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&:to_i)
-      current[:maj], current[:min], current[:patch] = VERSION.split(/\./).map(&:to_i)
-
-      behind = if latest[:maj] > current[:maj]
-                 true
-               elsif latest[:min] > current[:min]
-                 true
-               else
-                 latest[:patch] > current[:patch]
-               end
-
-      return latest_tag if behind
-    else
-      warn 'Check for new version failed.'
-    end
-
-    false
-  end
-
-  def version_check
-    latest_tag = new_version?
-    return "SearchLink v#{VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag
-
-    "SearchLink v#{VERSION}"
   end
 
   def update_searchlink
