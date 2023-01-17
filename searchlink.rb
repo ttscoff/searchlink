@@ -743,7 +743,6 @@ class SearchLink
       ampode
       amsong
       amsonge
-      b
       ddg
       def
       file
@@ -826,7 +825,6 @@ class SearchLink
       'g',
       'ddg',
       'z(ero)?',
-      'b',
       'wiki',
       'def',
       'masd?',
