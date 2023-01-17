@@ -594,6 +594,9 @@ class SearchLink
         # Pinboard search
         # You can find your api key here: https://pinboard.in/settings/password
         pinboard_api_key: ''
+        # Generate an access token at https://app.bitly.com/settings/api/
+        bitly_access_token: ''
+        bitly_domain: 'bit.ly'
 
       ENDCONFIG
 
@@ -708,7 +711,8 @@ class SearchLink
       ['he[hb]', 'Edge [history, bookmarks]'],
       ['hb[hb]', 'Brave [history, bookmarks]'],
       ['te', 'Twitter embed'],
-      ['file', 'Local file:// link (Spotlight)']
+      ['file', 'Local file:// link (Spotlight)'],
+      ['bl', 'Shorten URL with Bit.ly']
     ]
     out = ''
     searches.each { |s| out += "!#{s[0]}#{spacer(s[0])}#{s[1]}\n" }
@@ -743,6 +747,7 @@ class SearchLink
       ampode
       amsong
       amsonge
+      bl
       ddg
       def
       file
@@ -838,7 +843,8 @@ class SearchLink
       'pb',
       'yte?',
       'te',
-      'file'
+      'file',
+      'b(l|itly)'
     ]
   end
 
@@ -1814,6 +1820,24 @@ APPLESCRIPT
     return [false, query] if res.strip.empty?
 
     ["file://#{res.strip}", File.basename(res)]
+  end
+
+  def bitly_shorten(url, title = nil)
+    unless @cfg.key?('bitly_access_token') && !@cfg['bitly_access_token'].empty?
+      add_error('Bit.ly not configured', 'Missing access token')
+      return [false, title]
+    end
+
+    domain = @cfg.key?('bitly_domain') ? @cfg['bitly_domain'] : 'bit.ly'
+    cmd = [
+      %(curl -SsL -H 'Authorization: Bearer #{@cfg['bitly_access_token']}'),
+      %(-H 'Content-Type: application/json'),
+      '-X POST', %(-d '{ "long_url": "#{url}", "domain": "#{domain}" }'), 'https://api-ssl.bitly.com/v4/shorten'
+    ]
+    data = JSON.parse(`#{cmd.join(' ')}`.strip)
+    link = data['link']
+    title ||= @titleize ? titleize(url) : 'Bit.ly Link'
+    [link, title]
   end
 
   def search_arc_history(term)
@@ -2899,6 +2923,15 @@ APPLESCRIPT
       url, title = ddg(search_terms)
     when /^z(ero)?$/
       url, title = zero_click(search_terms)
+    when /^b(l|itly)$/
+      if url?(search_terms)
+        link = search_terms
+      else
+        link, rtitle = ddg(search_terms)
+      end
+
+      url, title = bitly_shorten(link, rtitle)
+      link_text = title ? title : url
     when /^yte?$/
       if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
         url = search_terms
