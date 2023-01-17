@@ -51,7 +51,7 @@ There will likely be updates to this as I solve more problems, so keep an eye on
 <!--JEKYLL[Latest release on GitHub](https://github.com/ttscoff/searchlink/releases/latest/){:.btn.btn--alt}-->
 
 <!--GITHUB-->
-[Download SearchLink <!--VER-->2.3.20<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
+[Download SearchLink <!--VER-->2.3.21<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
 <!--END GITHUB-->
 
 ### Bonus for LaunchBar users
