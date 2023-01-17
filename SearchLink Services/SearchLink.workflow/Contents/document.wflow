@@ -63,7 +63,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.21'
+VERSION = '2.3.22'
 
 # SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
@@ -2720,7 +2720,9 @@ APPLESCRIPT
       result = url[0].strip || false
       return false unless result
 
-      output_url = CGI.unescape(result)
+      # output_url = CGI.unescape(result)
+      output_url = result
+
       output_title = if @cfg['include_titles'] || @titleize
                        titleize(output_url) || ''
                      else

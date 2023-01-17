@@ -1,3 +1,11 @@
+### 2.3.22
+
+2023-01-17 09:53
+
+#### FIXED
+
+- Don't unencode URLs from DDG searches, leave spaces and other characters properly encoded
+
 ### 2.3.21
 
 2023-01-17 08:49
