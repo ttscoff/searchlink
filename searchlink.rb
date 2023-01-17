@@ -2096,10 +2096,23 @@ APPLESCRIPT
     data = `plutil -convert xml1 -o - ~/Library/Safari/Bookmarks.plist`.strip
     parent = Plist::parse_xml(data)
     result = get_safari_bookmarks(parent, terms).first
-
     return false if result.nil?
 
     [result[:url], result[:title], Time.now]
+  end
+
+  def score_bookmark(mark, terms)
+    score = if mark[:title].matches_exact(terms)
+              15
+            elsif mark[:url].matches_exact(terms)
+              11
+            elsif mark[:title].matches_score(terms) > 5
+              mark[:title].matches_score(terms)
+            elsif mark[:url].matches_score(terms, start_word: false)
+              mark[:url].matches_score(terms, start_word: false)
+            end
+
+    { url: mark[:url], title: mark[:title], score: score }
   end
 
   def get_safari_bookmarks(parent, terms)
@@ -2112,14 +2125,16 @@ APPLESCRIPT
           elsif c.key?('URIDictionary')
             title = c['URIDictionary']['title']
             url = c['URLString']
-            results.push({ url: url, title: title }) if title =~ /#{terms}/i || url =~ /#{terms}/i
+            scored = score_bookmark({ url: url, title: title }, terms)
+            results.push(scored) if scored[:score] > 7
           end
         end
       end
     else
       results.concat(get_safari_bookmarks(parent['Children'], terms))
     end
-    results.sort_by { |h| h[:title] }.uniq
+    results.sort_by { |h| [h[:score], h[:title].length * -1] }.reverse
+
   end
 
   def search_history(term,types = [])
