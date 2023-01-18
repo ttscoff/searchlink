@@ -1,3 +1,11 @@
+### 2.3.30
+
+2023-01-18 16:08
+
+#### CHANGED
+
+- Attempting to fix update mechanism
+
 ### 2.3.29
 
 2023-01-18 15:32
