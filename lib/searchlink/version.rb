@@ -43,14 +43,13 @@ module SL
       res = `#{cmd.join(' ')}`.strip
 
       res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
-
       result = JSON.parse(res)
 
       if result
         latest = {}
         current = {}
-
         latest_tag = result['tag_name']
+
         return false unless latest_tag
 
         return false if latest_tag =~ /^#{Regexp.escape(SL::VERSION)}$/
@@ -84,10 +83,10 @@ module SL
           dest = File.join(services, wflow)
           FileUtils.cp_r(src, dest)
         end
-        $stderr.print "Installed SearchLink #{new_version}"
+        add_output("Installed SearchLink #{new_version}")
         FileUtils.rm_rf('SearchLink Services')
       else
-        $stderr.print "Already up to date."
+        add_output("Already up to date.")
       end
     end
   end

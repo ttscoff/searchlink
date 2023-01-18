@@ -83,7 +83,7 @@ module SL
 end
 
 module SL
-  VERSION = '2.3.29'
+  VERSION = '2.3.25'
 end
 
 module SL
@@ -168,10 +168,10 @@ module SL
           dest = File.join(services, wflow)
           FileUtils.cp_r(src, dest)
         end
-        $stderr.print "Installed SearchLink #{new_version}"
+        add_output("Installed SearchLink #{new_version}")
         FileUtils.rm_rf('SearchLink Services')
       else
-        $stderr.print "Already up to date."
+        add_output("Already up to date.")
       end
     end
   end
