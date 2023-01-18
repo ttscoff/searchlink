@@ -38,6 +38,9 @@ require 'searchlink/config'
 require 'searchlink/searches'
 
 # import
+require 'searchlink/search'
+
+# import
 require 'searchlink/help'
 
 # import
