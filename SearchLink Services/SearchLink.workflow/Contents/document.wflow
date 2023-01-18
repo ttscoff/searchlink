@@ -81,7 +81,7 @@ require 'json'
 require 'erb'
 
 module Secrets
-  GH_AUTH_TOKEN = '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'
+  GH_AUTH_TOKEN = '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'
 end
 
 module SL
@@ -144,7 +144,7 @@ module SL
 end
 
 module SL
-  VERSION = '2.3.29'
+  VERSION = '2.3.30'
 end
 
 module SL
@@ -188,14 +188,13 @@ module SL
       res = `#{cmd.join(' ')}`.strip
 
       res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
-
       result = JSON.parse(res)
 
       if result
         latest = {}
         current = {}
-
         latest_tag = result['tag_name']
+
         return false unless latest_tag
 
         return false if latest_tag =~ /^#{Regexp.escape(SL::VERSION)}$/
@@ -221,7 +220,7 @@ module SL
         dl = File.join(folder, 'SearchLink.zip')
         `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
         Dir.chdir(folder)
-        puts `unzip -qo #{dl} -d #{folder}`
+        `unzip -qo #{dl} -d #{folder}`
         FileUtils.rm(dl)
 
         ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
@@ -229,10 +228,10 @@ module SL
           dest = File.join(services, wflow)
           FileUtils.cp_r(src, dest)
         end
-        $stderr.print "Installed SearchLink #{new_version}"
+        add_output("Installed SearchLink #{new_version}")
         FileUtils.rm_rf('SearchLink Services')
       else
-        $stderr.print "Already up to date."
+        add_output("Already up to date.")
       end
     end
   end

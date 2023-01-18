@@ -1,10 +1,14 @@
 ### 2.3.30
 
-2023-01-18 16:08
+2023-01-18 16:09
 
 #### CHANGED
 
 - Attempting to fix update mechanism
+
+#### FIXED
+
+- GitHub token being committed to repo
 
 ### 2.3.29
 
