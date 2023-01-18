@@ -3,9 +3,9 @@
 
 class ::String
   def import_markers(base)
-    gsub(/^<<\[(.*?)\]/) do
+    gsub(/^# import\nrequire '(.*?)'\n/) do
       file = Regexp.last_match(1)
-      file = File.join(base, file)
+      file = File.join(base, "#{file}.rb")
 
       content = IO.read(file)
       content.import_markers(File.dirname(file))
@@ -17,9 +17,9 @@ class ::String
   end
 end
 
-source_file = File.expand_path('searchlink.src.rb')
+source_file = File.expand_path('bin/searchlink')
 source = IO.read(source_file)
 
-source.import_markers!(File.dirname(source_file))
+source.import_markers!(File.join(File.dirname(source_file), '..'))
 
 File.open('searchlink.rb', 'w') { |f| f.puts source }
