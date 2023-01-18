@@ -19,8 +19,69 @@ require 'time'
 require 'json'
 require 'erb'
 
+module Secrets
+  GH_AUTH_TOKEN = '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'
+end
+
+class SemVer < String
+  attr_accessor :maj, :min, :patch, :pre
+
+  def initialize(semver)
+    @maj, @min, @patch = semver.split(/\./)
+    if @patch =~ /([^0-9]+)$/
+      @pre = Regexp.last_match(1)
+      @patch = @patch.sub(/([^0-9]+)$/, '')
+    else
+      @pre = nil
+    end
+
+    @maj = @maj.to_i
+    @min = @min.to_i
+    @patch = @patch.to_i
+  end
+
+  def older_than(semver)
+    latest = semver.is_a?(SemVer) ? semver : SemVer.new(semver)
+
+    return false if latest.equal?(self)
+
+    if latest.maj > @maj
+      true
+    elsif latest.min > @min
+      true
+    else
+      latest.patch > @patch
+    end
+  end
+
+  def newer_than(semver)
+    v = semver.is_a?(SemVer) ? semver : SemVer.new(semver)
+    v.older_than(self) && !v.equal?(self)
+  end
+
+  def equal?(semver)
+    v = semver.is_a?(SemVer) ? semver : SemVer.new(semver)
+
+    v.maj == @maj && v.min == @min && v.patch == @patch
+  end
+
+
+  def inspect
+    {
+      'maj' => @maj,
+      'min' => @min,
+      'patch' => @patch,
+      'pre' => @pre
+    }
+  end
+
+  def to_s
+    "#{@maj}.#{@min}.#{@patch}#{@pre}"
+  end
+end
+
 module SL
-  VERSION = '2.3.27'
+  VERSION = '2.3.28'
 end
 
 def version_check
@@ -39,11 +100,13 @@ def version_check
   end
 
   latest_tag ||= SL::VERSION
-  File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest_tag}")}
+  latest = SemVer.new(latest_tag)
+  current = SemVer.new(SL::VERSION)
+  File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}")}
 
-  return "SearchLink v#{SL::VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag && latest_tag != SL::VERSION
+  return "SearchLink v#{current.to_s}, #{latest.to_s} available. Run 'update' to download." if latest_tag && current.older_than(latest)
 
-  "SearchLink v#{SL::VERSION}"
+  "SearchLink v#{current.to_s}"
 end
 
 # Check for a newer version than local copy using GitHub release tag
@@ -52,7 +115,7 @@ end
 def new_version?
   cmd = [
     'curl -SsL -H "Accept: application/vnd.github+json"',
-    '-H "Authorization: Bearer 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"',
+    %(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}"),
     '-H "X-GitHub-Api-Version: 2022-11-28"',
     'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
   ]
@@ -70,20 +133,12 @@ def new_version?
     latest_tag = result['tag_name']
     return false unless latest_tag
 
-    return false if latest_tag =~ /#{SL::VERSION}/
+    return false if latest_tag =~ /^#{Regexp.escape(SL::VERSION)}$/
 
-    latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&:to_i)
-    current[:maj], current[:min], current[:patch] = SL::VERSION.split(/\./).map(&:to_i)
+    latest = SemVer.new(latest_tag)
+    current = SemVer.new(SL::VERSION)
 
-    behind = if latest[:maj] > current[:maj]
-               true
-             elsif latest[:min] > current[:min]
-               true
-             else
-               latest[:patch] > current[:patch]
-             end
-
-    return latest_tag if behind
+    return latest_tag if current.older_than(latest)
   else
     warn 'Check for new version failed.'
   end

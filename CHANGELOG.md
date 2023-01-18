@@ -1,3 +1,11 @@
+### 2.3.28
+
+2023-01-18 12:29
+
+#### FIXED
+
+- Move GitHub token to secrets file
+
 ### 2.3.27
 
 2023-01-18 08:37
