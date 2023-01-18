@@ -42,7 +42,9 @@ def new_version?
 
   res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
 
+
   result = JSON.parse(res)
+  puts result
 
   if result
     latest = {}
