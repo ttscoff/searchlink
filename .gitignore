@@ -3,3 +3,4 @@ current_changes.md
 Gemfile.lock
 lib/tokens.secret
 lib/tokens.rb
+searchlink.rb
