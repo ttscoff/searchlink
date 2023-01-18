@@ -14,7 +14,7 @@ require 'json'
 require 'erb'
 
 #import
-require 'tokens.secret'
+require 'tokens'
 
 # import
 require 'searchlink/semver'

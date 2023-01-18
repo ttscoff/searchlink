@@ -33,7 +33,7 @@ end
 def new_version?
   cmd = [
     'curl -SsL -H "Accept: application/vnd.github+json"',
-    %(-H "Authorization: Bearer #{GH_AUTH_TOKEN}"),
+    %(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}"),
     '-H "X-GitHub-Api-Version: 2022-11-28"',
     'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
   ]
@@ -42,9 +42,7 @@ def new_version?
 
   res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
 
-
   result = JSON.parse(res)
-  puts result
 
   if result
     latest = {}
