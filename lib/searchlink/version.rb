@@ -75,7 +75,7 @@ module SL
         dl = File.join(folder, 'SearchLink.zip')
         `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
         Dir.chdir(folder)
-        puts `unzip -qo #{dl} -d #{folder}`
+        `unzip -qo #{dl} -d #{folder}`
         FileUtils.rm(dl)
 
         ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
