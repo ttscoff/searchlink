@@ -2,21 +2,10 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
+$LOAD_PATH.unshift File.join(__dir__, '..')
 
-# SearchLink by Brett Terpstra 2023 <http://brettterpstra.com/projects/searchlink/>
-# MIT License, please maintain attribution
-require 'net/https'
-require 'uri'
-require 'rexml/document'
-require 'shellwords'
-require 'yaml'
-require 'cgi'
-require 'fileutils'
-require 'tempfile'
-require 'zlib'
-require 'time'
-require 'json'
-require 'erb'
+# import
+require 'lib/searchlink'
 
 if RUBY_VERSION.to_f > 1.9
   Encoding.default_external = Encoding::UTF_8
@@ -24,44 +13,6 @@ if RUBY_VERSION.to_f > 1.9
 end
 
 PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
-
-$LOAD_PATH.unshift File.join(__dir__, '..')
-
-# import
-require 'lib/version'
-
-# import
-require 'lib/array'
-
-# import
-require 'lib/string'
-
-# import
-require 'lib/plist'
-
-# import
-require 'lib/config'
-
-# import
-require 'lib/searches'
-
-# import
-require 'lib/help'
-
-# import
-require 'lib/parse'
-
-# import
-require 'lib/output'
-
-# import
-require 'lib/url'
-
-# import
-require 'lib/pinboard'
-
-# import
-require 'lib/social'
 
 # Main SearchLink class
 class SearchLink
@@ -264,13 +215,13 @@ class SearchLink
       url, title = bitly_shorten(link, rtitle)
       link_text = title ? title : url
     when /^yte?$/
-      if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+      if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9_\-]+)$}i
         url = search_terms
       else
         url, title = ddg("site:youtube.com #{search_terms}")
       end
 
-      if search_type =~ /e$/ && url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+      if search_type =~ /e$/ && url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9_\-]+)$}i
         id = Regexp.last_match(1)
         url = 'embed'
         title = [
@@ -308,7 +259,8 @@ class SearchLink
         url, title = twitter_embed(search_terms)
       else
         add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
-        url, title = [false, false]
+        url = false
+        title = false
       end
     when /^imov?$/ # iTunes movie search
       dev = false

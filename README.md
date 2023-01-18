@@ -11,7 +11,7 @@ A macOS Service for Markdown writers that allows you to add hyperlinks while wri
 ![](images/searchlink-text-short-400.jpg)
 <!--END GITHUB-->
 
-SearchLink is a System Service for macOS which handles searching multiple sources and automatically generating Markdown links for text.
+SearchLink is a System Service (Quick Action) for macOS which searches multiple web sources and automatically generates Markdown links for text. It allows you to write without leaving your editor to run web searches for the items you want to link to. It's great for blogging, and excellent for creating podcast show notes, among other things.
 
 It works in a few ways:
 
@@ -19,7 +19,7 @@ It works in a few ways:
 - Run a single search and have the results put on your clipboard, perfect for using from scripts and launchers (e.g. LaunchBar or Alfred).
 - The "bracket" format, which allows you to just *write*, marking things to link as you go. When you're done, you can run it on the full document and --- if your queries were good --- have your links generated automatically without ever opening a browser.
 
-This has replaced the "Auto-link web search" service in the [Markdown Service Tools](https://brettterpstra.com/projects/markdown-service-tools/ "Markdown Service Tools - Brett Terpstra"). The difference is that you can now mark links and specify how they should be searched for, as well as provide alternate query terms for linked text.
+This has replaced the "Auto-link web search" service in the [Markdown Service Tools](https://brettterpstra.com/projects/markdown-service-tools/ "Markdown Service Tools - Brett Terpstra"). The difference is that you can now mark links and specify how they should be searched, as well as provide alternate query terms for linked text.
 
 Here's a video tutorial from Aaron Dowd ([@thepodcastdude](https://twitter.com/thepodcastdude)):
 
@@ -38,7 +38,7 @@ And here some tutorial posts:
 ### Documentation
 
 <!--GITHUB-->
-The documentation has [moved to a wiki](https://github.com/ttscoff/searchlink/wiki).
+The documentation has [moved to the wiki](https://github.com/ttscoff/searchlink/wiki).
 <!--END GITHUB-->
 <!--JEKYLL[Go to the Docs Wiki](https://github.com/ttscoff/searchlink/wiki){:.btn}-->
 

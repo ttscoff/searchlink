@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
+$LOAD_PATH.unshift File.join(__dir__, '..')
 
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
@@ -17,15 +18,6 @@ require 'zlib'
 require 'time'
 require 'json'
 require 'erb'
-
-if RUBY_VERSION.to_f > 1.9
-  Encoding.default_external = Encoding::UTF_8
-  Encoding.default_internal = Encoding::UTF_8
-end
-
-PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
-
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
 
 module SL
   VERSION = '2.3.24'
@@ -2775,6 +2767,13 @@ class SearchLink
   end
 end
 
+if RUBY_VERSION.to_f > 1.9
+  Encoding.default_external = Encoding::UTF_8
+  Encoding.default_internal = Encoding::UTF_8
+end
+
+PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
+
 # Main SearchLink class
 class SearchLink
   include Plist
@@ -2976,13 +2975,13 @@ class SearchLink
       url, title = bitly_shorten(link, rtitle)
       link_text = title ? title : url
     when /^yte?$/
-      if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+      if url?(search_terms) && search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9_\-]+)$}i
         url = search_terms
       else
         url, title = ddg("site:youtube.com #{search_terms}")
       end
 
-      if search_type =~ /e$/ && url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+      if search_type =~ /e$/ && url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9_\-]+)$}i
         id = Regexp.last_match(1)
         url = 'embed'
         title = [
@@ -3020,7 +3019,8 @@ class SearchLink
         url, title = twitter_embed(search_terms)
       else
         add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
-        url, title = [false, false]
+        url = false
+        title = false
       end
     when /^imov?$/ # iTunes movie search
       dev = false
