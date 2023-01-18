@@ -190,30 +190,62 @@ module SL
       valid
     end
 
-    def spotlight(query)
-      res = `mdfind '#{query}' 2>/dev/null|head -n 1`
-      return [false, query] if res.strip.empty?
+    ### General Search
 
-      ["file://#{res.strip.gsub(/ /, '%20')}", File.basename(res)]
+    def google(terms, define = false)
+      uri = URI.parse("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&filter=1&rsz=small&q=#{ERB::Util.url_encode(terms)}")
+      req = Net::HTTP::Get.new(uri.request_uri)
+      req['Referer'] = 'http://brettterpstra.com'
+      res = Net::HTTP.start(uri.host, uri.port) { |http| http.request(req) }
+      body = if RUBY_VERSION.to_f > 1.9
+               res.body.force_encoding('utf-8')
+             else
+               res.body
+             end
+
+      json = JSON.parse(body)
+      return ddg(terms, false) unless json['responseData']
+
+      result = json['responseData']['results'][0]
+      return false if result.nil?
+
+      output_url = result['unescapedUrl']
+      output_title = if define && output_url =~ /dictionary/
+                       result['content'].gsub(/<\/?.*?>/, '')
+                     else
+                       result['titleNoFormatting']
+                     end
+      [output_url, output_title]
+    rescue StandardError
+      ddg(terms, false)
     end
 
-    def bitly_shorten(url, title = nil)
-      unless @cfg.key?('bitly_access_token') && !@cfg['bitly_access_token'].empty?
-        add_error('Bit.ly not configured', 'Missing access token')
-        return [false, title]
+    def ddg(terms, type = false)
+      prefix = type ? "#{type.sub(/^!?/, '!')} " : '%5C'
+      begin
+        cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{ERB::Util.url_encode(terms)}')
+        body = `#{cmd}`
+        locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
+        return false if locs.empty?
+
+        url = locs[-1]
+
+        result = url[0].strip || false
+        return false unless result
+
+        # output_url = CGI.unescape(result)
+        output_url = result
+
+        output_title = if @cfg['include_titles'] || @titleize
+                         titleize(output_url) || ''
+                       else
+                         ''
+                       end
+        [output_url, output_title]
       end
-
-      domain = @cfg.key?('bitly_domain') ? @cfg['bitly_domain'] : 'bit.ly'
-      cmd = [
-        %(curl -SsL -H 'Authorization: Bearer #{@cfg['bitly_access_token']}'),
-        %(-H 'Content-Type: application/json'),
-        '-X POST', %(-d '{ "long_url": "#{url}", "domain": "#{domain}" }'), 'https://api-ssl.bitly.com/v4/shorten'
-      ]
-      data = JSON.parse(`#{cmd.join(' ')}`.strip)
-      link = data['link']
-      title ||= @titleize ? titleize(url) : 'Bit.ly Link'
-      [link, title]
     end
+
+    ### Browsers
 
     def search_arc_history(term)
       # Google history
@@ -490,6 +522,24 @@ module SL
       { url: mark[:url], title: mark[:title], score: score }
     end
 
+    def extract_chrome_bookmarks(json, urls = [])
+      if json.instance_of?(Array)
+        json.each { |item| urls = extract_chrome_bookmarks(item, urls) }
+      elsif json.instance_of?(Hash)
+        if json.key? 'children'
+          urls = extract_chrome_bookmarks(json['children'], urls)
+        elsif json['type'] == 'url'
+          date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
+          urls << { 'url' => json['url'], 'title' => json['name'], 'date' => date }
+        else
+          json.each { |_, v| urls = extract_chrome_bookmarks(v, urls) }
+        end
+      else
+        return urls
+      end
+      urls
+    end
+
     def get_safari_bookmarks(parent, terms)
       results = []
       if parent.is_a?(Array)
@@ -539,23 +589,39 @@ module SL
       end
     end
 
-    def extract_chrome_bookmarks(json, urls = [])
-      if json.instance_of?(Array)
-        json.each { |item| urls = extract_chrome_bookmarks(item, urls) }
-      elsif json.instance_of?(Hash)
-        if json.key? 'children'
-          urls = extract_chrome_bookmarks(json['children'], urls)
-        elsif json['type'] == 'url'
-          date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
-          urls << { 'url' => json['url'], 'title' => json['name'], 'date' => date }
-        else
-          json.each { |_, v| urls = extract_chrome_bookmarks(v, urls) }
-        end
-      else
-        return urls
-      end
-      urls
+    ### Local files
+
+    def spotlight(query)
+      res = `mdfind '#{query}' 2>/dev/null|head -n 1`
+      return [false, query] if res.strip.empty?
+
+      ["file://#{res.strip.gsub(/ /, '%20')}", File.basename(res)]
     end
+
+    # Search bookmark paths and addresses. Return array of bookmark hashes.
+    def search_hook(search)
+      path_matches = `osascript <<'APPLESCRIPT'
+        set searchString to "#{search.strip}"
+        tell application "Hook"
+          set _marks to every bookmark whose name contains searchString or path contains searchString or address contains searchString
+          set _out to {}
+          repeat with _hook in _marks
+            set _out to _out & (name of _hook & "||" & address of _hook & "||" & path of _hook)
+          end repeat
+          set {astid, AppleScript's text item delimiters} to {AppleScript's text item delimiters, "^^"}
+          set _output to _out as string
+          set AppleScript's text item delimiters to astid
+          return _output
+        end tell
+      APPLESCRIPT`.strip.split_hooks
+
+      top_match = path_matches.uniq.first
+      return false unless top_match
+
+      [top_match[:url], top_match[:name]]
+    end
+
+    ### Movies/TV
 
     def tmdb(search_type, terms)
       type = case search_type
@@ -585,6 +651,68 @@ module SL
       end
 
       [url, title]
+    end
+
+    ### Reference
+
+    def define(terms)
+      url = URI.parse("http://api.duckduckgo.com/?q=!def+#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
+      res = Net::HTTP.get_response(url).body
+      res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+
+      result = JSON.parse(res)
+
+      if result
+        wiki_link = result['Redirect'] || false
+        title = terms
+
+        if !wiki_link.empty? && !title.empty?
+          return [wiki_link, title]
+        end
+      end
+
+      def_url = "https://www.wordnik.com/words/#{ERB::Util.url_encode(terms)}"
+      body = `/usr/bin/curl -sSL '#{def_url}'`
+      if body =~ /id="define"/
+        first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]
+        parts = first_definition.match(%r{<abbr title="partOfSpeech">(.*?)</abbr> (.*?)$})
+        return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(/ *<\/?.*?> /, '')]
+      end
+
+      false
+    rescue StandardError
+      false
+    end
+
+    def spell(phrase)
+      aspell = if File.exist?('/usr/local/bin/aspell')
+                 '/usr/local/bin/aspell'
+               elsif File.exist?('/opt/homebrew/bin/aspell')
+                 '/opt/homebrew/bin/aspell'
+               end
+
+      if aspell.nil?
+        add_error('Missing aspell', 'Install aspell in to allow spelling corrections')
+        return false
+      end
+
+      words = phrase.split(/\b/)
+      output = ''
+      words.each do |w|
+        if w =~ /[A-Za-z]+/
+          spell_res = `echo "#{w}" | #{aspell} --sug-mode=bad-spellers -C pipe | head -n 2 | tail -n 1`
+          if spell_res.strip == "\*"
+            output += w
+          else
+            spell_res.sub!(/.*?: /, '')
+            results = spell_res.split(/, /).delete_if { |word| phrase =~ /^[a-z]/ && word =~ /[A-Z]/ }
+            output += results[0]
+          end
+        else
+          output += w
+        end
+      end
+      output
     end
 
     def wiki(terms)
@@ -650,6 +778,8 @@ module SL
         ddg(terms)
       end
     end
+
+    ### Music
 
     # Search apple music
     # terms => search terms (unescaped)
@@ -772,6 +902,8 @@ module SL
       end
     end
 
+    ### Twitter
+
     def twitter_embed(tweet)
       res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{ERB::Util.url_encode(tweet)}'`.strip
       if res
@@ -790,109 +922,24 @@ module SL
       return [url, title]
     end
 
-    def define(terms)
-      url = URI.parse("http://api.duckduckgo.com/?q=!def+#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
-      res = Net::HTTP.get_response(url).body
-      res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    ### Misc
 
-      result = JSON.parse(res)
-
-      if result
-        wiki_link = result['Redirect'] || false
-        title = terms
-
-        if !wiki_link.empty? && !title.empty?
-          return [wiki_link, title]
-        end
+    def bitly_shorten(url, title = nil)
+      unless @cfg.key?('bitly_access_token') && !@cfg['bitly_access_token'].empty?
+        add_error('Bit.ly not configured', 'Missing access token')
+        return [false, title]
       end
 
-      def_url = "https://www.wordnik.com/words/#{ERB::Util.url_encode(terms)}"
-      body = `/usr/bin/curl -sSL '#{def_url}'`
-      if body =~ /id="define"/
-        first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]
-        parts = first_definition.match(%r{<abbr title="partOfSpeech">(.*?)</abbr> (.*?)$})
-        return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(/ *<\/?.*?> /, '')]
-      end
-
-      false
-    rescue StandardError
-      false
-    end
-
-    # Search bookmark paths and addresses. Return array of bookmark hashes.
-    def search_hook(search)
-      path_matches = `osascript <<'APPLESCRIPT'
-        set searchString to "#{search.strip}"
-        tell application "Hook"
-          set _marks to every bookmark whose name contains searchString or path contains searchString or address contains searchString
-          set _out to {}
-          repeat with _hook in _marks
-            set _out to _out & (name of _hook & "||" & address of _hook & "||" & path of _hook)
-          end repeat
-          set {astid, AppleScript's text item delimiters} to {AppleScript's text item delimiters, "^^"}
-          set _output to _out as string
-          set AppleScript's text item delimiters to astid
-          return _output
-        end tell
-      APPLESCRIPT`.strip.split_hooks
-
-      top_match = path_matches.uniq.first
-      return false unless top_match
-
-      [top_match[:url], top_match[:name]]
-    end
-
-    def google(terms, define = false)
-      uri = URI.parse("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&filter=1&rsz=small&q=#{ERB::Util.url_encode(terms)}")
-      req = Net::HTTP::Get.new(uri.request_uri)
-      req['Referer'] = 'http://brettterpstra.com'
-      res = Net::HTTP.start(uri.host, uri.port) { |http| http.request(req) }
-      body = if RUBY_VERSION.to_f > 1.9
-               res.body.force_encoding('utf-8')
-             else
-               res.body
-             end
-
-      json = JSON.parse(body)
-      return ddg(terms, false) unless json['responseData']
-
-      result = json['responseData']['results'][0]
-      return false if result.nil?
-
-      output_url = result['unescapedUrl']
-      output_title = if define && output_url =~ /dictionary/
-                       result['content'].gsub(/<\/?.*?>/, '')
-                     else
-                       result['titleNoFormatting']
-                     end
-      [output_url, output_title]
-    rescue StandardError
-      ddg(terms, false)
-    end
-
-    def ddg(terms, type = false)
-      prefix = type ? "#{type.sub(/^!?/, '!')} " : '%5C'
-      begin
-        cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{ERB::Util.url_encode(terms)}')
-        body = `#{cmd}`
-        locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
-        return false if locs.empty?
-
-        url = locs[-1]
-
-        result = url[0].strip || false
-        return false unless result
-
-        # output_url = CGI.unescape(result)
-        output_url = result
-
-        output_title = if @cfg['include_titles'] || @titleize
-                         titleize(output_url) || ''
-                       else
-                         ''
-                       end
-        [output_url, output_title]
-      end
+      domain = @cfg.key?('bitly_domain') ? @cfg['bitly_domain'] : 'bit.ly'
+      cmd = [
+        %(curl -SsL -H 'Authorization: Bearer #{@cfg['bitly_access_token']}'),
+        %(-H 'Content-Type: application/json'),
+        '-X POST', %(-d '{ "long_url": "#{url}", "domain": "#{domain}" }'), 'https://api-ssl.bitly.com/v4/shorten'
+      ]
+      data = JSON.parse(`#{cmd.join(' ')}`.strip)
+      link = data['link']
+      title ||= @titleize ? titleize(url) : 'Bit.ly Link'
+      [link, title]
     end
   end
 end

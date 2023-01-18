@@ -9,28 +9,7 @@ module SL
       restore_prev_config unless no_restore
 
       unless skip_flags
-        input.gsub!(/(\+\+|--)([dirtv]+)\b/) do
-          m = Regexp.last_match
-          bool = m[1] == '++' ? '' : 'no-'
-          output = ' '
-          m[2].split('').each do |arg|
-            output += case arg
-                      when 'd'
-                        "--#{bool}debug "
-                      when 'i'
-                        "--#{bool}inline "
-                      when 'r'
-                        "--#{bool}prefix_random "
-                      when 't'
-                        "--#{bool}include_titles "
-                      when 'v'
-                        "--#{bool}validate_links "
-                      else
-                        ''
-                      end
-          end
-          output
-        end
+        input.parse_flags!
       end
 
       options = %w[debug country_code inline prefix_random include_titles validate_links]

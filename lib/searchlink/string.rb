@@ -1,5 +1,35 @@
 # String helpers
 class ::String
+  # parse command line flags into long options
+  def parse_flags
+    gsub(/(\+\+|--)([dirtv]+)\b/) do
+      m = Regexp.last_match
+      bool = m[1] == '++' ? '' : 'no-'
+      output = ' '
+      m[2].split('').each do |arg|
+        output += case arg
+                  when 'd'
+                    "--#{bool}debug "
+                  when 'i'
+                    "--#{bool}inline "
+                  when 'r'
+                    "--#{bool}prefix_random "
+                  when 't'
+                    "--#{bool}include_titles "
+                  when 'v'
+                    "--#{bool}validate_links "
+                  else
+                    ''
+                  end
+      end
+      output
+    end
+  end
+
+  def parse_flags!
+    replace parse_flags
+  end
+
   # Turn a string into a slug, removing spaces and
   # non-alphanumeric characters
   #
