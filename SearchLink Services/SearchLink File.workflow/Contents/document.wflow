@@ -113,7 +113,7 @@ end
 def new_version?
   cmd = [
     'curl -SsL -H "Accept: application/vnd.github+json"',
-    '-H "Authorization: Bearer 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"',
+    '-H "Authorization: Bearer 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"',
     '-H "X-GitHub-Api-Version: 2022-11-28"',
     'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
   ]
@@ -127,7 +127,10 @@ def new_version?
   if result
     latest = {}
     current = {}
+
     latest_tag = result['tag_name']
+    return false unless latest_tag
+
     return false if latest_tag =~ /#{SL::VERSION}/
 
     latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&amp;:to_i)
@@ -183,14 +186,27 @@ end
 
 # String helpers
 class ::String
+  # Turn a string into a slug, removing spaces and
+  # non-alphanumeric characters
+  #
+  # @return     [String] slugified string
+  #
   def slugify
     downcase.gsub(/[^a-z0-9_]/i, '-').gsub(/-+/, '-')
   end
 
+  # Destructive slugify
+  # @see #slugify
   def slugify!
     replace slugify
   end
 
+  ##
+  ## Remove newlines, escape quotes, and remove Google
+  ## Analytics strings
+  ##
+  ## @return     [String] cleaned URL/String
+  ##
   def clean
     gsub(/\n+/, ' ')
       .gsub(/"/, '&amp;quot')
@@ -200,6 +216,8 @@ class ::String
   end
 
   # convert itunes to apple music link
+  #
+  # @return [String] apple music link
   def to_am
     input = dup
     input.sub!(%r{/itunes\.apple\.com}, 'geo.itunes.apple.com')
@@ -207,18 +225,38 @@ class ::String
     input + append
   end
 
+  # Extract the most relevant portions from a URL path
+  #
+  # @return     [Array] array of relevant path elements
+  #
   def path_elements
     path = URI.parse(self).path
+    # force trailing slash
     path.sub!(%r{/?$}, '/')
+    # remove last path element
     path.sub!(%r{/[^/]+[.\-][^/]+/$}, '')
+    # remove starting/ending slashes
     path.gsub!(%r{(^/|/$)}, '')
+    # split at slashes, delete sections that are shorter
+    # than 5 characters or only consist of numbers
     path.split(%r{/}).delete_if { |section| section =~ /^\d+$/ || section.length &lt; 5 }
   end
 
+  ##
+  ## Destructive punctuation close
+  ##
+  ## @see #close_punctuation
+  ##
   def close_punctuation!
     replace close_punctuation
   end
 
+  ##
+  ## Complete incomplete punctuation pairs
+  ##
+  ## @return     [String] string with all punctuation
+  ##             properly paired
+  ##
   def close_punctuation
     return self unless self =~ /[“‘\[(&lt;]/
 
@@ -247,10 +285,25 @@ class ::String
     gsub(/[^a-z)\]’”.…]+$/i, '...').strip + tail
   end
 
+  ##
+  ## Destructively remove SEO elements from a title
+  ##
+  ## @param      url   The url of the page from which the
+  ##                   title came
+  ##
+  ## @see        #remove_seo
+  ##
   def remove_seo!(url)
     replace remove_seo(url)
   end
 
+  ##
+  ## Remove SEO elements from a title
+  ##
+  ## @param      url   The url of the page from which the title came
+  ##
+  ## @return     [String] cleaned title
+  ##
   def remove_seo(url)
     title = dup
     url = URI.parse(url)
@@ -662,6 +715,11 @@ class SearchLink
         # or enabled with `++t`.
         include_titles: false
 
+        # set to true to attempt to remove SEO elements from page titles,
+        # such that "Regular expressions for beginners | Brett Terpstra.com"
+        # becomes "Regular expressions for beginners"
+        remove_seo: false
+
         # confirm existence (200) of generated links. Can be disabled
         # per search with `--v`, or enabled with `++v`.
         validate_links: false
@@ -766,6 +824,9 @@ class SearchLink
 
     # set to true to add titles to links based on site title
     @cfg['include_titles'] ||= false
+
+    # set to true to remove SEO elements from page titles
+    @cfg['remove_seo'] ||= false
 
     # set to true to use page title as link text when empty
     @cfg['empty_uses_page_title'] ||= false
@@ -2629,7 +2690,9 @@ class SearchLink
 
     if gather
       title = `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'`
-      return title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+      title = title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+      title.remove_seo!(url) if @cfg['remove_seo']
+      return title
     end
 
     begin
