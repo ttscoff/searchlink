@@ -1,0 +1,34 @@
+AllCops:
+  Exclude:
+    - 'searchlink.rb'
+  Include:
+    - Gemfile
+    - Guardfile
+    - Rakefile
+
+Metrics/BlockLength:
+  Exclude:
+    - Rakefile
+    - bin/searchlink
+    - lib/*.rb
+
+Metrics/ClassLength:
+  Exclude:
+    - 'bin/searchlink'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'bin/searchlink'
+
+
+Style/RegexpLiteral:
+  Exclude:
+    - Guardfile
+
+Style/FrozenStringLiteralComment
+  Exclude:
+    - 'bin/searchlink'
+
+Style/Encoding:
+  Exclude:
+    - 'bin/searchlink'

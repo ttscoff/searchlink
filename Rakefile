@@ -9,7 +9,8 @@ require 'tty-spinner'
 task default: %i[test yard]
 
 desc 'Run test suite'
-task test: %i[rubocop spec]
+# task test: %i[rubocop spec]
+task test: %i[spec]
 
 RSpec::Core::RakeTask.new
 

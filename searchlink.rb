@@ -24,8 +24,24 @@ module SL
 end
 
 def version_check
-  latest_tag = new_version?
-  return "SearchLink v#{SL::VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag
+  cachefile = File.expand_path('~/.searchlink_update_check')
+  if File.exist?(cachefile)
+    last_check, latest_tag = IO.read(cachefile).strip.split(/\|/)
+    last_time = Time.parse(last_check)
+  else
+    latest_tag = new_version?
+    last_time = Time.now
+  end
+
+  if last_time + (24 * 60 * 60) < Time.now
+    latest_tag = new_version?
+    last_time = Time.now
+  end
+
+  latest_tag ||= SL::VERSION
+  File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest_tag}")}
+
+  return "SearchLink v#{SL::VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag && latest_tag != SL::VERSION
 
   "SearchLink v#{SL::VERSION}"
 end
@@ -34,8 +50,15 @@ end
 #
 # @return false if no new version, or semantic version of latest release
 def new_version?
-  url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
-  res = Net::HTTP.get_response(url).body
+  cmd = [
+    'curl -SsL -H "Accept: application/vnd.github+json"',
+    '-H "Authorization: Bearer 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"',
+    '-H "X-GitHub-Api-Version: 2022-11-28"',
+    'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
+  ]
+
+  res = `#{cmd.join(' ')}`.strip
+
   res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
 
   result = JSON.parse(res)
