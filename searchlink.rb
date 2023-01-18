@@ -2298,7 +2298,7 @@ module SL
 
       # Check for new version
       latest_version = SL::new_version?
-      add_report("v#{latest_version} available, run SearchLink on the word 'update' to install.") if latest_version
+      add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->") if latest_version
 
       links = {}
       @footer = []
