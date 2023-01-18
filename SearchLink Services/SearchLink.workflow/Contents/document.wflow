@@ -81,7 +81,7 @@ require 'json'
 require 'erb'
 
 module SL
-  VERSION = '2.3.24'
+  VERSION = '2.3.27'
 end
 
 def version_check

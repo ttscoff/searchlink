@@ -1,5 +1,5 @@
 module SL
-  VERSION = '2.3.25'
+  VERSION = '2.3.27'
 end
 
 def version_check
