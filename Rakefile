@@ -63,7 +63,7 @@ end
 desc 'Bump incremental version number'
 task :bump, :type do |_, args|
   args.with_defaults(type: 'inc')
-  version_file = 'lib/version.rb'
+  version_file = 'lib/searchlink/version.rb'
   content = IO.read(version_file)
   content.sub!(/VERSION = '(?<major>\d+)\.(?<minor>\d+)\.(?<inc>\d+)(?<pre>\S+)?'/) do
     m = Regexp.last_match

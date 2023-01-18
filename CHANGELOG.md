@@ -1,3 +1,15 @@
+### 2.3.25
+
+2023-01-18 08:35
+
+#### NEW
+
+- Set `remove_seo: true` in config to have page titles parsed and cleaned up, removing things like site name and url
+
+#### FIXED
+
+- Bad GitHub token, and silent failure when authentication fails
+
 ### 2.3.24
 
 2023-01-18 07:56
