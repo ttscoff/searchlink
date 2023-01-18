@@ -31,7 +31,7 @@ end
 def new_version?
   cmd = [
     'curl -SsL -H "Accept: application/vnd.github+json"',
-    '-H "Authorization: Bearer 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"',
+    '-H "Authorization: Bearer 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"',
     '-H "X-GitHub-Api-Version: 2022-11-28"',
     'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
   ]
@@ -45,7 +45,10 @@ def new_version?
   if result
     latest = {}
     current = {}
+
     latest_tag = result['tag_name']
+    return false unless latest_tag
+
     return false if latest_tag =~ /#{SL::VERSION}/
 
     latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&:to_i)

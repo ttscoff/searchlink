@@ -38,6 +38,11 @@ class SearchLink
         # or enabled with `++t`.
         include_titles: false
 
+        # set to true to attempt to remove SEO elements from page titles,
+        # such that "Regular expressions for beginners | Brett Terpstra.com"
+        # becomes "Regular expressions for beginners"
+        remove_seo: false
+
         # confirm existence (200) of generated links. Can be disabled
         # per search with `--v`, or enabled with `++v`.
         validate_links: false
@@ -142,6 +147,9 @@ class SearchLink
 
     # set to true to add titles to links based on site title
     @cfg['include_titles'] ||= false
+
+    # set to true to remove SEO elements from page titles
+    @cfg['remove_seo'] ||= false
 
     # set to true to use page title as link text when empty
     @cfg['empty_uses_page_title'] ||= false

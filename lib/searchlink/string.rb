@@ -1,13 +1,26 @@
 # String helpers
 class ::String
+  # Turn a string into a slug, removing spaces and
+  # non-alphanumeric characters
+  #
+  # @return     [String] slugified string
+  #
   def slugify
     downcase.gsub(/[^a-z0-9_]/i, '-').gsub(/-+/, '-')
   end
 
+  # Destructive slugify
+  # @see #slugify
   def slugify!
     replace slugify
   end
 
+  ##
+  ## Remove newlines, escape quotes, and remove Google
+  ## Analytics strings
+  ##
+  ## @return     [String] cleaned URL/String
+  ##
   def clean
     gsub(/\n+/, ' ')
       .gsub(/"/, '&quot')
@@ -17,6 +30,8 @@ class ::String
   end
 
   # convert itunes to apple music link
+  #
+  # @return [String] apple music link
   def to_am
     input = dup
     input.sub!(%r{/itunes\.apple\.com}, 'geo.itunes.apple.com')
@@ -24,18 +39,38 @@ class ::String
     input + append
   end
 
+  # Extract the most relevant portions from a URL path
+  #
+  # @return     [Array] array of relevant path elements
+  #
   def path_elements
     path = URI.parse(self).path
+    # force trailing slash
     path.sub!(%r{/?$}, '/')
+    # remove last path element
     path.sub!(%r{/[^/]+[.\-][^/]+/$}, '')
+    # remove starting/ending slashes
     path.gsub!(%r{(^/|/$)}, '')
+    # split at slashes, delete sections that are shorter
+    # than 5 characters or only consist of numbers
     path.split(%r{/}).delete_if { |section| section =~ /^\d+$/ || section.length < 5 }
   end
 
+  ##
+  ## Destructive punctuation close
+  ##
+  ## @see #close_punctuation
+  ##
   def close_punctuation!
     replace close_punctuation
   end
 
+  ##
+  ## Complete incomplete punctuation pairs
+  ##
+  ## @return     [String] string with all punctuation
+  ##             properly paired
+  ##
   def close_punctuation
     return self unless self =~ /[“‘\[(<]/
 
@@ -64,10 +99,25 @@ class ::String
     gsub(/[^a-z)\]’”.…]+$/i, '...').strip + tail
   end
 
+  ##
+  ## Destructively remove SEO elements from a title
+  ##
+  ## @param      url   The url of the page from which the
+  ##                   title came
+  ##
+  ## @see        #remove_seo
+  ##
   def remove_seo!(url)
     replace remove_seo(url)
   end
 
+  ##
+  ## Remove SEO elements from a title
+  ##
+  ## @param      url   The url of the page from which the title came
+  ##
+  ## @return     [String] cleaned title
+  ##
   def remove_seo(url)
     title = dup
     url = URI.parse(url)

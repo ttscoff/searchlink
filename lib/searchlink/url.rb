@@ -106,7 +106,9 @@ class SearchLink
 
     if gather
       title = `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'`
-      return title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+      title = title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+      title.remove_seo!(url) if @cfg['remove_seo']
+      return title
     end
 
     begin
