@@ -63,7 +63,7 @@
 # encoding: utf-8
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-VERSION = '2.3.23'
+
 
 # SearchLink by Brett Terpstra 2015 &lt;http://brettterpstra.com/projects/searchlink/&gt;
 # MIT License, please maintain attribution
@@ -80,26 +80,46 @@ require 'time'
 require 'json'
 require 'erb'
 
-if RUBY_VERSION.to_f &gt; 1.9
-  Encoding.default_external = Encoding::UTF_8
-  Encoding.default_internal = Encoding::UTF_8
+module SL
+  VERSION = '2.3.24'
 end
 
-PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
-
 def version_check
-  latest_tag = new_version?
-  return "SearchLink v#{VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag
+  cachefile = File.expand_path('~/.searchlink_update_check')
+  if File.exist?(cachefile)
+    last_check, latest_tag = IO.read(cachefile).strip.split(/\|/)
+    last_time = Time.parse(last_check)
+  else
+    latest_tag = new_version?
+    last_time = Time.now
+  end
 
-  "SearchLink v#{VERSION}"
+  if last_time + (24 * 60 * 60) &lt; Time.now
+    latest_tag = new_version?
+    last_time = Time.now
+  end
+
+  latest_tag ||= SL::VERSION
+  File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest_tag}")}
+
+  return "SearchLink v#{SL::VERSION}, #{latest_tag} available. Run 'update' to download." if latest_tag &amp;&amp; latest_tag != SL::VERSION
+
+  "SearchLink v#{SL::VERSION}"
 end
 
 # Check for a newer version than local copy using GitHub release tag
 #
 # @return false if no new version, or semantic version of latest release
 def new_version?
-  url = URI.parse('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
-  res = Net::HTTP.get_response(url).body
+  cmd = [
+    'curl -SsL -H "Accept: application/vnd.github+json"',
+    '-H "Authorization: Bearer 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"',
+    '-H "X-GitHub-Api-Version: 2022-11-28"',
+    'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
+  ]
+
+  res = `#{cmd.join(' ')}`.strip
+
   res = res.force_encoding('utf-8') if RUBY_VERSION.to_f &gt; 1.9
 
   result = JSON.parse(res)
@@ -108,10 +128,10 @@ def new_version?
     latest = {}
     current = {}
     latest_tag = result['tag_name']
-    return false if latest_tag =~ /#{VERSION}/
+    return false if latest_tag =~ /#{SL::VERSION}/
 
     latest[:maj], latest[:min], latest[:patch] = latest_tag.split(/\./).map(&amp;:to_i)
-    current[:maj], current[:min], current[:patch] = VERSION.split(/\./).map(&amp;:to_i)
+    current[:maj], current[:min], current[:patch] = SL::VERSION.split(/\./).map(&amp;:to_i)
 
     behind = if latest[:maj] &gt; current[:maj]
                true
@@ -129,9 +149,33 @@ def new_version?
   false
 end
 
+class SearchLink
+  def update_searchlink
+    new_version = new_version?
+    if new_version
+      folder = File.expand_path('~/Downloads')
+      services = File.expand_path('~/Library/Services')
+      dl = File.join(folder, 'SearchLink.zip')
+      `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
+      Dir.chdir(folder)
+      puts `unzip -qo #{dl} -d #{folder}`
+      FileUtils.rm(dl)
+
+      ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
+        src = File.join(folder, 'SearchLink Services', wflow)
+        dest = File.join(services, wflow)
+        FileUtils.cp_r(src, dest)
+      end
+      $stderr.print "Installed SearchLink #{new_version}"
+      FileUtils.rm_rf('SearchLink Services')
+    else
+      $stderr.print "Already up to date."
+    end
+  end
+end
 
 # Array helpers
-class Array
+class ::Array
   def longest_element
     group_by(&amp;:size).max.last[0]
   end
@@ -572,16 +616,14 @@ module Plist
   end
 end
 
+
 # module Plist
 #   VERSION = '3.1.0'
 # end
 
+
 # Main SearchLink class
 class SearchLink
-  include Plist
-
-  attr_reader :originput, :output, :clipboard
-
   attr_accessor :cfg
 
   # Values found in ~/.searchlink will override defaults in
@@ -770,6 +812,16 @@ class SearchLink
     @match_length = nil
   end
 
+  def restore_prev_config
+    @prev_config&amp;.each do |k, v|
+      @cfg[k] = v
+      $stderr.print "\r\033[0KReset config: #{k} = #{@cfg[k]}\n" unless SILENT
+    end
+    @prev_config = {}
+  end
+end
+
+class SearchLink
   def available_searches
     searches = [
       %w[a Amazon],
@@ -958,923 +1010,6 @@ class SearchLink
     valid = true if @cfg['custom_site_searches'].keys.include? term
     notify("Invalid search#{did_you_mean(term)}", term) unless valid
     valid
-  end
-
-  def spacer(str)
-    len = str.length
-    str.scan(/[mwv]/).each { len += 1 }
-    str.scan(/t/).each { len -= 1 }
-    case len
-    when 0..3
-      "\t\t"
-    when 4..12
-      " \t"
-    end
-  end
-
-  def help_text
-    text = &lt;&lt;~EOHELP
-      -- [Available searches] -------------------
-      #{available_searches}
-    EOHELP
-
-    if @cfg['custom_site_searches']
-      text += "\n-- [Custom Searches] ----------------------\n"
-      @cfg['custom_site_searches'].each { |label, site| text += "!#{label}#{spacer(label)} #{site}\n" }
-    end
-    text
-  end
-
-  def help_dialog
-    text = "[#{version_check}]\n\n"
-    text += help_text
-    text += "\nClick \\\"More Help\\\" for additional information"
-    text.gsub!(/\n/, '\\\n')
-    res = `osascript &lt;&lt;'APPLESCRIPT'
-set _res to display dialog "#{text}" buttons {"OK", "More help"} default button "OK" with title "SearchLink Help"
-
-return button returned of _res
-APPLESCRIPT
-    `.strip
-    `open https://github.com/ttscoff/searchlink/wiki` if res == 'More help'
-  end
-
-  def help_cli
-    $stdout.puts help_text
-  end
-
-  def parse(input)
-    @output = ''
-    return false if input.empty?
-
-    parse_arguments(input, { only_meta: true })
-    @originput = input.dup
-
-    # Handle commands like help or docs
-    if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
-      case input.strip
-      when /^help$/i
-        if SILENT
-          help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
-        else
-          $stdout.puts "#{version_check}"
-          $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
-        end
-        print input
-      when /^(wiki|docs)$/i
-        warn "Opening wiki in browser"
-        `open https://github.com/ttscoff/searchlink/wiki`
-      when /^v(er(s(ion)?)?)?$/
-        print "[#{version_check}]"
-      when /^up(date|grade)$/
-        update_searchlink
-      end
-      Process.exit 0
-    end
-
-    @cfg['inline'] = true if input.scan(/\]\(/).length == 1 &amp;&amp; input.split(/\n/).length == 1
-    @errors = {}
-    @report = []
-
-    # Check for new version
-    latest_version = new_version?
-    add_report("v#{latest_version} available, run SearchLink on the word 'update' to install.") if latest_version
-
-    links = {}
-    @footer = []
-    counter_links = 0
-    counter_errors = 0
-
-    input.sub!(/\n?&lt;!-- Report:.*?--&gt;\n?/m, '')
-    input.sub!(/\n?&lt;!-- Errors:.*?--&gt;\n?/m, '')
-
-    input.scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| links[match[1].strip] = match[0] }
-
-    prefix = if @cfg['prefix_random']
-               if input =~ /\[(\d{4}-)\d+\]: \S+/
-                 Regexp.last_match(1)
-               else
-                 format('%04d-', rand(9999))
-               end
-             else
-               ''
-             end
-
-    highest_marker = 0
-    input.scan(/^\s{,3}\[(?:#{prefix})?(\d+)\]: /).each do
-      m = Regexp.last_match
-      highest_marker = m[1].to_i if m[1].to_i &gt; highest_marker
-    end
-
-    footnote_counter = 0
-    input.scan(/^\s{,3}\[\^(?:#{prefix})?fn(\d+)\]: /).each do
-      m = Regexp.last_match
-      footnote_counter = m[1].to_i if m[1].to_i &gt; footnote_counter
-    end
-
-    if input =~ /\[(.*?)\]\((.*?)\)/
-      lines = input.split(/\n/)
-      out = []
-
-      total_links = input.scan(/\[(.*?)\]\((.*?)\)/).length
-      in_code_block = false
-      line_difference = 0
-      lines.each_with_index do |line, num|
-        @line_num = num - line_difference
-        cursor_difference = 0
-        # ignore links in code blocks
-        if line =~ /^( {4,}|\t+)[^*+\-]/
-          out.push(line)
-          next
-        end
-        if line =~ /^[~`]{3,}/
-          if in_code_block
-            in_code_block = false
-            out.push(line)
-            next
-          else
-            in_code_block = true
-          end
-        end
-        if in_code_block
-          out.push(line)
-          next
-        end
-
-        delete_line = false
-
-        search_count = 0
-
-        line.gsub!(/\[(.*?)\]\((.*?)\)/) do |match|
-          this_match = Regexp.last_match
-          @match_column = this_match.begin(0) - cursor_difference
-          match_string = this_match.to_s
-          @match_length = match_string.length
-          match_before = this_match.pre_match
-
-          invalid_search = false
-          ref_title = false
-
-          if match_before.scan(/(^|[^\\])`/).length.odd?
-            add_report("Match '#{match_string}' within an inline code block")
-            invalid_search = true
-          end
-
-          counter_links += 1
-          unless SILENT
-            $stderr.print("\033[0K\rProcessed: #{counter_links} of #{total_links}, #{counter_errors} errors. ")
-          end
-
-          link_text = this_match[1] || ''
-          link_info = parse_arguments(this_match[2].strip).strip || ''
-
-          if link_text.strip == '' &amp;&amp; link_info =~ /".*?"/
-            link_info.gsub!(/"(.*?)"/) do
-              m = Regexp.last_match(1)
-              link_text = m if link_text == ''
-              m
-            end
-          end
-
-          if link_info.strip =~ /:$/ &amp;&amp; line.strip == match
-            ref_title = true
-            link_info.sub!(/\s*:\s*$/, '')
-          end
-
-          unless !link_text.empty? || !link_info.sub(/^[!\^]\S+/, '').strip.empty?
-            add_error('No input', match)
-            counter_errors += 1
-            invalid_search = true
-          end
-
-          if link_info =~ /^!(\S+)/
-            search_type = Regexp.last_match(1)
-            unless valid_search?(search_type) || search_type =~ /^(\S+\.)+\S+$/
-              add_error("Invalid search#{did_you_mean(search_type)}", match)
-              invalid_search = true
-            end
-          end
-
-          if invalid_search
-            match
-          elsif link_info =~ /^\^(.+)/
-            m = Regexp.last_match
-            if m[1].nil? || m[1] == ''
-              match
-            else
-              note = m[1].strip
-              footnote_counter += 1
-              ref = if !link_text.empty? &amp;&amp; link_text.scan(/\s/).empty?
-                      link_text
-                    else
-                      format('%&lt;p&gt;sfn%&lt;c&gt;04d', p: prefix, c: footnote_counter)
-                    end
-              add_footer "[^#{ref}]: #{note}"
-              res = "[^#{ref}]"
-              cursor_difference += (@match_length - res.length)
-              @match_length = res.length
-              add_report("#{match_string} =&gt; Footnote #{ref}")
-              res
-            end
-          elsif (link_text == '' &amp;&amp; link_info == '') || url?(link_info)
-            add_error("Invalid search", match) unless url?(link_info)
-            match
-          else
-            link_info = link_text if !link_text.empty? &amp;&amp; link_info == ''
-
-            search_type = ''
-            search_terms = ''
-            link_only = false
-            @clipboard = false
-            @titleize = @cfg['empty_uses_page_title']
-
-            if link_info =~ /^(?:[!\^](\S+))\s*(.*)$/
-              m = Regexp.last_match
-
-              search_type = m[1].nil? ? 'g' : m[1]
-
-              search_terms = m[2].gsub(/(^["']|["']$)/, '')
-              search_terms.strip!
-
-              # if the link text is just '%' replace with title regardless of config settings
-              if link_text == '%' &amp;&amp; search_terms &amp;&amp; !search_terms.empty?
-                @titleize = true
-                link_text = ''
-              end
-
-              search_terms = link_text if search_terms == ''
-
-              # if the input starts with a +, append it to the link text as the search terms
-              search_terms = "#{link_text} #{search_terms.strip.sub(/^\+\s*/, '')}" if search_terms.strip =~ /^\+[^+]/
-
-              # if the end of input contain "^", copy to clipboard instead of STDOUT
-              @clipboard = true if search_terms =~ /(!!)?\^(!!)?$/
-
-              # if the end of input contains "!!", only print the url
-              link_only = true if search_terms =~ /!!\^?$/
-
-              search_terms.sub!(/(!!)?\^?(!!)?$/,"")
-
-            elsif link_info =~ /^!/
-              search_word = link_info.match(/^!(\S+)/)
-
-              if search_word &amp;&amp; valid_search?(search_word[1])
-                search_type = search_word[1] unless search_word.nil?
-                search_terms = link_text
-              elsif search_word &amp;&amp; search_word[1] =~ /^(\S+\.)+\S+$/
-                search_type = 'g'
-                search_terms = "site:#{search_word[1]} #{link_text}"
-              else
-                add_error("Invalid search#{did_you_mean(search_word[1])}", match)
-                search_type = false
-                search_terms = false
-              end
-            elsif link_text &amp;&amp; !link_text.empty? &amp;&amp; (link_info.nil? || link_info.empty?)
-              search_type = 'g'
-              search_terms = link_text
-            elsif link_info &amp;&amp; !link_info.empty?
-              search_type = 'g'
-              search_terms = link_info
-            else
-              add_error('Invalid search', match)
-              search_type = false
-              search_terms = false
-            end
-
-            if search_type &amp;&amp; !search_terms.empty?
-              @cfg['custom_site_searches'].each do |k, v|
-                next unless search_type == k
-
-                link_text = search_terms if !@titleize &amp;&amp; link_text == ''
-                v = parse_arguments(v, { no_restore: true })
-                if v =~ %r{^(/|http)}i
-                  search_type = 'r'
-                  tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
-
-                  if !tokens.empty?
-                    highest_token = 0
-                    tokens.each do |token|
-                      if token =~ /(\d+)[ds]?$/ &amp;&amp; Regexp.last_match(1).to_i &gt; highest_token
-                        highest_token = Regexp.last_match(1).to_i
-                      end
-                    end
-                    terms_p = search_terms.split(/ +/)
-                    if terms_p.length &gt; highest_token
-                      remainder = terms_p[highest_token - 1..-1].join(' ')
-                      terms_p = terms_p[0..highest_token - 2]
-                      terms_p.push(remainder)
-                    end
-                    tokens.each do |t|
-                      next unless t =~ /(\d+)[ds]?$/
-
-                      int = Regexp.last_match(1).to_i - 1
-                      replacement = terms_p[int]
-                      case t
-                      when /d$/
-                        replacement.downcase!
-                        re_down = ''
-                      when /s$/
-                        replacement.slugify!
-                        re_down = ''
-                      else
-                        re_down = '(?!d|s)'
-                      end
-                      v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
-                    end
-                    search_terms = v
-                  else
-                    search_terms = v.gsub(/\$term[ds]?/i) do |mtch|
-                      search_terms.downcase! if mtch =~ /d$/i
-                      search_terms.slugify! if mtch =~ /s$/i
-                      ERB::Util.url_encode(search_terms)
-                    end
-                  end
-                else
-                  search_type = 'g'
-                  search_terms = "site:#{v} #{search_terms}"
-                end
-
-                break
-              end
-            end
-
-            if search_type &amp;&amp; search_terms
-              # warn "Searching #{search_type} for #{search_terms}"
-              search_count += 1
-
-              url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
-
-              if url
-                title = titleize(url) if @titleize &amp;&amp; title == ''
-
-                link_text = title if link_text == '' &amp;&amp; title
-                force_title = search_type =~ /def/ ? true : false
-
-                if link_only || search_type =~ /sp(ell)?/ || url == 'embed'
-                  url = title if url == 'embed'
-                  cursor_difference += @match_length - url.length
-                  @match_length = url.length
-                  add_report("#{match_string} =&gt; #{url}")
-                  url
-                elsif ref_title
-                  unless links.key? url
-                    links[url] = link_text
-                    add_footer make_link('ref_title', link_text, url, title: title, force_title: force_title)
-                  end
-                  delete_line = true
-                elsif @cfg['inline']
-                  res = make_link('inline', link_text, url, title: title, force_title: force_title)
-                  cursor_difference += @match_length - res.length
-                  @match_length = res.length
-                  add_report("#{match_string} =&gt; #{url}")
-                  res
-                else
-                  unless links.key? url
-                    highest_marker += 1
-                    links[url] = format('%&lt;pre&gt;s%&lt;m&gt;04d', pre: prefix, m: highest_marker)
-                    add_footer make_link('ref_title', links[url], url, title: title, force_title: force_title)
-                  end
-
-                  type = @cfg['inline'] ? 'inline' : 'ref_link'
-                  res = make_link(type, link_text, links[url], title: false, force_title: force_title)
-                  cursor_difference += @match_length - res.length
-                  @match_length = res.length
-                  add_report("#{match_string} =&gt; #{url}")
-                  res
-                end
-              else
-                add_error('No results', "#{search_terms} (#{match_string})")
-                counter_errors += 1
-                match
-              end
-            else
-              add_error('Invalid search', match)
-              counter_errors += 1
-              match
-            end
-          end
-        end
-        line_difference += 1 if delete_line
-        out.push(line) unless delete_line
-        delete_line = false
-      end
-      warn "\n" unless SILENT
-
-      input = out.delete_if { |l| l.strip =~ /^&lt;!--DELETE--&gt;$/ }.join("\n")
-
-      if @cfg['inline']
-        add_output "#{input}\n"
-        add_output "\n#{print_footer}" unless @footer.empty?
-      elsif @footer.empty?
-        add_output input
-      else
-        last_line = input.strip.split(/\n/)[-1]
-        case last_line
-        when /^\[.*?\]: http/
-          add_output "#{input.rstrip}\n"
-        when /^\[\^.*?\]: /
-          add_output input.rstrip
-        else
-          add_output "#{input}\n\n"
-        end
-        add_output "#{print_footer}\n\n"
-      end
-      @line_num = nil
-      add_report("Processed: #{total_links} links, #{counter_errors} errors.")
-      print_report
-      print_errors
-    else
-      link_only = false
-      @clipboard = false
-
-      res = parse_arguments(input.strip!).strip
-      input = res.nil? ? input : res
-
-      # if the end of input contain "^", copy to clipboard instead of STDOUT
-      @clipboard = true if input =~ /\^[!~:]*$/
-
-      # if the end of input contains "!!", only print the url
-      link_only = true if input =~ /!![\^~:]*$/
-
-      reference_link = input =~ /:([!\^\s~]*)$/
-
-      # if end of input contains ~, pull url from clipboard
-      if input =~ /~[:\^!\s]*$/
-        input.sub!(/[:!\^\s~]*$/, '')
-        clipboard = `__CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbpaste`.strip
-        if url?(clipboard)
-          type = reference_link ? 'ref_title' : 'inline'
-          print make_link(type, input.strip, clipboard)
-        else
-          print @originput
-        end
-        Process.exit
-      end
-
-      input.sub!(/[:!\^\s~]*$/, '')
-
-      ## Maybe if input is just a URL, convert it to a link
-      ## using hostname as text without doing search
-      if only_url?(input.strip)
-        type = reference_link ? 'ref_title' : 'inline'
-        url, title = url_to_link(input.strip, type)
-        print make_link(type, title, url, title: false, force_title: false)
-        Process.exit
-      end
-
-      # check for additional search terms in parenthesis
-      additional_terms = ''
-      if input =~ /\((.*?)\)/
-        additional_terms = " #{Regexp.last_match(1).strip}"
-        input.sub!(/\(.*?\)/, '')
-      end
-
-      # Maybe detect "search + addition terms" and remove additional terms from link text?
-      # if input =~ /\+(.+?)$/
-      #   additional_terms = "#{additional_terms} #{Regexp.last_match(1).strip}"
-      #   input.sub!(/\+.*?$/, '').strip!
-      # end
-
-      link_text = false
-
-      if input =~ /"(.*?)"/
-        link_text = Regexp.last_match(1)
-        input.gsub!(/"(.*?)"/, '\1')
-      end
-
-      # remove quotes from terms, just in case
-      # input.sub!(/^(!\S+)?\s*(["'])(.*?)\2([\!\^]+)?$/, "\\1 \\3\\4")
-
-      case input
-      when /^!(\S+)\s+(.*)$/
-        type = Regexp.last_match(1)
-        link_info = Regexp.last_match(2).strip
-        link_text ||= link_info
-        terms = link_info + additional_terms
-        terms.strip!
-
-        if valid_search?(type) || type =~ /^(\S+\.)+\S+$/
-          if type &amp;&amp; terms &amp;&amp; !terms.empty?
-            @cfg['custom_site_searches'].each do |k, v|
-              next unless type == k
-
-              link_text = terms if link_text == ''
-              v = parse_arguments(v, { no_restore: true })
-              if v =~ %r{^(/|http)}i
-                type = 'r'
-                tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
-
-                if !tokens.empty?
-                  highest_token = 0
-                  tokens.each do |token|
-                    t = Regexp.last_match(1)
-                    highest_token = t.to_i if token =~ /(\d+)d?$/ &amp;&amp; t.to_i &gt; highest_token
-                  end
-                  terms_p = terms.split(/ +/)
-                  if terms_p.length &gt; highest_token
-                    remainder = terms_p[highest_token - 1..-1].join(' ')
-                    terms_p = terms_p[0..highest_token - 2]
-                    terms_p.push(remainder)
-                  end
-                  tokens.each do |t|
-                    next unless t =~ /(\d+)d?$/
-
-                    int = Regexp.last_match(1).to_i - 1
-                    replacement = terms_p[int]
-                    case t
-                    when /d$/
-                      replacement.downcase!
-                      re_down = ''
-                    when /s$/
-                      replacement.slugify!
-                      re_down = ''
-                    else
-                      re_down = '(?!d|s)'
-                    end
-                    v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
-                  end
-                  terms = v
-                else
-                  terms = v.gsub(/\$term[ds]?/i) do |mtch|
-                    terms.downcase! if mtch =~ /d$/i
-                    terms.slugify! if mtch =~ /s$/i
-                    ERB::Util.url_encode(terms)
-                  end
-                end
-              else
-                type = 'g'
-                terms = "site:#{v} #{terms}"
-              end
-
-              break
-            end
-          end
-
-          if type =~ /^(\S+\.)+\S+$/
-            terms = "site:#{type} #{terms}"
-            type = 'g'
-          end
-          search_count ||= 0
-          search_count += 1
-          url, title, link_text = do_search(type, terms, link_text, search_count)
-        else
-          add_error("Invalid search#{did_you_mean(type)}", input)
-          counter_errors += 1
-        end
-      when /^([tfilm])?@(\S+)\s*$/
-        type = Regexp.last_match(1)
-        unless type
-          if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
-            type = 'm'
-          else
-            type = 't'
-          end
-        end
-        link_text = input.sub(/^[tfilm]/, '')
-        url, title = social_handle(type, link_text)
-        link_text = title
-      else
-        link_text ||= input
-        url, title = ddg(input)
-      end
-
-      if url
-        if type =~ /sp(ell)?/
-          add_output(url)
-        elsif link_only
-          add_output(url)
-        elsif url == 'embed'
-          add_output(title)
-        else
-          type = reference_link ? 'ref_title' : 'inline'
-          add_output make_link(type, link_text, url, title: title, force_title: false)
-          print_errors
-        end
-      else
-        add_error('No results', title)
-        add_output @originput.chomp
-        print_errors
-      end
-
-      if @clipboard
-        if @output == @originput
-          warn "No results found"
-        else
-          `echo #{Shellwords.escape(@output)}|tr -d "\n"|pbcopy`
-          warn "Results in clipboard"
-        end
-      end
-    end
-  end
-
-  private
-
-  def parse_arguments(string, opt={})
-    input = string.dup
-    return "" if input.nil?
-
-    skip_flags = opt[:only_meta] || false
-    no_restore = opt[:no_restore] || false
-    restore_prev_config unless no_restore
-
-    unless skip_flags
-      input.gsub!(/(\+\+|--)([dirtv]+)\b/) do
-        m = Regexp.last_match
-        bool = m[1] == '++' ? '' : 'no-'
-        output = ' '
-        m[2].split('').each do |arg|
-          output += case arg
-                    when 'd'
-                      "--#{bool}debug "
-                    when 'i'
-                      "--#{bool}inline "
-                    when 'r'
-                      "--#{bool}prefix_random "
-                    when 't'
-                      "--#{bool}include_titles "
-                    when 'v'
-                      "--#{bool}validate_links "
-                    else
-                      ''
-                    end
-        end
-        output
-      end
-    end
-
-    options = %w[debug country_code inline prefix_random include_titles validate_links]
-    options.each do |o|
-      if input =~ /^ *#{o}:\s+(\S+)$/
-        val = Regexp.last_match(1).strip
-        val = true if val =~ /true/i
-        val = false if val =~ /false/i
-        @cfg[o] = val
-        $stderr.print "\r\033[0KGlobal config: #{o} = #{@cfg[o]}\n" unless SILENT
-      end
-
-      next if skip_flags
-
-      while input =~ /^#{o}:\s+(.*?)$/ || input =~ /--(no-)?#{o}/
-        next unless input =~ /--(no-)?#{o}/ &amp;&amp; !skip_flags
-
-        unless @prev_config.key? o
-          @prev_config[o] = @cfg[o]
-          bool = Regexp.last_match(1).nil? || Regexp.last_match(1) == '' ? true : false
-          @cfg[o] = bool
-          $stderr.print "\r\033[0KLine config: #{o} = #{@cfg[o]}\n" unless SILENT
-        end
-        input.sub!(/\s?--(no-)?#{o}/, '')
-      end
-    end
-    @clipboard ? string : input
-  end
-
-  def restore_prev_config
-    @prev_config&amp;.each do |k, v|
-      @cfg[k] = v
-      $stderr.print "\r\033[0KReset config: #{k} = #{@cfg[k]}\n" unless SILENT
-    end
-    @prev_config = {}
-  end
-
-  def make_link(type, text, url, title: false, force_title: false)
-    text = title || titleize(url) if @titleize &amp;&amp; text == ''
-
-    title = title &amp;&amp; (@cfg['include_titles'] || force_title) ? %( "#{title.clean}") : ''
-    title.gsub!(/[ \t]+/, ' ')
-
-    case type
-    when 'ref_title'
-      %(\n[#{text.strip}]: #{url}#{title})
-    when 'ref_link'
-      %([#{text.strip}][#{url}])
-    when 'inline'
-      %([#{text.strip}](#{url}#{title}))
-    end
-  end
-
-  def add_output(str)
-    print str if @printout &amp;&amp; !@clipboard
-    @output += str
-  end
-
-  def add_footer(str)
-    @footer ||= []
-    @footer.push(str.strip)
-  end
-
-  def print_footer
-    unless @footer.empty?
-
-      footnotes = []
-      @footer.delete_if do |note|
-        note.strip!
-        case note
-        when /^\[\^.+?\]/
-          footnotes.push(note)
-          true
-        when /^\s*$/
-          true
-        else
-          false
-        end
-      end
-
-      output = @footer.sort.join("\n").strip
-      output += "\n\n" if !output.empty? &amp;&amp; !footnotes.empty?
-      output += footnotes.join("\n\n") unless footnotes.empty?
-      return output.gsub(/\n{3,}/, "\n\n")
-    end
-
-    ''
-  end
-
-  def add_report(str)
-    return unless @cfg['report']
-
-    unless @line_num.nil?
-      position = "#{@line_num}:"
-      position += @match_column.nil? ? '0:' : "#{@match_column}:"
-      position += @match_length.nil? ? '0' : @match_length.to_s
-    end
-    @report.push("(#{position}): #{str}")
-    warn "(#{position}): #{str}" unless SILENT
-  end
-
-  def add_error(type, str)
-    return unless @cfg['debug']
-
-    unless @line_num.nil?
-      position = "#{@line_num}:"
-      position += @match_column.nil? ? '0:' : "#{@match_column}:"
-      position += @match_length.nil? ? '0' : @match_length.to_s
-    end
-    @errors[type] ||= []
-    @errors[type].push("(#{position}): #{str}")
-  end
-
-  def print_report
-    return if (@cfg['inline'] &amp;&amp; @originput.split(/\n/).length == 1) || @clipboard
-
-    return if @report.empty?
-
-    out = "\n&lt;!-- Report:\n#{@report.join("\n")}\n--&gt;\n"
-    add_output out
-  end
-
-  def print_errors(type = 'Errors')
-    return if @errors.empty?
-
-    out = ''
-    inline = if @originput.split(/\n/).length &gt; 1
-               false
-             else
-               @cfg['inline'] || @originput.split(/\n/).length == 1
-             end
-
-    @errors.each do |k, v|
-      next if v.empty?
-
-      v.each_with_index do |err, i|
-        out += "(#{k}) #{err}"
-        out += if inline
-                 i == v.length - 1 ? ' | ' : ', '
-               else
-                 "\n"
-               end
-      end
-    end
-
-    unless out == ''
-      sep = inline ? ' ' : "\n"
-      out.sub!(/\| /, '')
-      out = "#{sep}&lt;!-- #{type}:#{sep}#{out}--&gt;#{sep}"
-    end
-    if @clipboard
-      warn out
-    else
-      add_output out
-    end
-  end
-
-  def print_or_copy(text)
-    # Process.exit unless text
-    if @clipboard
-      `echo #{Shellwords.escape(text)}|tr -d "\n"|pbcopy`
-      print @originput
-    else
-      print text
-    end
-  end
-
-  def notify(str, sub)
-    return unless @cfg['notifications']
-
-    `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
-  end
-
-  def update_searchlink
-    new_version = new_version?
-    if new_version
-      folder = File.expand_path('~/Downloads')
-      services = File.expand_path('~/Library/Services')
-      dl = File.join(folder, 'SearchLink.zip')
-      `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
-      Dir.chdir(folder)
-      puts `unzip -qo #{dl} -d #{folder}`
-      FileUtils.rm(dl)
-
-      ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
-        src = File.join(folder, 'SearchLink Services', wflow)
-        dest = File.join(services, wflow)
-        FileUtils.cp_r(src, dest)
-      end
-      $stderr.print "Installed SearchLink #{new_version}"
-      FileUtils.rm_rf('SearchLink Services')
-    else
-      $stderr.print "Already up to date."
-    end
-  end
-
-  def valid_link?(uri_str, limit = 5)
-    notify('Validating', uri_str)
-    return false if limit.zero?
-
-    url = URI(uri_str)
-    return true unless url.scheme
-
-    url.path = '/' if url.path == ''
-    # response = Net::HTTP.get_response(URI(uri_str))
-    response = false
-
-    Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == 'https') do |http|
-      response = http.request_head(url.path)
-    end
-
-    case response
-    when Net::HTTPMethodNotAllowed, Net::HTTPServiceUnavailable
-      unless /amazon\.com/ =~ url.host
-        add_error('link validation', "Validation blocked: #{uri_str} (#{e})")
-      end
-      notify('Error validating', uri_str)
-      true
-    when Net::HTTPSuccess
-      true
-    when Net::HTTPRedirection
-      location = response['location']
-      valid_link?(location, limit - 1)
-    else
-      notify('Error validating', uri_str)
-      false
-    end
-  rescue StandardError =&gt; e
-    notify('Error validating', uri_str)
-    add_error('link validation', "Possibly invalid =&gt; #{uri_str} (#{e})")
-    true
-  end
-
-  def url?(input)
-    input =~ %r{^(#.*|https?://\S+|/\S+|\S+/|[^!]\S+\.\S+)(\s+".*?")?$}
-  end
-
-  def only_url?(input)
-    input =~ %r{(?i)^((http|https)://)?([\w\-_]+(\.[\w\-_]+)+)([\w\-.,@?^=%&amp;amp;:/~+#]*[\w\-@^=%&amp;amp;/~+#])?$}
-  end
-
-  def ref_title_for_url(url)
-    url = URI.parse(url) if url.is_a?(String)
-
-    parts = url.hostname.split(/\./)
-    domain = if parts.count &gt; 1
-               parts.slice(-2, 1).join('')
-             else
-               parts.join('')
-             end
-
-    path = url.path.split(%r{/}).last
-    if path
-      path.gsub!(/-/, ' ').gsub!(/\.\w{2-4}$/, '')
-    else
-      path = domain
-    end
-
-    path.length &gt; domain.length ? path : domain
-  end
-
-  def url_to_link(input, type)
-    if only_url?(input)
-      input.sub!(%r{(?mi)^(?!https?://)(.*?)$}, 'https://\1')
-      url = URI.parse(input.downcase)
-
-      title = if type == 'ref_title'
-                ref_title_for_url(url)
-              else
-                titleize(url.to_s) || input.sub(%r{^https?://}, '')
-              end
-
-      return [url.to_s, title] if url.hostname
-    end
-    false
   end
 
   def spotlight(query)
@@ -2506,6 +1641,1028 @@ APPLESCRIPT
     false
   end
 
+  # Search bookmark paths and addresses. Return array of bookmark hashes.
+  def search_hook(search)
+    path_matches = `osascript &lt;&lt;'APPLESCRIPT'
+      set searchString to "#{search.strip}"
+      tell application "Hook"
+        set _marks to every bookmark whose name contains searchString or path contains searchString or address contains searchString
+        set _out to {}
+        repeat with _hook in _marks
+          set _out to _out &amp; (name of _hook &amp; "||" &amp; address of _hook &amp; "||" &amp; path of _hook)
+        end repeat
+        set {astid, AppleScript's text item delimiters} to {AppleScript's text item delimiters, "^^"}
+        set _output to _out as string
+        set AppleScript's text item delimiters to astid
+        return _output
+      end tell
+    APPLESCRIPT`.strip.split_hooks
+
+    top_match = path_matches.uniq.first
+    return false unless top_match
+
+    [top_match[:url], top_match[:name]]
+  end
+
+  def google(terms, define = false)
+    uri = URI.parse("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&amp;filter=1&amp;rsz=small&amp;q=#{ERB::Util.url_encode(terms)}")
+    req = Net::HTTP::Get.new(uri.request_uri)
+    req['Referer'] = 'http://brettterpstra.com'
+    res = Net::HTTP.start(uri.host, uri.port) { |http| http.request(req) }
+    body = if RUBY_VERSION.to_f &gt; 1.9
+             res.body.force_encoding('utf-8')
+           else
+             res.body
+           end
+
+    json = JSON.parse(body)
+    return ddg(terms, false) unless json['responseData']
+
+    result = json['responseData']['results'][0]
+    return false if result.nil?
+
+    output_url = result['unescapedUrl']
+    output_title = if define &amp;&amp; output_url =~ /dictionary/
+                     result['content'].gsub(/&lt;\/?.*?&gt;/, '')
+                   else
+                     result['titleNoFormatting']
+                   end
+    [output_url, output_title]
+  rescue StandardError
+    ddg(terms, false)
+  end
+
+  def ddg(terms, type = false)
+    prefix = type ? "#{type.sub(/^!?/, '!')} " : '%5C'
+    begin
+      cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{ERB::Util.url_encode(terms)}')
+      body = `#{cmd}`
+      locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
+      return false if locs.empty?
+
+      url = locs[-1]
+
+      result = url[0].strip || false
+      return false unless result
+
+      # output_url = CGI.unescape(result)
+      output_url = result
+
+      output_title = if @cfg['include_titles'] || @titleize
+                       titleize(output_url) || ''
+                     else
+                       ''
+                     end
+      [output_url, output_title]
+    end
+  end
+end
+
+class SearchLink
+  def spacer(str)
+    len = str.length
+    str.scan(/[mwv]/).each { len += 1 }
+    str.scan(/t/).each { len -= 1 }
+    case len
+    when 0..3
+      "\t\t"
+    when 4..12
+      " \t"
+    end
+  end
+
+  def help_text
+    text = &lt;&lt;~EOHELP
+      -- [Available searches] -------------------
+      #{available_searches}
+    EOHELP
+
+    if @cfg['custom_site_searches']
+      text += "\n-- [Custom Searches] ----------------------\n"
+      @cfg['custom_site_searches'].each { |label, site| text += "!#{label}#{spacer(label)} #{site}\n" }
+    end
+    text
+  end
+
+  def help_dialog
+    text = "[#{version_check}]\n\n"
+    text += help_text
+    text += "\nClick \\\"More Help\\\" for additional information"
+    text.gsub!(/\n/, '\\\n')
+    res = `osascript &lt;&lt;'APPLESCRIPT'
+set _res to display dialog "#{text}" buttons {"OK", "More help"} default button "OK" with title "SearchLink Help"
+
+return button returned of _res
+APPLESCRIPT
+    `.strip
+    `open https://github.com/ttscoff/searchlink/wiki` if res == 'More help'
+  end
+
+  def help_cli
+    $stdout.puts help_text
+  end
+end
+
+class SearchLink
+  def parse_arguments(string, opt={})
+    input = string.dup
+    return "" if input.nil?
+
+    skip_flags = opt[:only_meta] || false
+    no_restore = opt[:no_restore] || false
+    restore_prev_config unless no_restore
+
+    unless skip_flags
+      input.gsub!(/(\+\+|--)([dirtv]+)\b/) do
+        m = Regexp.last_match
+        bool = m[1] == '++' ? '' : 'no-'
+        output = ' '
+        m[2].split('').each do |arg|
+          output += case arg
+                    when 'd'
+                      "--#{bool}debug "
+                    when 'i'
+                      "--#{bool}inline "
+                    when 'r'
+                      "--#{bool}prefix_random "
+                    when 't'
+                      "--#{bool}include_titles "
+                    when 'v'
+                      "--#{bool}validate_links "
+                    else
+                      ''
+                    end
+        end
+        output
+      end
+    end
+
+    options = %w[debug country_code inline prefix_random include_titles validate_links]
+    options.each do |o|
+      if input =~ /^ *#{o}:\s+(\S+)$/
+        val = Regexp.last_match(1).strip
+        val = true if val =~ /true/i
+        val = false if val =~ /false/i
+        @cfg[o] = val
+        $stderr.print "\r\033[0KGlobal config: #{o} = #{@cfg[o]}\n" unless SILENT
+      end
+
+      next if skip_flags
+
+      while input =~ /^#{o}:\s+(.*?)$/ || input =~ /--(no-)?#{o}/
+        next unless input =~ /--(no-)?#{o}/ &amp;&amp; !skip_flags
+
+        unless @prev_config.key? o
+          @prev_config[o] = @cfg[o]
+          bool = Regexp.last_match(1).nil? || Regexp.last_match(1) == '' ? true : false
+          @cfg[o] = bool
+          $stderr.print "\r\033[0KLine config: #{o} = #{@cfg[o]}\n" unless SILENT
+        end
+        input.sub!(/\s?--(no-)?#{o}/, '')
+      end
+    end
+    @clipboard ? string : input
+  end
+
+  def parse(input)
+    @output = ''
+    return false if input.empty?
+
+    parse_arguments(input, { only_meta: true })
+    @originput = input.dup
+
+    # Handle commands like help or docs
+    if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
+      case input.strip
+      when /^help$/i
+        if SILENT
+          help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
+        else
+          $stdout.puts "#{version_check}"
+          $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
+        end
+        print input
+      when /^(wiki|docs)$/i
+        warn "Opening wiki in browser"
+        `open https://github.com/ttscoff/searchlink/wiki`
+      when /^v(er(s(ion)?)?)?$/
+        print "[#{version_check}]"
+      when /^up(date|grade)$/
+        update_searchlink
+      end
+      Process.exit 0
+    end
+
+    @cfg['inline'] = true if input.scan(/\]\(/).length == 1 &amp;&amp; input.split(/\n/).length == 1
+    @errors = {}
+    @report = []
+
+    # Check for new version
+    latest_version = new_version?
+    add_report("v#{latest_version} available, run SearchLink on the word 'update' to install.") if latest_version
+
+    links = {}
+    @footer = []
+    counter_links = 0
+    counter_errors = 0
+
+    input.sub!(/\n?&lt;!-- Report:.*?--&gt;\n?/m, '')
+    input.sub!(/\n?&lt;!-- Errors:.*?--&gt;\n?/m, '')
+
+    input.scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| links[match[1].strip] = match[0] }
+
+    prefix = if @cfg['prefix_random']
+               if input =~ /\[(\d{4}-)\d+\]: \S+/
+                 Regexp.last_match(1)
+               else
+                 format('%04d-', rand(9999))
+               end
+             else
+               ''
+             end
+
+    highest_marker = 0
+    input.scan(/^\s{,3}\[(?:#{prefix})?(\d+)\]: /).each do
+      m = Regexp.last_match
+      highest_marker = m[1].to_i if m[1].to_i &gt; highest_marker
+    end
+
+    footnote_counter = 0
+    input.scan(/^\s{,3}\[\^(?:#{prefix})?fn(\d+)\]: /).each do
+      m = Regexp.last_match
+      footnote_counter = m[1].to_i if m[1].to_i &gt; footnote_counter
+    end
+
+    if input =~ /\[(.*?)\]\((.*?)\)/
+      lines = input.split(/\n/)
+      out = []
+
+      total_links = input.scan(/\[(.*?)\]\((.*?)\)/).length
+      in_code_block = false
+      line_difference = 0
+      lines.each_with_index do |line, num|
+        @line_num = num - line_difference
+        cursor_difference = 0
+        # ignore links in code blocks
+        if line =~ /^( {4,}|\t+)[^*+\-]/
+          out.push(line)
+          next
+        end
+        if line =~ /^[~`]{3,}/
+          if in_code_block
+            in_code_block = false
+            out.push(line)
+            next
+          else
+            in_code_block = true
+          end
+        end
+        if in_code_block
+          out.push(line)
+          next
+        end
+
+        delete_line = false
+
+        search_count = 0
+
+        line.gsub!(/\[(.*?)\]\((.*?)\)/) do |match|
+          this_match = Regexp.last_match
+          @match_column = this_match.begin(0) - cursor_difference
+          match_string = this_match.to_s
+          @match_length = match_string.length
+          match_before = this_match.pre_match
+
+          invalid_search = false
+          ref_title = false
+
+          if match_before.scan(/(^|[^\\])`/).length.odd?
+            add_report("Match '#{match_string}' within an inline code block")
+            invalid_search = true
+          end
+
+          counter_links += 1
+          unless SILENT
+            $stderr.print("\033[0K\rProcessed: #{counter_links} of #{total_links}, #{counter_errors} errors. ")
+          end
+
+          link_text = this_match[1] || ''
+          link_info = parse_arguments(this_match[2].strip).strip || ''
+
+          if link_text.strip == '' &amp;&amp; link_info =~ /".*?"/
+            link_info.gsub!(/"(.*?)"/) do
+              m = Regexp.last_match(1)
+              link_text = m if link_text == ''
+              m
+            end
+          end
+
+          if link_info.strip =~ /:$/ &amp;&amp; line.strip == match
+            ref_title = true
+            link_info.sub!(/\s*:\s*$/, '')
+          end
+
+          unless !link_text.empty? || !link_info.sub(/^[!\^]\S+/, '').strip.empty?
+            add_error('No input', match)
+            counter_errors += 1
+            invalid_search = true
+          end
+
+          if link_info =~ /^!(\S+)/
+            search_type = Regexp.last_match(1)
+            unless valid_search?(search_type) || search_type =~ /^(\S+\.)+\S+$/
+              add_error("Invalid search#{did_you_mean(search_type)}", match)
+              invalid_search = true
+            end
+          end
+
+          if invalid_search
+            match
+          elsif link_info =~ /^\^(.+)/
+            m = Regexp.last_match
+            if m[1].nil? || m[1] == ''
+              match
+            else
+              note = m[1].strip
+              footnote_counter += 1
+              ref = if !link_text.empty? &amp;&amp; link_text.scan(/\s/).empty?
+                      link_text
+                    else
+                      format('%&lt;p&gt;sfn%&lt;c&gt;04d', p: prefix, c: footnote_counter)
+                    end
+              add_footer "[^#{ref}]: #{note}"
+              res = "[^#{ref}]"
+              cursor_difference += (@match_length - res.length)
+              @match_length = res.length
+              add_report("#{match_string} =&gt; Footnote #{ref}")
+              res
+            end
+          elsif (link_text == '' &amp;&amp; link_info == '') || url?(link_info)
+            add_error("Invalid search", match) unless url?(link_info)
+            match
+          else
+            link_info = link_text if !link_text.empty? &amp;&amp; link_info == ''
+
+            search_type = ''
+            search_terms = ''
+            link_only = false
+            @clipboard = false
+            @titleize = @cfg['empty_uses_page_title']
+
+            if link_info =~ /^(?:[!\^](\S+))\s*(.*)$/
+              m = Regexp.last_match
+
+              search_type = m[1].nil? ? 'g' : m[1]
+
+              search_terms = m[2].gsub(/(^["']|["']$)/, '')
+              search_terms.strip!
+
+              # if the link text is just '%' replace with title regardless of config settings
+              if link_text == '%' &amp;&amp; search_terms &amp;&amp; !search_terms.empty?
+                @titleize = true
+                link_text = ''
+              end
+
+              search_terms = link_text if search_terms == ''
+
+              # if the input starts with a +, append it to the link text as the search terms
+              search_terms = "#{link_text} #{search_terms.strip.sub(/^\+\s*/, '')}" if search_terms.strip =~ /^\+[^+]/
+
+              # if the end of input contain "^", copy to clipboard instead of STDOUT
+              @clipboard = true if search_terms =~ /(!!)?\^(!!)?$/
+
+              # if the end of input contains "!!", only print the url
+              link_only = true if search_terms =~ /!!\^?$/
+
+              search_terms.sub!(/(!!)?\^?(!!)?$/,"")
+
+            elsif link_info =~ /^!/
+              search_word = link_info.match(/^!(\S+)/)
+
+              if search_word &amp;&amp; valid_search?(search_word[1])
+                search_type = search_word[1] unless search_word.nil?
+                search_terms = link_text
+              elsif search_word &amp;&amp; search_word[1] =~ /^(\S+\.)+\S+$/
+                search_type = 'g'
+                search_terms = "site:#{search_word[1]} #{link_text}"
+              else
+                add_error("Invalid search#{did_you_mean(search_word[1])}", match)
+                search_type = false
+                search_terms = false
+              end
+            elsif link_text &amp;&amp; !link_text.empty? &amp;&amp; (link_info.nil? || link_info.empty?)
+              search_type = 'g'
+              search_terms = link_text
+            elsif link_info &amp;&amp; !link_info.empty?
+              search_type = 'g'
+              search_terms = link_info
+            else
+              add_error('Invalid search', match)
+              search_type = false
+              search_terms = false
+            end
+
+            if search_type &amp;&amp; !search_terms.empty?
+              @cfg['custom_site_searches'].each do |k, v|
+                next unless search_type == k
+
+                link_text = search_terms if !@titleize &amp;&amp; link_text == ''
+                v = parse_arguments(v, { no_restore: true })
+                if v =~ %r{^(/|http)}i
+                  search_type = 'r'
+                  tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
+
+                  if !tokens.empty?
+                    highest_token = 0
+                    tokens.each do |token|
+                      if token =~ /(\d+)[ds]?$/ &amp;&amp; Regexp.last_match(1).to_i &gt; highest_token
+                        highest_token = Regexp.last_match(1).to_i
+                      end
+                    end
+                    terms_p = search_terms.split(/ +/)
+                    if terms_p.length &gt; highest_token
+                      remainder = terms_p[highest_token - 1..-1].join(' ')
+                      terms_p = terms_p[0..highest_token - 2]
+                      terms_p.push(remainder)
+                    end
+                    tokens.each do |t|
+                      next unless t =~ /(\d+)[ds]?$/
+
+                      int = Regexp.last_match(1).to_i - 1
+                      replacement = terms_p[int]
+                      case t
+                      when /d$/
+                        replacement.downcase!
+                        re_down = ''
+                      when /s$/
+                        replacement.slugify!
+                        re_down = ''
+                      else
+                        re_down = '(?!d|s)'
+                      end
+                      v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
+                    end
+                    search_terms = v
+                  else
+                    search_terms = v.gsub(/\$term[ds]?/i) do |mtch|
+                      search_terms.downcase! if mtch =~ /d$/i
+                      search_terms.slugify! if mtch =~ /s$/i
+                      ERB::Util.url_encode(search_terms)
+                    end
+                  end
+                else
+                  search_type = 'g'
+                  search_terms = "site:#{v} #{search_terms}"
+                end
+
+                break
+              end
+            end
+
+            if search_type &amp;&amp; search_terms
+              # warn "Searching #{search_type} for #{search_terms}"
+              search_count += 1
+
+              url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
+
+              if url
+                title = titleize(url) if @titleize &amp;&amp; title == ''
+
+                link_text = title if link_text == '' &amp;&amp; title
+                force_title = search_type =~ /def/ ? true : false
+
+                if link_only || search_type =~ /sp(ell)?/ || url == 'embed'
+                  url = title if url == 'embed'
+                  cursor_difference += @match_length - url.length
+                  @match_length = url.length
+                  add_report("#{match_string} =&gt; #{url}")
+                  url
+                elsif ref_title
+                  unless links.key? url
+                    links[url] = link_text
+                    add_footer make_link('ref_title', link_text, url, title: title, force_title: force_title)
+                  end
+                  delete_line = true
+                elsif @cfg['inline']
+                  res = make_link('inline', link_text, url, title: title, force_title: force_title)
+                  cursor_difference += @match_length - res.length
+                  @match_length = res.length
+                  add_report("#{match_string} =&gt; #{url}")
+                  res
+                else
+                  unless links.key? url
+                    highest_marker += 1
+                    links[url] = format('%&lt;pre&gt;s%&lt;m&gt;04d', pre: prefix, m: highest_marker)
+                    add_footer make_link('ref_title', links[url], url, title: title, force_title: force_title)
+                  end
+
+                  type = @cfg['inline'] ? 'inline' : 'ref_link'
+                  res = make_link(type, link_text, links[url], title: false, force_title: force_title)
+                  cursor_difference += @match_length - res.length
+                  @match_length = res.length
+                  add_report("#{match_string} =&gt; #{url}")
+                  res
+                end
+              else
+                add_error('No results', "#{search_terms} (#{match_string})")
+                counter_errors += 1
+                match
+              end
+            else
+              add_error('Invalid search', match)
+              counter_errors += 1
+              match
+            end
+          end
+        end
+        line_difference += 1 if delete_line
+        out.push(line) unless delete_line
+        delete_line = false
+      end
+      warn "\n" unless SILENT
+
+      input = out.delete_if { |l| l.strip =~ /^&lt;!--DELETE--&gt;$/ }.join("\n")
+
+      if @cfg['inline']
+        add_output "#{input}\n"
+        add_output "\n#{print_footer}" unless @footer.empty?
+      elsif @footer.empty?
+        add_output input
+      else
+        last_line = input.strip.split(/\n/)[-1]
+        case last_line
+        when /^\[.*?\]: http/
+          add_output "#{input.rstrip}\n"
+        when /^\[\^.*?\]: /
+          add_output input.rstrip
+        else
+          add_output "#{input}\n\n"
+        end
+        add_output "#{print_footer}\n\n"
+      end
+      @line_num = nil
+      add_report("Processed: #{total_links} links, #{counter_errors} errors.")
+      print_report
+      print_errors
+    else
+      link_only = false
+      @clipboard = false
+
+      res = parse_arguments(input.strip!).strip
+      input = res.nil? ? input : res
+
+      # if the end of input contain "^", copy to clipboard instead of STDOUT
+      @clipboard = true if input =~ /\^[!~:]*$/
+
+      # if the end of input contains "!!", only print the url
+      link_only = true if input =~ /!![\^~:]*$/
+
+      reference_link = input =~ /:([!\^\s~]*)$/
+
+      # if end of input contains ~, pull url from clipboard
+      if input =~ /~[:\^!\s]*$/
+        input.sub!(/[:!\^\s~]*$/, '')
+        clipboard = `__CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbpaste`.strip
+        if url?(clipboard)
+          type = reference_link ? 'ref_title' : 'inline'
+          print make_link(type, input.strip, clipboard)
+        else
+          print @originput
+        end
+        Process.exit
+      end
+
+      input.sub!(/[:!\^\s~]*$/, '')
+
+      ## Maybe if input is just a URL, convert it to a link
+      ## using hostname as text without doing search
+      if only_url?(input.strip)
+        type = reference_link ? 'ref_title' : 'inline'
+        url, title = url_to_link(input.strip, type)
+        print make_link(type, title, url, title: false, force_title: false)
+        Process.exit
+      end
+
+      # check for additional search terms in parenthesis
+      additional_terms = ''
+      if input =~ /\((.*?)\)/
+        additional_terms = " #{Regexp.last_match(1).strip}"
+        input.sub!(/\(.*?\)/, '')
+      end
+
+      # Maybe detect "search + addition terms" and remove additional terms from link text?
+      # if input =~ /\+(.+?)$/
+      #   additional_terms = "#{additional_terms} #{Regexp.last_match(1).strip}"
+      #   input.sub!(/\+.*?$/, '').strip!
+      # end
+
+      link_text = false
+
+      if input =~ /"(.*?)"/
+        link_text = Regexp.last_match(1)
+        input.gsub!(/"(.*?)"/, '\1')
+      end
+
+      # remove quotes from terms, just in case
+      # input.sub!(/^(!\S+)?\s*(["'])(.*?)\2([\!\^]+)?$/, "\\1 \\3\\4")
+
+      case input
+      when /^!(\S+)\s+(.*)$/
+        type = Regexp.last_match(1)
+        link_info = Regexp.last_match(2).strip
+        link_text ||= link_info
+        terms = link_info + additional_terms
+        terms.strip!
+
+        if valid_search?(type) || type =~ /^(\S+\.)+\S+$/
+          if type &amp;&amp; terms &amp;&amp; !terms.empty?
+            @cfg['custom_site_searches'].each do |k, v|
+              next unless type == k
+
+              link_text = terms if link_text == ''
+              v = parse_arguments(v, { no_restore: true })
+              if v =~ %r{^(/|http)}i
+                type = 'r'
+                tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
+
+                if !tokens.empty?
+                  highest_token = 0
+                  tokens.each do |token|
+                    t = Regexp.last_match(1)
+                    highest_token = t.to_i if token =~ /(\d+)d?$/ &amp;&amp; t.to_i &gt; highest_token
+                  end
+                  terms_p = terms.split(/ +/)
+                  if terms_p.length &gt; highest_token
+                    remainder = terms_p[highest_token - 1..-1].join(' ')
+                    terms_p = terms_p[0..highest_token - 2]
+                    terms_p.push(remainder)
+                  end
+                  tokens.each do |t|
+                    next unless t =~ /(\d+)d?$/
+
+                    int = Regexp.last_match(1).to_i - 1
+                    replacement = terms_p[int]
+                    case t
+                    when /d$/
+                      replacement.downcase!
+                      re_down = ''
+                    when /s$/
+                      replacement.slugify!
+                      re_down = ''
+                    else
+                      re_down = '(?!d|s)'
+                    end
+                    v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
+                  end
+                  terms = v
+                else
+                  terms = v.gsub(/\$term[ds]?/i) do |mtch|
+                    terms.downcase! if mtch =~ /d$/i
+                    terms.slugify! if mtch =~ /s$/i
+                    ERB::Util.url_encode(terms)
+                  end
+                end
+              else
+                type = 'g'
+                terms = "site:#{v} #{terms}"
+              end
+
+              break
+            end
+          end
+
+          if type =~ /^(\S+\.)+\S+$/
+            terms = "site:#{type} #{terms}"
+            type = 'g'
+          end
+          search_count ||= 0
+          search_count += 1
+          url, title, link_text = do_search(type, terms, link_text, search_count)
+        else
+          add_error("Invalid search#{did_you_mean(type)}", input)
+          counter_errors += 1
+        end
+      when /^([tfilm])?@(\S+)\s*$/
+        type = Regexp.last_match(1)
+        unless type
+          if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
+            type = 'm'
+          else
+            type = 't'
+          end
+        end
+        link_text = input.sub(/^[tfilm]/, '')
+        url, title = social_handle(type, link_text)
+        link_text = title
+      else
+        link_text ||= input
+        url, title = ddg(input)
+      end
+
+      if url
+        if type =~ /sp(ell)?/
+          add_output(url)
+        elsif link_only
+          add_output(url)
+        elsif url == 'embed'
+          add_output(title)
+        else
+          type = reference_link ? 'ref_title' : 'inline'
+          add_output make_link(type, link_text, url, title: title, force_title: false)
+          print_errors
+        end
+      else
+        add_error('No results', title)
+        add_output @originput.chomp
+        print_errors
+      end
+
+      if @clipboard
+        if @output == @originput
+          warn "No results found"
+        else
+          `echo #{Shellwords.escape(@output)}|tr -d "\n"|pbcopy`
+          warn "Results in clipboard"
+        end
+      end
+    end
+  end
+end
+
+class SearchLink
+  def make_link(type, text, url, title: false, force_title: false)
+    text = title || titleize(url) if @titleize &amp;&amp; text == ''
+
+    title = title &amp;&amp; (@cfg['include_titles'] || force_title) ? %( "#{title.clean}") : ''
+    title.gsub!(/[ \t]+/, ' ')
+
+    case type
+    when 'ref_title'
+      %(\n[#{text.strip}]: #{url}#{title})
+    when 'ref_link'
+      %([#{text.strip}][#{url}])
+    when 'inline'
+      %([#{text.strip}](#{url}#{title}))
+    end
+  end
+
+  def add_output(str)
+    print str if @printout &amp;&amp; !@clipboard
+    @output += str
+  end
+
+  def add_footer(str)
+    @footer ||= []
+    @footer.push(str.strip)
+  end
+
+  def print_footer
+    unless @footer.empty?
+
+      footnotes = []
+      @footer.delete_if do |note|
+        note.strip!
+        case note
+        when /^\[\^.+?\]/
+          footnotes.push(note)
+          true
+        when /^\s*$/
+          true
+        else
+          false
+        end
+      end
+
+      output = @footer.sort.join("\n").strip
+      output += "\n\n" if !output.empty? &amp;&amp; !footnotes.empty?
+      output += footnotes.join("\n\n") unless footnotes.empty?
+      return output.gsub(/\n{3,}/, "\n\n")
+    end
+
+    ''
+  end
+
+  def add_report(str)
+    return unless @cfg['report']
+
+    unless @line_num.nil?
+      position = "#{@line_num}:"
+      position += @match_column.nil? ? '0:' : "#{@match_column}:"
+      position += @match_length.nil? ? '0' : @match_length.to_s
+    end
+    @report.push("(#{position}): #{str}")
+    warn "(#{position}): #{str}" unless SILENT
+  end
+
+  def add_error(type, str)
+    return unless @cfg['debug']
+
+    unless @line_num.nil?
+      position = "#{@line_num}:"
+      position += @match_column.nil? ? '0:' : "#{@match_column}:"
+      position += @match_length.nil? ? '0' : @match_length.to_s
+    end
+    @errors[type] ||= []
+    @errors[type].push("(#{position}): #{str}")
+  end
+
+  def print_report
+    return if (@cfg['inline'] &amp;&amp; @originput.split(/\n/).length == 1) || @clipboard
+
+    return if @report.empty?
+
+    out = "\n&lt;!-- Report:\n#{@report.join("\n")}\n--&gt;\n"
+    add_output out
+  end
+
+  def print_errors(type = 'Errors')
+    return if @errors.empty?
+
+    out = ''
+    inline = if @originput.split(/\n/).length &gt; 1
+               false
+             else
+               @cfg['inline'] || @originput.split(/\n/).length == 1
+             end
+
+    @errors.each do |k, v|
+      next if v.empty?
+
+      v.each_with_index do |err, i|
+        out += "(#{k}) #{err}"
+        out += if inline
+                 i == v.length - 1 ? ' | ' : ', '
+               else
+                 "\n"
+               end
+      end
+    end
+
+    unless out == ''
+      sep = inline ? ' ' : "\n"
+      out.sub!(/\| /, '')
+      out = "#{sep}&lt;!-- #{type}:#{sep}#{out}--&gt;#{sep}"
+    end
+    if @clipboard
+      warn out
+    else
+      add_output out
+    end
+  end
+
+  def print_or_copy(text)
+    # Process.exit unless text
+    if @clipboard
+      `echo #{Shellwords.escape(text)}|tr -d "\n"|pbcopy`
+      print @originput
+    else
+      print text
+    end
+  end
+end
+
+class SearchLink
+  def valid_link?(uri_str, limit = 5)
+    notify('Validating', uri_str)
+    return false if limit.zero?
+
+    url = URI(uri_str)
+    return true unless url.scheme
+
+    url.path = '/' if url.path == ''
+    # response = Net::HTTP.get_response(URI(uri_str))
+    response = false
+
+    Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == 'https') do |http|
+      response = http.request_head(url.path)
+    end
+
+    case response
+    when Net::HTTPMethodNotAllowed, Net::HTTPServiceUnavailable
+      unless /amazon\.com/ =~ url.host
+        add_error('link validation', "Validation blocked: #{uri_str} (#{e})")
+      end
+      notify('Error validating', uri_str)
+      true
+    when Net::HTTPSuccess
+      true
+    when Net::HTTPRedirection
+      location = response['location']
+      valid_link?(location, limit - 1)
+    else
+      notify('Error validating', uri_str)
+      false
+    end
+  rescue StandardError =&gt; e
+    notify('Error validating', uri_str)
+    add_error('link validation', "Possibly invalid =&gt; #{uri_str} (#{e})")
+    true
+  end
+
+  def url?(input)
+    input =~ %r{^(#.*|https?://\S+|/\S+|\S+/|[^!]\S+\.\S+)(\s+".*?")?$}
+  end
+
+  def only_url?(input)
+    input =~ %r{(?i)^((http|https)://)?([\w\-_]+(\.[\w\-_]+)+)([\w\-.,@?^=%&amp;amp;:/~+#]*[\w\-@^=%&amp;amp;/~+#])?$}
+  end
+
+  def ref_title_for_url(url)
+    url = URI.parse(url) if url.is_a?(String)
+
+    parts = url.hostname.split(/\./)
+    domain = if parts.count &gt; 1
+               parts.slice(-2, 1).join('')
+             else
+               parts.join('')
+             end
+
+    path = url.path.split(%r{/}).last
+    if path
+      path.gsub!(/-/, ' ').gsub!(/\.\w{2-4}$/, '')
+    else
+      path = domain
+    end
+
+    path.length &gt; domain.length ? path : domain
+  end
+
+  def url_to_link(input, type)
+    if only_url?(input)
+      input.sub!(%r{(?mi)^(?!https?://)(.*?)$}, 'https://\1')
+      url = URI.parse(input.downcase)
+
+      title = if type == 'ref_title'
+                ref_title_for_url(url)
+              else
+                titleize(url.to_s) || input.sub(%r{^https?://}, '')
+              end
+
+      return [url.to_s, title] if url.hostname
+    end
+    false
+  end
+
+  def amazon_affiliatize(url, amazon_partner)
+    return url if amazon_partner.nil? || amazon_partner.empty?
+
+    return [url, ''] unless url =~ %r{https?://(?:.*?)amazon.com/(?:(.*?)/)?([dg])p/([^?]+)}
+
+    m = Regexp.last_match
+    title = m[1]
+    type = m[2]
+    id = m[3]
+    az_url = "http://www.amazon.com/#{type}p/product/#{id}/ref=as_li_ss_tl?ie=UTF8&amp;linkCode=ll1&amp;tag=#{amazon_partner}"
+    [az_url, title]
+  end
+
+  def titleize(url)
+    title = nil
+
+    gather = false
+    ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
+      if File.exist?(File.join(root, 'gather')) &amp;&amp; File.executable?(File.join(root, 'gather'))
+        gather = File.join(root, 'gather')
+        break
+      end
+    end
+
+    if gather
+      title = `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'`
+      return title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+    end
+
+    begin
+      # source = %x{/usr/bin/curl -sSL '#{url.strip}'}
+
+      uri = URI.parse(url)
+      res = Net::HTTP.get_response(uri)
+
+      if res.code.to_i == 200
+        source = res.body
+        title = source ? source.match(%r{&lt;title&gt;(.*)&lt;/title&gt;}im) : nil
+
+        title = title.nil? ? nil : title[1].strip
+      end
+
+      if title.nil? || title =~ /^\s*$/
+        warn "Warning: missing title for #{url.strip}"
+        title = url.gsub(%r{(^https?://|/.*$)}, '').gsub(/-/, ' ').strip
+      else
+        title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')
+      end
+
+      # Skipping SEO removal until it's more reliable
+      # title.remove_seo(url.strip)
+      title
+    rescue StandardError =&gt; e
+      warn "Error retrieving title for #{url.strip}"
+      raise e
+    end
+  end
+end
+
+class SearchLink
   def pinboard_bookmarks
     bookmarks = `/usr/bin/curl -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{@cfg['pinboard_api_key']}&amp;format=json"`
     bookmarks = bookmarks.force_encoding('utf-8')
@@ -2655,172 +2812,9 @@ APPLESCRIPT
 
     [top[:href], top[:title]]
   end
+end
 
-  # Search bookmark paths and addresses. Return array of bookmark hashes.
-  def search_hook(search)
-    path_matches = `osascript &lt;&lt;'APPLESCRIPT'
-      set searchString to "#{search.strip}"
-      tell application "Hook"
-        set _marks to every bookmark whose name contains searchString or path contains searchString or address contains searchString
-        set _out to {}
-        repeat with _hook in _marks
-          set _out to _out &amp; (name of _hook &amp; "||" &amp; address of _hook &amp; "||" &amp; path of _hook)
-        end repeat
-        set {astid, AppleScript's text item delimiters} to {AppleScript's text item delimiters, "^^"}
-        set _output to _out as string
-        set AppleScript's text item delimiters to astid
-        return _output
-      end tell
-    APPLESCRIPT`.strip.split_hooks
-
-    top_match = path_matches.uniq.first
-    return false unless top_match
-
-    [top_match[:url], top_match[:name]]
-  end
-
-  def google(terms, define = false)
-    uri = URI.parse("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&amp;filter=1&amp;rsz=small&amp;q=#{ERB::Util.url_encode(terms)}")
-    req = Net::HTTP::Get.new(uri.request_uri)
-    req['Referer'] = 'http://brettterpstra.com'
-    res = Net::HTTP.start(uri.host, uri.port) { |http| http.request(req) }
-    body = if RUBY_VERSION.to_f &gt; 1.9
-             res.body.force_encoding('utf-8')
-           else
-             res.body
-           end
-
-    json = JSON.parse(body)
-    return ddg(terms, false) unless json['responseData']
-
-    result = json['responseData']['results'][0]
-    return false if result.nil?
-
-    output_url = result['unescapedUrl']
-    output_title = if define &amp;&amp; output_url =~ /dictionary/
-                     result['content'].gsub(/&lt;\/?.*?&gt;/, '')
-                   else
-                     result['titleNoFormatting']
-                   end
-    [output_url, output_title]
-  rescue StandardError
-    ddg(terms, false)
-  end
-
-  def ddg(terms, type = false)
-    prefix = type ? "#{type.sub(/^!?/, '!')} " : '%5C'
-    begin
-      cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{ERB::Util.url_encode(terms)}')
-      body = `#{cmd}`
-      locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
-      return false if locs.empty?
-
-      url = locs[-1]
-
-      result = url[0].strip || false
-      return false unless result
-
-      # output_url = CGI.unescape(result)
-      output_url = result
-
-      output_title = if @cfg['include_titles'] || @titleize
-                       titleize(output_url) || ''
-                     else
-                       ''
-                     end
-      [output_url, output_title]
-    end
-  end
-
-  def titleize(url)
-    title = nil
-
-    gather = false
-    ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
-      if File.exist?(File.join(root, 'gather')) &amp;&amp; File.executable?(File.join(root, 'gather'))
-        gather = File.join(root, 'gather')
-        break
-      end
-    end
-
-    if gather
-      title = `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'`
-      return title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
-    end
-
-    begin
-      # source = %x{/usr/bin/curl -sSL '#{url.strip}'}
-
-      uri = URI.parse(url)
-      res = Net::HTTP.get_response(uri)
-
-      if res.code.to_i == 200
-        source = res.body
-        title = source ? source.match(%r{&lt;title&gt;(.*)&lt;/title&gt;}im) : nil
-
-        title = title.nil? ? nil : title[1].strip
-      end
-
-      if title.nil? || title =~ /^\s*$/
-        warn "Warning: missing title for #{url.strip}"
-        title = url.gsub(%r{(^https?://|/.*$)}, '').gsub(/-/, ' ').strip
-      else
-        title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')
-      end
-
-      # Skipping SEO removal until it's more reliable
-      # title.remove_seo(url.strip)
-      title
-    rescue StandardError =&gt; e
-      warn "Error retrieving title for #{url.strip}"
-      raise e
-    end
-  end
-
-  def spell(phrase)
-    aspell = if File.exist?('/usr/local/bin/aspell')
-               '/usr/local/bin/aspell'
-             elsif File.exist?('/opt/homebrew/bin/aspell')
-               '/opt/homebrew/bin/aspell'
-             end
-
-    if aspell.nil?
-      add_error('Missing aspell', 'Install aspell in to allow spelling corrections')
-      return false
-    end
-
-    words = phrase.split(/\b/)
-    output = ''
-    words.each do |w|
-      if w =~ /[A-Za-z]+/
-        spell_res = `echo "#{w}" | #{aspell} --sug-mode=bad-spellers -C pipe | head -n 2 | tail -n 1`
-        if spell_res.strip == "\*"
-          output += w
-        else
-          spell_res.sub!(/.*?: /, '')
-          results = spell_res.split(/, /).delete_if { |word| phrase =~ /^[a-z]/ &amp;&amp; word =~ /[A-Z]/ }
-          output += results[0]
-        end
-      else
-        output += w
-      end
-    end
-    output
-  end
-
-  def amazon_affiliatize(url, amazon_partner)
-    return url if amazon_partner.nil? || amazon_partner.empty?
-
-    return [url, ''] unless url =~ %r{https?://(?:.*?)amazon.com/(?:(.*?)/)?([dg])p/([^?]+)}
-
-    m = Regexp.last_match
-    title = m[1]
-    type = m[2]
-    id = m[3]
-    az_url = "http://www.amazon.com/#{type}p/product/#{id}/ref=as_li_ss_tl?ie=UTF8&amp;linkCode=ll1&amp;tag=#{amazon_partner}"
-    [az_url, title]
-  end
-
+class SearchLink
   def template_social(user, url, service)
     template = @cfg['social_template']
     template.sub!(/%user%/, user)
@@ -2854,6 +2848,59 @@ APPLESCRIPT
       [false, term]
     end
     [url, title]
+  end
+end
+
+if RUBY_VERSION.to_f &gt; 1.9
+  Encoding.default_external = Encoding::UTF_8
+  Encoding.default_internal = Encoding::UTF_8
+end
+
+PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
+
+# Main SearchLink class
+class SearchLink
+  include Plist
+
+  attr_reader :originput, :output, :clipboard
+
+  private
+
+  def notify(str, sub)
+    return unless @cfg['notifications']
+
+    `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
+  end
+
+  def spell(phrase)
+    aspell = if File.exist?('/usr/local/bin/aspell')
+               '/usr/local/bin/aspell'
+             elsif File.exist?('/opt/homebrew/bin/aspell')
+               '/opt/homebrew/bin/aspell'
+             end
+
+    if aspell.nil?
+      add_error('Missing aspell', 'Install aspell in to allow spelling corrections')
+      return false
+    end
+
+    words = phrase.split(/\b/)
+    output = ''
+    words.each do |w|
+      if w =~ /[A-Za-z]+/
+        spell_res = `echo "#{w}" | #{aspell} --sug-mode=bad-spellers -C pipe | head -n 2 | tail -n 1`
+        if spell_res.strip == "\*"
+          output += w
+        else
+          spell_res.sub!(/.*?: /, '')
+          results = spell_res.split(/, /).delete_if { |word| phrase =~ /^[a-z]/ &amp;&amp; word =~ /[A-Z]/ }
+          output += results[0]
+        end
+      else
+        output += w
+      end
+    end
+    output
   end
 
   def do_search(search_type, search_terms, link_text = '', search_count = 0)
@@ -3012,13 +3059,13 @@ APPLESCRIPT
       url, title = bitly_shorten(link, rtitle)
       link_text = title ? title : url
     when /^yte?$/
-      if url?(search_terms) &amp;&amp; search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+      if url?(search_terms) &amp;&amp; search_terms =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9_\-]+)$}i
         url = search_terms
       else
         url, title = ddg("site:youtube.com #{search_terms}")
       end
 
-      if search_type =~ /e$/ &amp;&amp; url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9]+)$}i
+      if search_type =~ /e$/ &amp;&amp; url =~ %r{(?:youtu\.be/|youtube\.com/watch\?v=)([a-z0-9_\-]+)$}i
         id = Regexp.last_match(1)
         url = 'embed'
         title = [
@@ -3056,7 +3103,8 @@ APPLESCRIPT
         url, title = twitter_embed(search_terms)
       else
         add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
-        url, title = [false, false]
+        url = false
+        title = false
       end
     when /^imov?$/ # iTunes movie search
       dev = false

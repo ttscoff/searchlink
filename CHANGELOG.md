@@ -1,3 +1,11 @@
+### 2.3.24
+
+2023-01-18 07:47
+
+#### IMPROVED
+
+- Authenticate GitHub update checks to avoid rate limit
+
 ### 2.3.23
 
 2023-01-17 11:35

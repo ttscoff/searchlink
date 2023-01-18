@@ -22,4 +22,6 @@ source = IO.read(source_file)
 
 source.import_markers!(File.join(File.dirname(source_file), '..'))
 
+source.sub!(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, '')
+
 File.open('searchlink.rb', 'w') { |f| f.puts source }
