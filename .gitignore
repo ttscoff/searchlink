@@ -1,3 +1,4 @@
 dist
 current_changes.md
 Gemfile.lock
+lib/tokens.secret

@@ -14,6 +14,9 @@ require 'json'
 require 'erb'
 
 # import
+require 'searchlink/semver'
+
+# import
 require 'searchlink/version'
 
 # import
