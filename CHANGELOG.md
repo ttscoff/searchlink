@@ -1,10 +1,14 @@
 ### 2.3.32
 
-2023-01-19 10:42
+2023-01-19 11:42
 
 #### NEW
 
 - GitHub gist search and embed (!gist/!giste)
+
+#### IMPROVED
+
+- If you pass a gist url or [user/]id[#filename] string to !giste, create a valid embed for the gist'
 
 ### 2.3.31
 
