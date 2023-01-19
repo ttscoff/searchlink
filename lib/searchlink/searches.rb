@@ -661,20 +661,21 @@ module SL
     ### Reference
 
     def define(terms)
-      url = URI.parse("http://api.duckduckgo.com/?q=!def+#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
-      res = Net::HTTP.get_response(url).body
-      res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+      # DDG API is returning "test" results every time
+      # url = URI.parse("http://api.duckduckgo.com/?q=!def+#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
+      # res = Net::HTTP.get_response(url).body
+      # res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
 
-      result = JSON.parse(res)
+      # result = JSON.parse(res)
 
-      if result
-        wiki_link = result['Redirect'] || false
-        title = terms
+      # if result
+      #   wiki_link = result['Redirect'] || false
+      #   title = terms
 
-        if !wiki_link.empty? && !title.empty?
-          return [wiki_link, title]
-        end
-      end
+      #   if !wiki_link.empty? && !title.empty?
+      #     return [wiki_link, title]
+      #   end
+      # end
 
       def_url = "https://www.wordnik.com/words/#{ERB::Util.url_encode(terms)}"
       body = `/usr/bin/curl -sSL '#{def_url}'`
