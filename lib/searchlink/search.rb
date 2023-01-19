@@ -137,6 +137,8 @@ module SL
         link_text = title
       when /^(g|ddg)$/ # google lucky search
         url, title = ddg(search_terms)
+      when /^giste?$/
+        url, title = gist(search_terms, search_type)
       when /^hook$/
         url, title = search_hook(search_terms)
       when /^h(([scfabe])([hb])?)*$/

@@ -46,7 +46,9 @@ module SL
         ['hb[hb]', 'Brave [history, bookmarks]'],
         ['te', 'Twitter embed'],
         ['file', 'Local file:// link (Spotlight)'],
-        ['bl', 'Shorten URL with Bit.ly']
+        ['bl', 'Shorten URL with Bit.ly'],
+        ['gist', 'GitHub Gist'],
+        ['giste', 'GitHub Gist embed']
       ]
       out = ''
       searches.each { |s| out += "!#{s[0]}#{spacer(s[0])}#{s[1]}\n" }
@@ -86,6 +88,8 @@ module SL
         def
         file
         g
+        gist
+        giste
         h
         ha
         hab
@@ -178,7 +182,8 @@ module SL
         'yte?',
         'te',
         'file',
-        'b(l|itly)'
+        'b(l|itly)',
+        'giste?'
       ]
     end
 
@@ -759,6 +764,23 @@ module SL
       #   end
       # end
       # return false
+    end
+
+    def gist(terms, type)
+      url, title = ddg("site:gist.github.com #{terms}")
+      if url =~ %r{https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]+)$}
+        m = Regexp.last_match
+        user = m['user']
+        id = m['id']
+
+        if type =~ /e$/
+          ['embed', %(<script src="https://gist.github.com/#{user}/#{id}.js"></script>)]
+        else
+          [url, title]
+        end
+      else
+        [false, title]
+      end
     end
 
     def zero_click(terms)
