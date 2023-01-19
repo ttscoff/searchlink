@@ -116,6 +116,7 @@ module SL
         hfbh
         hfh
         hfhb
+        hook
         hs
         hsb
         hsbh
@@ -183,7 +184,8 @@ module SL
         'te',
         'file',
         'b(l|itly)',
-        'giste?'
+        'giste?',
+        'hook'
       ]
     end
 

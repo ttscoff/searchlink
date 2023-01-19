@@ -1,3 +1,11 @@
+### 2.3.33
+
+2023-01-19 15:27
+
+#### FIXED
+
+- Remove Instant Answers check from !def, use wordnik instead to put definition in title attribute
+
 ### 2.3.32
 
 2023-01-19 11:44
