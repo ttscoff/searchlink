@@ -1,10 +1,15 @@
 ### 2.3.33
 
-2023-01-19 15:27
+2023-01-19 15:39
+
+#### IMPROVED
+
+- Allow search terms in !hook searches to have words in any order
 
 #### FIXED
 
 - Remove Instant Answers check from !def, use wordnik instead to put definition in title attribute
+- !hook returning invalid search
 
 ### 2.3.32
 
