@@ -607,10 +607,11 @@ module SL
 
     # Search bookmark paths and addresses. Return array of bookmark hashes.
     def search_hook(search)
+      query = search.strip.split(' ').map { |s| %(name contains "#{s}" or path contains "#{s}" or address contains "#{s}") }
+      query = query.map { |q| "(#{q})"}.join(' and ')
       path_matches = `osascript <<'APPLESCRIPT'
-        set searchString to "#{search.strip}"
         tell application "Hook"
-          set _marks to every bookmark whose name contains searchString or path contains searchString or address contains searchString
+          set _marks to every bookmark whose #{query}
           set _out to {}
           repeat with _hook in _marks
             set _out to _out & (name of _hook & "||" & address of _hook & "||" & path of _hook)
