@@ -30,6 +30,10 @@ class ::String
     replace parse_flags
   end
 
+  def fix_gist_file
+    sub(/^file-/, '').sub(/-([^\-]+)$/, '.\1')
+  end
+
   # Turn a string into a slug, removing spaces and
   # non-alphanumeric characters
   #

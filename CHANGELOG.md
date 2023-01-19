@@ -1,3 +1,11 @@
+### 2.3.32
+
+2023-01-19 10:42
+
+#### NEW
+
+- GitHub gist search and embed (!gist/!giste)
+
 ### 2.3.31
 
 2023-01-18 16:18

@@ -26,9 +26,9 @@ describe 'Search' do
   end
 
   it 'returns correct result iTunes' do
-    execute_script('bin/searchlink', use_bundler: true, stdin_data: '[Inside Voices](!ialb)')
+    execute_script('bin/searchlink', use_bundler: true, stdin_data: '[Inside Voices / Outside Voices](!ialb + k.flay)')
     expect(last_execution).to be_successful
-    expected = '[Inside Voices](https://music.apple.com/us/album/inside-voices-ep/1566937199?uo=4&at=10l4tL&ct=searchlink "Inside Voices - EP by K.Flay")'
+    expected = '[Inside Voices / Outside Voices](https://music.apple.com/us/album/inside-voices-outside-voices/1604651969?uo=4&at=10l4tL&ct=searchlink "Inside Voices / Outside Voices by K.Flay")'
     expect(last_execution.stdout).to match(/#{Regexp.escape(expected)}/)
   end
 
