@@ -1,10 +1,17 @@
 ### 2.3.34
 
-2023-01-20 06:18
+2023-01-20 09:05
 
 #### IMPROVED
 
 - Code refactoring
+- More code refactoring
+- Updated amazon affiliate linking format
+- More tests
+
+#### FIXED
+
+- Social handle expansion
 
 ### 2.3.33
 
