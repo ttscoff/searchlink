@@ -1,4 +1,8 @@
 require 'rake/clean'
+require 'rubygems'
+require 'rubygems/package_task'
+require 'rdoc'
+require 'rdoc/task'
 require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
 require 'yard'
@@ -10,10 +14,14 @@ desc 'Run test suite'
 # task test: %i[rubocop spec]
 task test: %i[spec]
 
+spec = eval(File.read('searchlink.gemspec'))
+Gem::PackageTask.new(spec) do |pkg|
+end
+
 RSpec::Core::RakeTask.new
 
 RuboCop::RakeTask.new do |t|
-  t.formatters = ['progress']
+  t.formatters = %w[progress]
 end
 
 YARD::Rake::YardocTask.new

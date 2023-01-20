@@ -4,9 +4,7 @@ require 'spec_helper'
 
 # https://github.com/thoiberg/cli-test
 describe 'Version' do
-  describe 'Version check is successful' do
-    it 'returns false' do
-      expect(SL::new_version?).not_to be_truthy
-    end
+  it 'returns false for new version' do
+    expect(SL::new_version?).not_to be_truthy
   end
 end

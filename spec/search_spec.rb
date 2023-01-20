@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 # https://github.com/thoiberg/cli-test
-describe 'Search' do
+describe 'CLI' do
   include CliTest
 
   describe 'executes' do
@@ -105,7 +105,7 @@ describe 'Search' do
 
   searches.each_with_index do |search, i|
     describe "executes search for #{search}" do
-      it "and returns the #{results[i]}" do
+      it "and returns #{results[i]}" do
         execute_script('bin/searchlink', use_bundler: true, stdin_data: search)
         expect(last_execution).to be_successful
 

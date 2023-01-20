@@ -39,13 +39,7 @@ module SL
       @clipboard ? string : input
     end
 
-    def parse(input)
-      @output = ''
-      return false if input.empty?
-
-      parse_arguments(input, { only_meta: true })
-      @originput = input.dup
-
+    def parse_commands(input)
       # Handle commands like help or docs
       if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
         case input.strip
@@ -67,6 +61,16 @@ module SL
         end
         Process.exit 0
       end
+    end
+
+    def parse(input)
+      @output = ''
+      return false if input.empty?
+
+      parse_arguments(input, { only_meta: true })
+      @originput = input.dup
+
+      parse_commands(input)
 
       @cfg['inline'] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
       @errors = {}
@@ -424,15 +428,15 @@ module SL
         @clipboard = false
 
         res = parse_arguments(input.strip!).strip
-        input = res.nil? ? input : res
+        input = res.nil? ? input.strip : res
 
         # if the end of input contain "^", copy to clipboard instead of STDOUT
-        @clipboard = true if input =~ /\^[!~:]*$/
+        @clipboard = true if input =~ /\^[!~:\s]*$/
 
         # if the end of input contains "!!", only print the url
-        link_only = true if input =~ /!![\^~:]*$/
+        link_only = true if input =~ /!![\^~:\s]*$/
 
-        reference_link = input =~ /:([!\^\s~]*)$/
+        reference_link = input =~ /:([!\^~\s]*)$/
 
         # if end of input contains ~, pull url from clipboard
         if input =~ /~[:\^!\s]*$/
