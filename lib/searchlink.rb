@@ -51,6 +51,3 @@ require 'searchlink/output'
 
 # import
 require 'searchlink/url'
-
-# import
-require 'searchlink/social'

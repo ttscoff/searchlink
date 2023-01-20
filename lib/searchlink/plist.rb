@@ -196,7 +196,7 @@ module Plist
 
       begin
         return Marshal.load(data)
-      rescue Exception => e
+      rescue Exception
         io = StringIO.new
         io.write data
         io.rewind

@@ -1,47 +1,60 @@
-#import
-require_relative 'searches/pinboard'
+# import
+require_relative 'searches/amazon'
 
-#import
+# import
 require_relative 'searches/applemusic'
 
-#import
-require_relative 'searches/itunes'
-
-#import
-require_relative 'searches/lastfm'
-
-#import
-require_relative 'searches/duckduckgo'
-
-#import
-require_relative 'searches/history'
-
-#import
-require_relative 'searches/spotlight'
-
-#import
-require_relative 'searches/hook'
-
-#import
-require_relative 'searches/tmdb'
-
-#import
-require_relative 'searches/definition'
-
-#import
-require_relative 'searches/spelling'
-
-#import
-require_relative 'searches/wikipedia'
-
-#import
+# import
 require_relative 'searches/bitly'
 
-#import
+# import
+require_relative 'searches/definition'
+
+# import
+require_relative 'searches/duckduckgo'
+
+# import
+require_relative 'searches/github'
+
+# import
+require_relative 'searches/history'
+
+# import
+require_relative 'searches/hook'
+
+# import
+require_relative 'searches/itunes'
+
+# import
+require_relative 'searches/lastfm'
+
+# import
+require_relative 'searches/pinboard'
+
+# import
+require_relative 'searches/social'
+
+# import
+require_relative 'searches/software'
+
+# import
+require_relative 'searches/spelling'
+
+# import
+require_relative 'searches/spotlight'
+
+# import
+require_relative 'searches/tmdb'
+
+# import
 require_relative 'searches/twitter'
 
-#import
-require_relative 'searches/github'
+# import
+require_relative 'searches/wikipedia'
+
+# import
+require_relative 'searches/youtube'
+
 
 module SL
   class SearchLink

@@ -84,13 +84,14 @@ module SL
     def amazon_affiliatize(url, amazon_partner)
       return url if amazon_partner.nil? || amazon_partner.empty?
 
-      return [url, ''] unless url =~ %r{https?://(?:.*?)amazon.com/(?:(.*?)/)?([dg])p/([^?]+)}
+      return [url, ''] unless url =~ %r{https?://(?<subdomain>.*?)amazon.com/(?:(?<title>.*?)/)?(?<type>[dg])p/(?<id>[^?]+)}
 
       m = Regexp.last_match
-      title = m[1]
-      type = m[2]
-      id = m[3]
-      az_url = "http://www.amazon.com/#{type}p/product/#{id}/ref=as_li_ss_tl?ie=UTF8&linkCode=ll1&tag=#{amazon_partner}"
+      subdomain = m['subdomain']
+      title = m['title']
+      type = m['type']
+      id = m['id']
+      az_url = "https://#{subdomain}amazon.com/#{type}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}"
       [az_url, title]
     end
 
