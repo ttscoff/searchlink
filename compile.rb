@@ -3,7 +3,7 @@
 
 class ::String
   def import_markers(base)
-    gsub(/^# *import\nrequire '(.*?)'\n/) do
+    gsub(/^# *import\nrequire(?:_relative)? '(.*?)'\n/) do
       file = Regexp.last_match(1)
       file = File.join(base, "#{file}.rb")
 

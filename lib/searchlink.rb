@@ -53,7 +53,4 @@ require 'searchlink/output'
 require 'searchlink/url'
 
 # import
-require 'searchlink/pinboard'
-
-# import
 require 'searchlink/social'

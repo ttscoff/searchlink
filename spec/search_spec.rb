@@ -66,7 +66,7 @@ describe 'Search' do
       'http://www.capybaragames.com/',
       'https://apps.apple.com/us/app/omnifocus-3/id1346203938?mt=12&uo=4&at=10l4tL&ct=searchlink',
       'https://en.wikipedia.org/wiki/Sid_Vicious',
-      'https://www.thefreedictionary.com/ambiguous',
+      'https://www.wordnik.com/words/ambiguous',
       'https://music.apple.com/us/artist/black-rebel-motorcycle-club/624658?uo=4&at=10l4tL&ct=searchlink',
       'https://brettterpstra.com/2011/08/13/keybinding-madness/',
       'https://twitter.com/ttscoff',
