@@ -12,7 +12,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/ttscoff/searchlink'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
+  spec.files = Dir['lib/**/*.rb'] + Dir['bin/*']
+
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(features|spec|test)/})
   spec.require_paths = ['lib']
@@ -38,9 +39,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'redcarpet', '~> 3.2'
   spec.add_development_dependency 'github-markup', '~> 1.3'
   spec.add_development_dependency 'tty-spinner', '~> 0.9'
-
-  spec.add_runtime_dependency 'mdless', '~> 1.0', '>= 1.0.28'
-  spec.add_runtime_dependency 'tty-screen', '~> 0.8'
-  spec.add_runtime_dependency 'tty-box', '~> 0.7'
-  # spec.add_runtime_dependency 'tty-prompt', '~> 0.23'
 end
