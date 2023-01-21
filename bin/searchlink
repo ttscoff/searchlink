@@ -15,6 +15,10 @@ end
 PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
 
 sl = SL::SearchLink.new({ echo: true })
+
+# # ignore
+# SL::Searches.load_searches
+
 overwrite = true
 backup = SL.config['backup']
 
@@ -23,13 +27,13 @@ if !ARGV.empty?
   ARGV.each do |arg|
     case arg
     when /^(--?)?h(elp)?$/
-      print SL::version_check
+      print SL.version_check
       puts
       sl.help_cli
       $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
       Process.exit
     when /^(--?)?v(er(s(ion)?)?)?$/
-      print SL::version_check
+      print SL.version_check
     when /^--?(stdout)$/
       overwrite = false
     when /^--?no[\-_]backup$/

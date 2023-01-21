@@ -22,7 +22,16 @@ source = IO.read(source_file)
 
 source.import_markers!(File.join(File.dirname(source_file), '..'))
 
+# sources = [source]
+# Dir.glob('lib/searchlink/searches/*.rb').each do |f|
+#   content = IO.read(f)
+#   content.import_markers(File.dirname(f))
+#   sources.push(content)
+# end
+# source = sources.join("\n")
+
 source.sub!(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, '')
+# source.sub!(/^# *ignore *\n.*?$/, '')
 
 File.open('searchlink.rb', 'w') { |f| f.puts source }
 

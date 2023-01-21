@@ -2,7 +2,7 @@ module SL
   module URL
     class << self
       def valid_link?(uri_str, limit = 5)
-        notify('Validating', uri_str)
+        SL.notify('Validating', uri_str)
         return false if limit.zero?
 
         url = URI(uri_str)
@@ -19,9 +19,9 @@ module SL
         case response
         when Net::HTTPMethodNotAllowed, Net::HTTPServiceUnavailable
           unless /amazon\.com/ =~ url.host
-            add_error('link validation', "Validation blocked: #{uri_str} (#{e})")
+            SL.add_error('link validation', "Validation blocked: #{uri_str} (#{e})")
           end
-          notify('Error validating', uri_str)
+          SL.notify('Error validating', uri_str)
           true
         when Net::HTTPSuccess
           true
@@ -29,12 +29,12 @@ module SL
           location = response['location']
           valid_link?(location, limit - 1)
         else
-          notify('Error validating', uri_str)
+          SL.notify('Error validating', uri_str)
           false
         end
       rescue StandardError => e
-        notify('Error validating', uri_str)
-        add_error('link validation', "Possibly invalid => #{uri_str} (#{e})")
+        SL.notify('Error validating', uri_str)
+        SL.add_error('link validation', "Possibly invalid => #{uri_str} (#{e})")
         true
       end
 
@@ -108,10 +108,15 @@ module SL
         end
 
         if gather
-          title = `#{gather} --title-only '#{url.strip}' --fallback-title 'Unkown'`
-          title = title.gsub(/\n+/, ' ').gsub(/ +/, ' ')
-          title.remove_seo!(url) if SL.config['remove_seo']
-          return title
+          cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
+          title = SL::Util.exec_with_timeout(cmd, 5)
+          if title
+            title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+            title.remove_seo!(url) if SL.config['remove_seo']
+            return title
+          else
+            SL.notify('Error retrieving title', 'Gather timed out')
+          end
         end
 
         begin
@@ -128,10 +133,11 @@ module SL
           end
 
           if title.nil? || title =~ /^\s*$/
-            warn "Warning: missing title for #{url.strip}"
+            add_error('Title not found', "Warning: missing title for #{url.strip}")
             title = url.gsub(%r{(^https?://|/.*$)}, '').gsub(/-/, ' ').strip
           else
             title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')
+            title.remove_seo!(url) if SL.config['remove_seo']
           end
 
           # Skipping SEO removal until it's more reliable

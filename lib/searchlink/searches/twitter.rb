@@ -1,33 +1,46 @@
 module SL
-  class SearchLink
-    def twitter(search_type, search_terms)
-      if url?(search_terms) && search_terms =~ %r{^https://twitter.com/}
-        url, title = twitter_embed(search_terms)
-      else
-        add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
-        url = false
-        title = false
+  class TwitterSearch
+    class << self
+      def settings
+        {
+          trigger: 'te',
+          searches: [
+            ['te', 'Twitter Embed']
+          ]
+        }
       end
 
-      [url, title]
-    end
-
-    def twitter_embed(tweet)
-      res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{ERB::Util.url_encode(tweet)}'`.strip
-      if res
-        begin
-          json = JSON.parse(res)
-          url = 'embed'
-          title = json['html']
-        rescue StandardError
-          add_error('Tweet Error', 'Error retrieving tweet')
+      def search(search_type, search_terms, link_text)
+        if SL::URL.url?(search_terms) && search_terms =~ %r{^https://twitter.com/}
+          url, title = twitter_embed(search_terms)
+        else
+          SL.add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
           url = false
-          title = tweet
+          title = false
         end
-      else
-        return [false, 'Error retrieving tweet']
+
+        [url, title, link_text]
       end
-      return [url, title]
+
+      def twitter_embed(tweet)
+        res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{ERB::Util.url_encode(tweet)}'`.strip
+        if res
+          begin
+            json = JSON.parse(res)
+            url = 'embed'
+            title = json['html']
+          rescue StandardError
+            add_error('Tweet Error', 'Error retrieving tweet')
+            url = false
+            title = tweet
+          end
+        else
+          return [false, 'Error retrieving tweet']
+        end
+        return [url, title]
+      end
     end
+
+    SL::Searches.register 'twitter', :search, self
   end
 end

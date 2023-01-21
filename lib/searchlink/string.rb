@@ -24,7 +24,7 @@ class ::String
 
   # parse command line flags into long options
   def parse_flags
-    gsub(/(\+\+|--)([dirtv]+)\b/) do
+    gsub(/(\+\+|--)([dirtvs]+)\b/) do
       m = Regexp.last_match
       bool = m[1] == '++' ? '' : 'no-'
       output = ' '
@@ -40,6 +40,8 @@ class ::String
                     "--#{bool}include_titles "
                   when 'v'
                     "--#{bool}validate_links "
+                  when 's'
+                    "--#{bool}remove_seo"
                   else
                     ''
                   end
@@ -186,7 +188,7 @@ class ::String
     title.gsub!(/&[lr]dquo;/, '"')
     title.gsub!(/&[lr]dquo;/, "'")
 
-    seo_title_separators = %w[| « - – · :]
+    seo_title_separators = %w[| « — – - · :]
 
     begin
       re_parts = []
@@ -207,7 +209,7 @@ class ::String
         break if dead_switch > 5
 
         seo_title_separators.each_with_index do |sep, i|
-          parts = title.split(/ ?#{Regexp.escape(sep)} +/)
+          parts = title.split(/ +#{Regexp.escape(sep)} +/)
 
           next if parts.length == 1
 
@@ -215,6 +217,7 @@ class ::String
           seps = Regexp.new("^[^#{remaining_separators}]+$")
 
           longest = parts.longest_element.strip
+
 
           unless parts.empty?
             parts.delete_if do |pt|
@@ -236,14 +239,14 @@ class ::String
         dead_switch += 1
       end
     rescue StandardError => e
-      return self unless $cfg['debug']
+      return self unless SL.config['debug']
       warn 'Error processing title'
       p e
       raise e
       # return self
     end
 
-    seps = Regexp.new("[#{seo_title_separators.map { |s| Regexp.escape(s) }.join('')}]")
+    seps = Regexp.new(" +[#{seo_title_separators.map { |s| Regexp.escape(s) }.join('')}] +")
     if title =~ seps
       seo_parts = title.split(seps)
       title = seo_parts.longest_element.strip if seo_parts.length.positive?

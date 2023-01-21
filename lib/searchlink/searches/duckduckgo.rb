@@ -13,7 +13,7 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
-        return zero_click(search_terms) if search_type =~ /^z$/
+        return zero_click(search_terms, link_text) if search_type =~ /^z$/
 
         prefix = '%5C'
 
@@ -37,11 +37,12 @@ module SL
                          else
                            ''
                          end
+
           [output_url, output_title, link_text]
         end
       end
 
-      def zero_click(search_type, search_terms, link_text)
+      def zero_click(search_terms, link_text)
         url = URI.parse("http://api.duckduckgo.com/?q=#{ERB::Util.url_encode(search_terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
         res = Net::HTTP.get_response(url).body
         res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9

@@ -12,7 +12,7 @@ module SL
         input.parse_flags!
       end
 
-      options = %w[debug country_code inline prefix_random include_titles validate_links]
+      options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links]
       options.each do |o|
         if input =~ /^ *#{o}:\s+(\S+)$/
           val = Regexp.last_match(1).strip
@@ -457,7 +457,7 @@ module SL
         ## using hostname as text without doing search
         if SL::URL.only_url?(input.strip)
           type = reference_link ? 'ref_title' : 'inline'
-          url, title = url_to_link(input.strip, type)
+          url, title = SL::URL.url_to_link(input.strip, type)
           print SL.make_link(type, title, url, title: false, force_title: false)
           Process.exit
         end
@@ -572,7 +572,7 @@ module SL
             end
           end
           link_text = input.sub(/^[tfilm]/, '')
-          url, title = social_handle(type, link_text)
+          url, title = SL::SocialSearch.social_handle(type, link_text)
           link_text = title
         else
           link_text ||= input

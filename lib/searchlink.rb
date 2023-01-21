@@ -17,6 +17,9 @@ require 'erb'
 require 'tokens'
 
 # import
+require 'searchlink/util'
+
+# import
 require 'searchlink/semver'
 
 # import

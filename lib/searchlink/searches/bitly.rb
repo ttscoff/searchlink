@@ -12,7 +12,7 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
-        if url?(search_terms)
+        if SL::URL.url?(search_terms)
           link = search_terms
         else
           link, rtitle = SL.ddg(search_terms, link_text)

@@ -1,20 +1,21 @@
 module SL
+  # Spelling Search
   class SpellSearch
     class << self
       def settings
         {
           trigger: 'sp(?:ell)?',
           searches: [
-            ['sp', 'Spelling'],
+            %w[sp Spelling],
             ['spell', nil]
           ]
         }
       end
 
-      def search(search_type, search_terms, link_text)
+      def search(_, search_terms, link_text)
         title = SL.spell(search_terms)
 
-        [nil, title, link_text]
+        [title, title, link_text]
       end
     end
 

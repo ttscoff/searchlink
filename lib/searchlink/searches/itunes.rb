@@ -5,12 +5,16 @@ module SL
     class << self
       def settings
         {
-          trigger: 'i(pod|art|alb|song)',
+          trigger: '(i(pod|art|alb|song|tud?)|masd?)',
           searches: [
             ['ipod', 'iTunes podcast'],
             ['iart', 'iTunes artist'],
             ['ialb', 'iTunes album'],
-            ['isong', 'iTunes song']
+            ['isong', 'iTunes song'],
+            ['itu', 'iOS App Store Search'],
+            ['itud', 'iOS App Store Developer Link'],
+            ['mas', 'Mac App Store Search'],
+            ['masd', 'Mac App Store Developer Link']
           ]
         }
       end

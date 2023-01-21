@@ -1,11 +1,11 @@
 #import
-require_relative 'chromium'
+require_relative 'helpers/chromium'
 
 #import
-require_relative 'firefox'
+require_relative 'helpers/firefox'
 
 #import
-require_relative 'safari'
+require_relative 'helpers/safari'
 
 module SL
   class HistorySearch

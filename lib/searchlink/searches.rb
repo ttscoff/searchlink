@@ -5,17 +5,21 @@ module SL
         @plugins ||= {}
       end
 
+      def load_searches
+        Dir.glob(File.join(File.dirname(__FILE__), 'searches', '*.rb')).each { |f| require f }
+      end
+
       def register(title, type, klass)
         if title.is_a?(Array)
           title.each { |t| register(t, type, klass) }
           return
         end
 
-        settings = if klass.respond_to? :settings
-                     klass.settings
-                   else
-                     { trigger: title.normalize_trigger, config: {} }
-                   end
+        raise StandardError, "Plugin #{title} has no settings method" unless klass.respond_to? :settings
+
+        settings = klass.settings
+
+        raise StandardError, "Plugin #{title} has no search method" unless klass.respond_to? :search
 
         plugins[type] ||= {}
         plugins[type][title] = {
@@ -26,15 +30,11 @@ module SL
       end
 
       def do_search(search_type, search_terms, link_text)
-        url = false
-        title = false
         plugins[:search].each do |title, plugin|
           if search_type =~ /^#{plugin[:trigger]}$/
-            url, title, link_text = plugin[:class].search(search_type, search_terms, link_text)
-            break
+            return plugin[:class].search(search_type, search_terms, link_text)
           end
         end
-        [url, title, link_text]
       end
 
       def available_searches
@@ -96,7 +96,7 @@ module SL
         valid = false
         valid = true if term =~ /^(#{valid_searches.join('|')})$/
         valid = true if SL.config['custom_site_searches'].keys.include? term
-        SL.notify("Invalid search#{did_you_mean(term)}", term) unless valid
+        # SL.notify("Invalid search#{did_you_mean(term)}", term) unless valid
         valid
       end
     end
@@ -127,36 +127,36 @@ require_relative 'searches/github'
 # import
 require_relative 'searches/history'
 
-# # import
-# require_relative 'searches/hook'
+# import
+require_relative 'searches/hook'
 
 
-# # import
-# require_relative 'searches/lastfm'
+# import
+require_relative 'searches/lastfm'
 
-# # import
-# require_relative 'searches/pinboard'
+# import
+require_relative 'searches/pinboard'
 
-# # import
-# require_relative 'searches/social'
+# import
+require_relative 'searches/social'
 
-# # import
-# require_relative 'searches/software'
+# import
+require_relative 'searches/software'
 
 # import
 require_relative 'searches/spelling'
 
-# # import
-# require_relative 'searches/spotlight'
+# import
+require_relative 'searches/spotlight'
 
-# # import
-# require_relative 'searches/tmdb'
+# import
+require_relative 'searches/tmdb'
 
-# # import
-# require_relative 'searches/twitter'
+# import
+require_relative 'searches/twitter'
 
-# # import
-# require_relative 'searches/wikipedia'
+# import
+require_relative 'searches/wikipedia'
 
-# # import
-# require_relative 'searches/youtube'
+# import
+require_relative 'searches/youtube'
