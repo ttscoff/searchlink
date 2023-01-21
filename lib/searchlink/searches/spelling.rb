@@ -33,7 +33,7 @@ module SL
                end
 
       if aspell.nil? || aspell.empty?
-        add_error('Missing aspell', 'Install aspell in to allow spelling corrections')
+        SL.add_error('Missing aspell', 'Install aspell in to allow spelling corrections')
         return false
       end
 

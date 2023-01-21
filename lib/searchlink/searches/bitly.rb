@@ -25,7 +25,7 @@ module SL
 
       def bitly_shorten(url, title = nil)
         unless SL.config.key?('bitly_access_token') && !SL.config['bitly_access_token'].empty?
-          add_error('Bit.ly not configured', 'Missing access token')
+          SL.add_error('Bit.ly not configured', 'Missing access token')
           return [false, title]
         end
 

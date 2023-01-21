@@ -23,7 +23,7 @@ module SL
         fix = SL.spell(search_terms)
 
         if fix && search_terms.downcase != fix.downcase
-          add_error('Spelling', "Spelling altered for '#{search_terms}' to '#{fix}'")
+          SL.add_error('Spelling', "Spelling altered for '#{search_terms}' to '#{fix}'")
           search_terms = fix
           link_text = fix
         end

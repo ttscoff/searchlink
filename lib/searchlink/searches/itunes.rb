@@ -54,7 +54,7 @@ module SL
         begin
           json = JSON.parse(res)
         rescue StandardError => e
-          add_error('Invalid response', "Search for #{terms}: (#{e})")
+          SL.add_error('Invalid response', "Search for #{terms}: (#{e})")
           return false
         end
         return false unless json

@@ -30,7 +30,7 @@ module SL
             url = 'embed'
             title = json['html']
           rescue StandardError
-            add_error('Tweet Error', 'Error retrieving tweet')
+            SL.add_error('Tweet Error', 'Error retrieving tweet')
             url = false
             title = tweet
           end

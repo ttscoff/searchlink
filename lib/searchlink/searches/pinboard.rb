@@ -35,7 +35,7 @@ module SL
         begin
           File.open(cachefile, 'wb') { |f| f.write(Marshal.dump(cache)) }
         rescue IOError
-          add_error('Pinboard cache error', 'Failed to write stash to disk')
+          SL.add_error('Pinboard cache error', 'Failed to write stash to disk')
           return false
         end
         true
@@ -52,11 +52,11 @@ module SL
             cache = Marshal.load(File.binread(cachefile))
             # file.close
           rescue IOError # Zlib::GzipFile::Error
-            add_error('Error loading pinboard cache', "IOError reading #{cachefile}")
+            SL.add_error('Error loading pinboard cache', "IOError reading #{cachefile}")
             cache = pinboard_bookmarks
             save_pinboard_cache(cache)
           rescue StandardError
-            add_error('Error loading pinboard cache', "StandardError reading #{cachefile}")
+            SL.add_error('Error loading pinboard cache', "StandardError reading #{cachefile}")
             cache = pinboard_bookmarks
             save_pinboard_cache(cache)
           end
@@ -93,7 +93,7 @@ module SL
       # Exact matching is case and punctuation insensitive
       def search(_, search_terms, link_text)
         unless SL.config['pinboard_api_key']
-          add_error('Missing Pinboard API token',
+          SL.add_error('Missing Pinboard API token',
                     'Find your api key at https://pinboard.in/settings/password and add it
                     to your configuration (pinboard_api_key: YOURKEY)')
           return false

@@ -66,7 +66,9 @@ module SL
         path.length > domain.length ? path : domain
       end
 
-      def url_to_link(input, type)
+      def url_to_link(url, type)
+        input = url.dup
+
         if only_url?(input)
           input.sub!(%r{(?mi)^(?!https?://)(.*?)$}, 'https://\1')
           url = URI.parse(input.downcase)
@@ -109,7 +111,7 @@ module SL
 
         if gather
           cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
-          title = SL::Util.exec_with_timeout(cmd, 5)
+          title = SL::Util.exec_with_timeout(cmd, 8)
           if title
             title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
             title.remove_seo!(url) if SL.config['remove_seo']
@@ -133,7 +135,7 @@ module SL
           end
 
           if title.nil? || title =~ /^\s*$/
-            add_error('Title not found', "Warning: missing title for #{url.strip}")
+            SL.add_error('Title not found', "Warning: missing title for #{url.strip}")
             title = url.gsub(%r{(^https?://|/.*$)}, '').gsub(/-/, ' ').strip
           else
             title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')

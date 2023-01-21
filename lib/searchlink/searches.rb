@@ -160,3 +160,6 @@ require_relative 'searches/wikipedia'
 
 # import
 require_relative 'searches/youtube'
+
+# import
+require_relative 'searches/lyrics'

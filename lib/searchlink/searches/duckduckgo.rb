@@ -67,7 +67,7 @@ end
 
 module SL
   class << self
-    def ddg(search_terms, link_text)
+    def ddg(search_terms, link_text = nil)
       SL::Searches.plugins[:search]['duckduckgo'][:class].search('ddg', search_terms, link_text)
     end
   end

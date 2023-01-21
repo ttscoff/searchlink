@@ -1,3 +1,15 @@
+### 2.3.35
+
+2023-01-21 15:29
+
+#### NEW
+
+- Add GitHub search
+
+#### IMPROVED
+
+- Refactor all searches as plugins
+
 ### 2.3.34
 
 2023-01-20 09:06

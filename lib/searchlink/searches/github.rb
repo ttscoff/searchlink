@@ -3,7 +3,7 @@ module SL
     class << self
       def settings
         {
-          trigger: '(?:gist|gh)',
+          trigger: '(?:giste?|gh)',
           searches: [
             ['gh', 'GitHub User/Repo Link'],
             ['gist', 'Gist Search'],
@@ -15,7 +15,7 @@ module SL
       def search(search_type, search_terms, link_text)
         case search_type
         when /^gist/
-          url, title = gist(search_terms, search_type)
+          url, title = gist(search_terms, search_type, link_text)
         else
           url, title = github(search_terms, link_text)
         end
@@ -33,7 +33,7 @@ module SL
               when 1
                 "https://github.com/#{terms[0]}"
               else
-                url, title = SL.ddg("site:github.com #{search_terms}", link_text)
+                url, title, link_text = SL.ddg("site:github.com #{search_terms}", link_text)
               end
 
         if SL::URL.valid_link?(url)
@@ -46,7 +46,7 @@ module SL
         end
       end
 
-      def gist(terms, type)
+      def gist(terms, type, link_text)
         terms.strip!
         case terms
         when %r{^(?<id>[a-z0-9]{32})(?:[#/](?<file>(file-)?.*?))?$}
@@ -75,7 +75,7 @@ module SL
             title = "#{title}: #{m['file']}"
           end
         else
-          url, title = SL.ddg("site:gist.github.com #{terms}", link_text)
+          url, title, link_text = SL.ddg("site:gist.github.com #{terms}", link_text)
         end
 
         if url =~ %r{https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]+?)(?:[#/](?<file>(file-)?.*?))?$}
