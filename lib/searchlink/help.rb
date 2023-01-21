@@ -1,32 +1,20 @@
 module SL
   class SearchLink
-    def spacer(str)
-      len = str.length
-      str.scan(/[mwv]/).each { len += 1 }
-      str.scan(/t/).each { len -= 1 }
-      case len
-      when 0..3
-        "\t\t"
-      when 4..12
-        " \t"
-      end
-    end
-
     def help_text
       text = <<~EOHELP
         -- [Available searches] -------------------
-        #{available_searches}
+        #{SL::Searches.available_searches}
       EOHELP
 
-      if @cfg['custom_site_searches']
+      if SL.config['custom_site_searches']
         text += "\n-- [Custom Searches] ----------------------\n"
-        @cfg['custom_site_searches'].each { |label, site| text += "!#{label}#{spacer(label)} #{site}\n" }
+        SL.config['custom_site_searches'].each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
       end
       text
     end
 
     def help_dialog
-      text = "[#{version_check}]\n\n"
+      text = "[#{SL.version_check}]\n\n"
       text += help_text
       text += "\nClick \\\"More Help\\\" for additional information"
       text.gsub!(/\n/, '\\\n')

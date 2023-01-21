@@ -32,7 +32,7 @@ module SL
 
     def template_social(user, url, service)
 
-      template = @cfg['social_template'].dup
+      template = SL.config['social_template'].dup
 
       template.sub!(/%user%/, user)
       template.sub!(/%service%/, service)

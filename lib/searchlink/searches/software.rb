@@ -5,7 +5,7 @@ module SL
       search_url = %(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} app)
 
       url, title = ddg(search_url)
-      link_text = title if link_text == '' && !@titleize
+      link_text = title if link_text == '' && !SL.titleize
 
       [url, title, link_text]
     end

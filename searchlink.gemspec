@@ -12,8 +12,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/ttscoff/searchlink'
   spec.license       = 'MIT'
 
-  spec.files = Dir['lib/**/*.rb'] + Dir['bin/*']
-
+  spec.files =  Dir['lib/**/*.rb'] + Dir['bin/*']
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(features|spec|test)/})
   spec.require_paths = ['lib']

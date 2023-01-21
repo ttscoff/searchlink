@@ -38,6 +38,9 @@ require 'searchlink/config'
 require 'searchlink/searches'
 
 # import
+require 'searchlink/url'
+
+# import
 require 'searchlink/search'
 
 # import
@@ -48,6 +51,3 @@ require 'searchlink/parse'
 
 # import
 require 'searchlink/output'
-
-# import
-require 'searchlink/url'

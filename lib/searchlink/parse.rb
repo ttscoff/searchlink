@@ -18,8 +18,8 @@ module SL
           val = Regexp.last_match(1).strip
           val = true if val =~ /true/i
           val = false if val =~ /false/i
-          @cfg[o] = val
-          $stderr.print "\r\033[0KGlobal config: #{o} = #{@cfg[o]}\n" unless SILENT
+          SL.config[o] = val
+          $stderr.print "\r\033[0KGlobal config: #{o} = #{SL.config[o]}\n" unless SILENT
         end
 
         next if skip_flags
@@ -27,16 +27,16 @@ module SL
         while input =~ /^#{o}:\s+(.*?)$/ || input =~ /--(no-)?#{o}/
           next unless input =~ /--(no-)?#{o}/ && !skip_flags
 
-          unless @prev_config.key? o
-            @prev_config[o] = @cfg[o]
+          unless SL.prev_config.key? o
+            SL.prev_config[o] = SL.config[o]
             bool = Regexp.last_match(1).nil? || Regexp.last_match(1) == '' ? true : false
-            @cfg[o] = bool
-            $stderr.print "\r\033[0KLine config: #{o} = #{@cfg[o]}\n" unless SILENT
+            SL.config[o] = bool
+            $stderr.print "\r\033[0KLine config: #{o} = #{SL.config[o]}\n" unless SILENT
           end
           input.sub!(/\s?--(no-)?#{o}/, '')
         end
       end
-      @clipboard ? string : input
+      SL.clipboard ? string : input
     end
 
     def parse_commands(input)
@@ -64,24 +64,24 @@ module SL
     end
 
     def parse(input)
-      @output = ''
+      SL.output = ''
       return false if input.empty?
 
       parse_arguments(input, { only_meta: true })
-      @originput = input.dup
+      SL.originput = input.dup
 
       parse_commands(input)
 
-      @cfg['inline'] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
-      @errors = {}
-      @report = []
+      SL.config['inline'] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
+      SL.errors = {}
+      SL.report = []
 
       # Check for new version
       latest_version = SL::new_version?
-      add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->") if latest_version
+      SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->") if latest_version
 
       links = {}
-      @footer = []
+      SL.footer = []
       counter_links = 0
       counter_errors = 0
 
@@ -90,7 +90,7 @@ module SL
 
       input.scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| links[match[1].strip] = match[0] }
 
-      prefix = if @cfg['prefix_random']
+      prefix = if SL.config['prefix_random']
                  if input =~ /\[(\d{4}-)\d+\]: \S+/
                    Regexp.last_match(1)
                  else
@@ -120,7 +120,7 @@ module SL
         in_code_block = false
         line_difference = 0
         lines.each_with_index do |line, num|
-          @line_num = num - line_difference
+          SL.line_num = num - line_difference
           cursor_difference = 0
           # ignore links in code blocks
           if line =~ /^( {4,}|\t+)[^*+\-]/
@@ -147,16 +147,16 @@ module SL
 
           line.gsub!(/\[(.*?)\]\((.*?)\)/) do |match|
             this_match = Regexp.last_match
-            @match_column = this_match.begin(0) - cursor_difference
+            SL.match_column = this_match.begin(0) - cursor_difference
             match_string = this_match.to_s
-            @match_length = match_string.length
+            SL.match_length = match_string.length
             match_before = this_match.pre_match
 
             invalid_search = false
             ref_title = false
 
             if match_before.scan(/(^|[^\\])`/).length.odd?
-              add_report("Match '#{match_string}' within an inline code block")
+              SL.add_report("Match '#{match_string}' within an inline code block")
               invalid_search = true
             end
 
@@ -182,15 +182,15 @@ module SL
             end
 
             unless !link_text.empty? || !link_info.sub(/^[!\^]\S+/, '').strip.empty?
-              add_error('No input', match)
+              SL.add_error('No input', match)
               counter_errors += 1
               invalid_search = true
             end
 
             if link_info =~ /^!(\S+)/
               search_type = Regexp.last_match(1)
-              unless valid_search?(search_type) || search_type =~ /^(\S+\.)+\S+$/
-                add_error("Invalid search#{did_you_mean(search_type)}", match)
+              unless SL::Searches.valid_search?(search_type) || search_type =~ /^(\S+\.)+\S+$/
+                SL.add_error("Invalid search#{SL::Searches.did_you_mean(search_type)}", match)
                 invalid_search = true
               end
             end
@@ -209,15 +209,15 @@ module SL
                       else
                         format('%<p>sfn%<c>04d', p: prefix, c: footnote_counter)
                       end
-                add_footer "[^#{ref}]: #{note}"
+                SL.add_footer "[^#{ref}]: #{note}"
                 res = "[^#{ref}]"
-                cursor_difference += (@match_length - res.length)
-                @match_length = res.length
-                add_report("#{match_string} => Footnote #{ref}")
+                cursor_difference += (SL.match_length - res.length)
+                SL.match_length = res.length
+                SL.add_report("#{match_string} => Footnote #{ref}")
                 res
               end
-            elsif (link_text == '' && link_info == '') || url?(link_info)
-              add_error("Invalid search", match) unless url?(link_info)
+            elsif (link_text == '' && link_info == '') || SL::URL.url?(link_info)
+              SL.add_error("Invalid search", match) unless SL::URL.url?(link_info)
               match
             else
               link_info = link_text if !link_text.empty? && link_info == ''
@@ -225,8 +225,8 @@ module SL
               search_type = ''
               search_terms = ''
               link_only = false
-              @clipboard = false
-              @titleize = @cfg['empty_uses_page_title']
+              SL.clipboard = false
+              SL.titleize = SL.config['empty_uses_page_title']
 
               if link_info =~ /^(?:[!\^](\S+))\s*(.*)$/
                 m = Regexp.last_match
@@ -238,7 +238,7 @@ module SL
 
                 # if the link text is just '%' replace with title regardless of config settings
                 if link_text == '%' && search_terms && !search_terms.empty?
-                  @titleize = true
+                  SL.titleize = true
                   link_text = ''
                 end
 
@@ -248,7 +248,7 @@ module SL
                 search_terms = "#{link_text} #{search_terms.strip.sub(/^\+\s*/, '')}" if search_terms.strip =~ /^\+[^+]/
 
                 # if the end of input contain "^", copy to clipboard instead of STDOUT
-                @clipboard = true if search_terms =~ /(!!)?\^(!!)?$/
+                SL.clipboard = true if search_terms =~ /(!!)?\^(!!)?$/
 
                 # if the end of input contains "!!", only print the url
                 link_only = true if search_terms =~ /!!\^?$/
@@ -258,14 +258,14 @@ module SL
               elsif link_info =~ /^!/
                 search_word = link_info.match(/^!(\S+)/)
 
-                if search_word && valid_search?(search_word[1])
+                if search_word && SL::Searches.valid_search?(search_word[1])
                   search_type = search_word[1] unless search_word.nil?
                   search_terms = link_text
                 elsif search_word && search_word[1] =~ /^(\S+\.)+\S+$/
                   search_type = 'g'
                   search_terms = "site:#{search_word[1]} #{link_text}"
                 else
-                  add_error("Invalid search#{did_you_mean(search_word[1])}", match)
+                  SL.add_error("Invalid search#{SL::Searches.did_you_mean(search_word[1])}", match)
                   search_type = false
                   search_terms = false
                 end
@@ -276,16 +276,16 @@ module SL
                 search_type = 'g'
                 search_terms = link_info
               else
-                add_error('Invalid search', match)
+                SL.add_error('Invalid search', match)
                 search_type = false
                 search_terms = false
               end
 
               if search_type && !search_terms.empty?
-                @cfg['custom_site_searches'].each do |k, v|
+                SL.config['custom_site_searches'].each do |k, v|
                   next unless search_type == k
 
-                  link_text = search_terms if !@titleize && link_text == ''
+                  link_text = search_terms if !SL.titleize && link_text == ''
                   v = parse_arguments(v, { no_restore: true })
                   if v =~ %r{^(/|http)}i
                     search_type = 'r'
@@ -345,50 +345,50 @@ module SL
                 url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
 
                 if url
-                  title = titleize(url) if @titleize && title == ''
+                  title = SL::URL.get_title(url) if SL.titleize && title == ''
 
                   link_text = title if link_text == '' && title
                   force_title = search_type =~ /def/ ? true : false
 
                   if link_only || search_type =~ /sp(ell)?/ || url == 'embed'
                     url = title if url == 'embed'
-                    cursor_difference += @match_length - url.length
-                    @match_length = url.length
-                    add_report("#{match_string} => #{url}")
+                    cursor_difference += SL.match_length - url.length
+                    SL.match_length = url.length
+                    SL.add_report("#{match_string} => #{url}")
                     url
                   elsif ref_title
                     unless links.key? url
                       links[url] = link_text
-                      add_footer make_link('ref_title', link_text, url, title: title, force_title: force_title)
+                      add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: force_title)
                     end
                     delete_line = true
-                  elsif @cfg['inline']
-                    res = make_link('inline', link_text, url, title: title, force_title: force_title)
-                    cursor_difference += @match_length - res.length
-                    @match_length = res.length
-                    add_report("#{match_string} => #{url}")
+                  elsif SL.config['inline']
+                    res = SL.make_link('inline', link_text, url, title: title, force_title: force_title)
+                    cursor_difference += SL.match_length - res.length
+                    SL.match_length = res.length
+                    SL.add_report("#{match_string} => #{url}")
                     res
                   else
                     unless links.key? url
                       highest_marker += 1
                       links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                      add_footer make_link('ref_title', links[url], url, title: title, force_title: force_title)
+                      add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: force_title)
                     end
 
-                    type = @cfg['inline'] ? 'inline' : 'ref_link'
-                    res = make_link(type, link_text, links[url], title: false, force_title: force_title)
-                    cursor_difference += @match_length - res.length
-                    @match_length = res.length
-                    add_report("#{match_string} => #{url}")
+                    type = SL.config['inline'] ? 'inline' : 'ref_link'
+                    res = SL.make_link(type, link_text, links[url], title: false, force_title: force_title)
+                    cursor_difference += SL.match_length - res.length
+                    SL.match_length = res.length
+                    SL.add_report("#{match_string} => #{url}")
                     res
                   end
                 else
-                  add_error('No results', "#{search_terms} (#{match_string})")
+                  SL.add_error('No results', "#{search_terms} (#{match_string})")
                   counter_errors += 1
                   match
                 end
               else
-                add_error('Invalid search', match)
+                SL.add_error('Invalid search', match)
                 counter_errors += 1
                 match
               end
@@ -402,36 +402,36 @@ module SL
 
         input = out.delete_if { |l| l.strip =~ /^<!--DELETE-->$/ }.join("\n")
 
-        if @cfg['inline']
-          add_output "#{input}\n"
-          add_output "\n#{print_footer}" unless @footer.empty?
-        elsif @footer.empty?
-          add_output input
+        if SL.config['inline']
+          SL.add_output "#{input}\n"
+          SL.add_output "\n#{SL.print_footer}" unless SL.footer.empty?
+        elsif SL.footer.empty?
+          SL.add_output input
         else
           last_line = input.strip.split(/\n/)[-1]
           case last_line
           when /^\[.*?\]: http/
-            add_output "#{input.rstrip}\n"
+            SL.add_output "#{input.rstrip}\n"
           when /^\[\^.*?\]: /
-            add_output input.rstrip
+            SL.add_output input.rstrip
           else
-            add_output "#{input}\n\n"
+            SL.add_output "#{input}\n\n"
           end
-          add_output "#{print_footer}\n\n"
+          SL.add_output "#{SL.print_footer}\n\n"
         end
-        @line_num = nil
-        add_report("Processed: #{total_links} links, #{counter_errors} errors.")
-        print_report
-        print_errors
+        SL.line_num = nil
+        SL.add_report("Processed: #{total_links} links, #{counter_errors} errors.")
+        SL.print_report
+        SL.print_errors
       else
         link_only = false
-        @clipboard = false
+        SL.clipboard = false
 
         res = parse_arguments(input.strip!).strip
         input = res.nil? ? input.strip : res
 
         # if the end of input contain "^", copy to clipboard instead of STDOUT
-        @clipboard = true if input =~ /\^[!~:\s]*$/
+        SL.clipboard = true if input =~ /\^[!~:\s]*$/
 
         # if the end of input contains "!!", only print the url
         link_only = true if input =~ /!![\^~:\s]*$/
@@ -442,11 +442,11 @@ module SL
         if input =~ /~[:\^!\s]*$/
           input.sub!(/[:!\^\s~]*$/, '')
           clipboard = `__CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbpaste`.strip
-          if url?(clipboard)
+          if SL::URL.url?(clipboard)
             type = reference_link ? 'ref_title' : 'inline'
-            print make_link(type, input.strip, clipboard)
+            print SL.make_link(type, input.strip, clipboard)
           else
-            print @originput
+            print SL.originput
           end
           Process.exit
         end
@@ -455,10 +455,10 @@ module SL
 
         ## Maybe if input is just a URL, convert it to a link
         ## using hostname as text without doing search
-        if only_url?(input.strip)
+        if SL::URL.only_url?(input.strip)
           type = reference_link ? 'ref_title' : 'inline'
           url, title = url_to_link(input.strip, type)
-          print make_link(type, title, url, title: false, force_title: false)
+          print SL.make_link(type, title, url, title: false, force_title: false)
           Process.exit
         end
 
@@ -493,9 +493,9 @@ module SL
           terms = link_info + additional_terms
           terms.strip!
 
-          if valid_search?(type) || type =~ /^(\S+\.)+\S+$/
+          if SL::Searches.valid_search?(type) || type =~ /^(\S+\.)+\S+$/
             if type && terms && !terms.empty?
-              @cfg['custom_site_searches'].each do |k, v|
+              SL.config['custom_site_searches'].each do |k, v|
                 next unless type == k
 
                 link_text = terms if link_text == ''
@@ -556,9 +556,10 @@ module SL
             end
             search_count ||= 0
             search_count += 1
+
             url, title, link_text = do_search(type, terms, link_text, search_count)
           else
-            add_error("Invalid search#{did_you_mean(type)}", input)
+            SL.add_error("Invalid search#{SL::Searches.did_you_mean(type)}", input)
             counter_errors += 1
           end
         when /^([tfilm])?@(\S+)\s*$/
@@ -575,32 +576,33 @@ module SL
           link_text = title
         else
           link_text ||= input
-          url, title = ddg(input)
+          url, title, link_text = SL.ddg(input, link_text)
         end
 
         if url
           if type =~ /sp(ell)?/
-            add_output(url)
+            SL.add_output(url)
           elsif link_only
-            add_output(url)
+            SL.add_output(url)
           elsif url == 'embed'
-            add_output(title)
+            SL.add_output(title)
           else
             type = reference_link ? 'ref_title' : 'inline'
-            add_output make_link(type, link_text, url, title: title, force_title: false)
-            print_errors
+
+            SL.add_output SL.make_link(type, link_text, url, title: title, force_title: false)
+            SL.print_errors
           end
         else
-          add_error('No results', title)
-          add_output @originput.chomp
-          print_errors
+          SL.add_error('No results', title)
+          SL.add_output SL.originput.chomp
+          SL.print_errors
         end
 
-        if @clipboard
-          if @output == @originput
+        if SL.clipboard
+          if SL.output == SL.originput
             warn "No results found"
           else
-            `echo #{Shellwords.escape(@output)}|tr -d "\n"|pbcopy`
+            `echo #{Shellwords.escape(SL.output)}|tr -d "\n"|pbcopy`
             warn "Results in clipboard"
           end
         end

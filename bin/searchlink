@@ -14,9 +14,9 @@ end
 
 PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
 
-sl = SL::SearchLink.new({ echo: false })
+sl = SL::SearchLink.new({ echo: true })
 overwrite = true
-backup = sl.cfg['backup']
+backup = SL.config['backup']
 
 if !ARGV.empty?
   files = []

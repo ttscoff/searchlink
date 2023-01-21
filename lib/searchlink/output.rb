@@ -1,9 +1,53 @@
 module SL
-  class SearchLink
-    def make_link(type, text, url, title: false, force_title: false)
-      text = title || titleize(url) if @titleize && text == ''
+  class << self
+    attr_accessor :titleize, :clipboard, :output, :footer, :line_num, :match_column, :match_length, :originput, :errors, :report, :printout
 
-      title = title && (@cfg['include_titles'] || force_title) ? %( "#{title.clean}") : ''
+    def output
+      @output ||= []
+    end
+
+    def report
+      @report ||= []
+    end
+
+    def footer
+      @footer ||= []
+    end
+
+    def line_num
+      @line_num ||= 0
+    end
+
+    def match_column
+      @match_column ||= 0
+    end
+
+    def match_length
+      @match_length ||= 0
+    end
+
+    def originput
+      @originput ||= ''
+    end
+
+    def errors
+      @errors ||= {}
+    end
+
+    def notify(str, sub)
+      return unless SL.config['notifications']
+
+      `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
+    end
+  end
+end
+
+module SL
+  class << self
+    def make_link(type, text, url, title: false, force_title: false)
+      text = title || SL::URL.get_title(url) if SL.titleize && (!text || text.strip.empty?)
+      title = title && (SL.config['include_titles'] || force_title) ? %( "#{title.clean}") : ''
+
       title.gsub!(/[ \t]+/, ' ')
 
       case type
@@ -17,20 +61,20 @@ module SL
     end
 
     def add_output(str)
-      print str if @printout && !@clipboard
-      @output += str
+      print str if SL.printout && !SL.clipboard
+      SL.output += str
     end
 
     def add_footer(str)
-      @footer ||= []
-      @footer.push(str.strip)
+      SL.footer ||= []
+      SL.footer.push(str.strip)
     end
 
     def print_footer
-      unless @footer.empty?
+      unless SL.footer.empty?
 
         footnotes = []
-        @footer.delete_if do |note|
+        SL.footer.delete_if do |note|
           note.strip!
           case note
           when /^\[\^.+?\]/
@@ -43,7 +87,7 @@ module SL
           end
         end
 
-        output = @footer.sort.join("\n").strip
+        output = SL.footer.sort.join("\n").strip
         output += "\n\n" if !output.empty? && !footnotes.empty?
         output += footnotes.join("\n\n") unless footnotes.empty?
         return output.gsub(/\n{3,}/, "\n\n")
@@ -53,49 +97,49 @@ module SL
     end
 
     def add_report(str)
-      return unless @cfg['report']
+      return unless SL.config['report']
 
-      unless @line_num.nil?
-        position = "#{@line_num}:"
-        position += @match_column.nil? ? '0:' : "#{@match_column}:"
-        position += @match_length.nil? ? '0' : @match_length.to_s
+      unless SL.line_num.nil?
+        position = "#{SL.line_num}:"
+        position += SL.match_column.nil? ? '0:' : "#{SL.match_column}:"
+        position += SL.match_length.nil? ? '0' : SL.match_length.to_s
       end
-      @report.push("(#{position}): #{str}")
+      SL.report.push("(#{position}): #{str}")
       warn "(#{position}): #{str}" unless SILENT
     end
 
     def add_error(type, str)
-      return unless @cfg['debug']
+      return unless SL.config['debug']
 
-      unless @line_num.nil?
-        position = "#{@line_num}:"
-        position += @match_column.nil? ? '0:' : "#{@match_column}:"
-        position += @match_length.nil? ? '0' : @match_length.to_s
+      unless SL.line_num.nil?
+        position = "#{SL.line_num}:"
+        position += SL.match_column.nil? ? '0:' : "#{SL.match_column}:"
+        position += SL.match_length.nil? ? '0' : SL.match_length.to_s
       end
-      @errors[type] ||= []
-      @errors[type].push("(#{position}): #{str}")
+      SL.errors[type] ||= []
+      SL.errors[type].push("(#{position}): #{str}")
     end
 
     def print_report
-      return if (@cfg['inline'] && @originput.split(/\n/).length == 1) || @clipboard
+      return if (SL.config['inline'] && SL.originput.split(/\n/).length == 1) || SL.clipboard
 
-      return if @report.empty?
+      return if SL.report.empty?
 
-      out = "\n<!-- Report:\n#{@report.join("\n")}\n-->\n"
+      out = "\n<!-- Report:\n#{SL.report.join("\n")}\n-->\n"
       add_output out
     end
 
     def print_errors(type = 'Errors')
-      return if @errors.empty?
+      return if SL.errors.empty?
 
       out = ''
-      inline = if @originput.split(/\n/).length > 1
+      inline = if SL.originput.split(/\n/).length > 1
                  false
                else
-                 @cfg['inline'] || @originput.split(/\n/).length == 1
+                 SL.config['inline'] || SL.originput.split(/\n/).length == 1
                end
 
-      @errors.each do |k, v|
+      SL.errors.each do |k, v|
         next if v.empty?
 
         v.each_with_index do |err, i|
@@ -113,7 +157,7 @@ module SL
         out.sub!(/\| /, '')
         out = "#{sep}<!-- #{type}:#{sep}#{out}-->#{sep}"
       end
-      if @clipboard
+      if SL.clipboard
         warn out
       else
         add_output out
@@ -122,9 +166,9 @@ module SL
 
     def print_or_copy(text)
       # Process.exit unless text
-      if @clipboard
+      if SL.clipboard
         `echo #{Shellwords.escape(text)}|tr -d "\n"|pbcopy`
-        print @originput
+        print SL.originput
       else
         print text
       end

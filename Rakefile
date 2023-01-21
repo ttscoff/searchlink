@@ -47,7 +47,7 @@ desc 'Development version check'
 task :ver do
   gver = `git ver`
   cver = IO.read(File.join(File.dirname(__FILE__), 'CHANGELOG.md')).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
-  res = `grep VERSION searchlink.rb`
+  res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
   puts "git tag: #{gver}"
   puts "version.rb: #{version}"
@@ -56,7 +56,7 @@ end
 
 desc 'Get Script Version'
 task :sver do
-  res = `grep VERSION searchlink.rb`
+  res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
   print version
 end

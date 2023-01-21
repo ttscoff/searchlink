@@ -1,4 +1,18 @@
 module SL
+  class << self
+    attr_accessor :config, :prev_config
+
+    def config
+      @config ||= SL::SearchLink.new({ echo: true })
+    end
+
+    def prev_config
+      @prev_config ||= {}
+    end
+  end
+end
+
+module SL
   # Main SearchLink class
   class SearchLink
     attr_accessor :cfg
@@ -7,7 +21,7 @@ module SL
     # this script
 
     def initialize(opt = {})
-      @printout = opt[:echo] || false
+      SL.printout = opt[:echo] || false
       unless File.exist? File.expand_path('~/.searchlink')
         default_config = <<~ENDCONFIG
           # set to true to have an HTML comment included detailing any errors
@@ -133,46 +147,46 @@ module SL
         end
       end
 
-      @cfg = YAML.load_file(File.expand_path('~/.searchlink'))
+      config = YAML.load_file(File.expand_path('~/.searchlink'))
 
       # set to true to have an HTML comment inserted showing any errors
-      @cfg['debug'] ||= false
+      config['debug'] ||= false
 
       # set to true to get a verbose report at the end of multi-line processing
-      @cfg['report'] ||= false
+      config['report'] ||= false
 
-      @cfg['backup'] = true unless @cfg.key? 'backup'
+      config['backup'] = true unless config.key? 'backup'
 
       # set to true to force inline links
-      @cfg['inline'] ||= false
+      config['inline'] ||= false
 
       # set to true to add titles to links based on site title
-      @cfg['include_titles'] ||= false
+      config['include_titles'] ||= false
 
       # set to true to remove SEO elements from page titles
-      @cfg['remove_seo'] ||= false
+      config['remove_seo'] ||= false
 
       # set to true to use page title as link text when empty
-      @cfg['empty_uses_page_title'] ||= false
+      config['empty_uses_page_title'] ||= false
 
       # change this to set a specific country for search (default US)
-      @cfg['country_code'] ||= 'US'
+      config['country_code'] ||= 'US'
 
       # set to true to include a random string in ref titles
       # allows running SearchLink multiple times w/out conflicts
-      @cfg['prefix_random'] = false unless @cfg['prefix_random']
+      config['prefix_random'] = false unless config['prefix_random']
 
-      @cfg['social_template'] ||= '%service%/%user%'
+      config['social_template'] ||= '%service%/%user%'
 
       # append affiliate link info to iTunes urls, empty quotes for none
       # example:
       # $itunes_affiliate = "&at=10l4tL&ct=searchlink"
-      @cfg['itunes_affiliate'] ||= '&at=10l4tL&ct=searchlink'
+      config['itunes_affiliate'] ||= '&at=10l4tL&ct=searchlink'
 
       # to create Amazon affiliate links, set amazon_partner to your amazon
       # affiliate tag
       #    amazon_partner: "bretttercom-20"
-      @cfg['amazon_partner'] ||= ''
+      config['amazon_partner'] ||= ''
 
       # To create custom abbreviations for Google Site Searches,
       # add to (or replace) the hash below.
@@ -180,27 +194,28 @@ module SL
       # This allows you, for example to use [search term](!bt)
       # as a shortcut to search brettterpstra.com. Keys in this
       # hash can override existing search triggers.
-      @cfg['custom_site_searches'] ||= {
+      config['custom_site_searches'] ||= {
         'bt' => 'brettterpstra.com',
         'imdb' => 'imdb.com'
       }
 
       # confirm existence of links generated from custom search replacements
-      @cfg['validate_links'] ||= false
+      config['validate_links'] ||= false
 
       # use notification center to show progress
-      @cfg['notifications'] ||= false
-      @cfg['pinboard_api_key'] ||= false
+      config['notifications'] ||= false
+      config['pinboard_api_key'] ||= false
 
-      @line_num = nil
-      @match_column = nil
-      @match_length = nil
+      SL.line_num = nil
+      SL.match_column = nil
+      SL.match_length = nil
+      SL.config = config
     end
 
     def restore_prev_config
       @prev_config&.each do |k, v|
-        @cfg[k] = v
-        $stderr.print "\r\033[0KReset config: #{k} = #{@cfg[k]}\n" unless SILENT
+        SL.config[k] = v
+        $stderr.print "\r\033[0KReset config: #{k} = #{SL.config[k]}\n" unless SILENT
       end
       @prev_config = {}
     end

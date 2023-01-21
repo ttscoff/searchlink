@@ -1,46 +1,73 @@
 module SL
-  class SearchLink
-    def ddg(terms, type = false)
-      prefix = type ? "#{type.sub(/^!?/, '!')} " : '%5C'
-      begin
-        cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{ERB::Util.url_encode(terms)}')
-        body = `#{cmd}`
-        locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
-        return false if locs.empty?
+  class DuckDuckGoSearch
+    class << self
+      def settings
+        {
+          trigger: '(?:g|ddg|z)',
+          searches: [
+            ['g', 'DuckDuckGo Search'],
+            ['ddg', 'DuckDuckGo Search'],
+            ['z', 'DDG Zero Click Search']
+          ]
+        }
+      end
 
-        url = locs[-1]
+      def search(search_type, search_terms, link_text)
+        return zero_click(search_terms) if search_type =~ /^z$/
 
-        result = url[0].strip || false
-        return false unless result
+        prefix = '%5C'
 
-        # output_url = CGI.unescape(result)
-        output_url = result
+        begin
+          cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{ERB::Util.url_encode(search_terms)}')
 
-        output_title = if @cfg['include_titles'] || @titleize
-                         titleize(output_url) || ''
-                       else
-                         ''
-                       end
-        [output_url, output_title]
+          body = `#{cmd}`
+          locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
+          return false if locs.empty?
+
+          url = locs[-1]
+
+          result = url[0].strip || false
+          return false unless result
+
+          # output_url = CGI.unescape(result)
+          output_url = result
+
+          output_title = if SL.config['include_titles'] || SL.titleize
+                           SL::URL.get_title(output_url) || ''
+                         else
+                           ''
+                         end
+          [output_url, output_title, link_text]
+        end
+      end
+
+      def zero_click(search_type, search_terms, link_text)
+        url = URI.parse("http://api.duckduckgo.com/?q=#{ERB::Util.url_encode(search_terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
+        res = Net::HTTP.get_response(url).body
+        res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+
+        result = JSON.parse(res)
+        return search('ddg', terms, link_text) unless result
+
+        wiki_link = result['AbstractURL'] || result['Redirect']
+        title = result['Heading'] || false
+
+        if !wiki_link.empty? && !title.empty?
+          [wiki_link, title, link_text]
+        else
+          search('ddg', terms, link_text)
+        end
       end
     end
 
-    def zero_click(terms)
-      url = URI.parse("http://api.duckduckgo.com/?q=#{ERB::Util.url_encode(terms)}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
-      res = Net::HTTP.get_response(url).body
-      res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+    SL::Searches.register 'duckduckgo', :search, self
+  end
+end
 
-      result = JSON.parse(res)
-      return ddg(terms) unless result
-
-      wiki_link = result['AbstractURL'] || result['Redirect']
-      title = result['Heading'] || false
-
-      if !wiki_link.empty? && !title.empty?
-        [wiki_link, title]
-      else
-        ddg(terms)
-      end
+module SL
+  class << self
+    def ddg(search_terms, link_text)
+      SL::Searches.plugins[:search]['duckduckgo'][:class].search('ddg', search_terms, link_text)
     end
   end
 end

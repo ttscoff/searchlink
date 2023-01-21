@@ -27,7 +27,7 @@ module SL
         return false unless url
       end
 
-      link_text = title if link_text == '' && !@titleize
+      link_text = title if link_text == '' && !SL.titleize
 
       [url, title, link_text]
     end

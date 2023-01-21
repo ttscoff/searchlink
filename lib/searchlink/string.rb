@@ -1,5 +1,27 @@
 # String helpers
 class ::String
+  ##
+  ## Adds ?: to any parentheticals in a regular expression
+  ## to avoid match groups
+  ##
+  ## @return     [String] modified regular expression
+  ##
+  def normalize_trigger
+    gsub(/\((?!\?:)/, '(?:').downcase
+  end
+
+  def spacer
+    len = length
+    scan(/[mwv]/).each { len += 1 }
+    scan(/t/).each { len -= 1 }
+    case len
+    when 0..3
+      "\t\t"
+    when 4..12
+      " \t"
+    end
+  end
+
   # parse command line flags into long options
   def parse_flags
     gsub(/(\+\+|--)([dirtv]+)\b/) do
@@ -22,6 +44,7 @@ class ::String
                     ''
                   end
       end
+
       output
     end
   end

@@ -1,5 +1,27 @@
 module SL
-  class SearchLink
+  class SpellSearch
+    class << self
+      def settings
+        {
+          trigger: 'sp(?:ell)?',
+          searches: [
+            ['sp', 'Spelling'],
+            ['spell', nil]
+          ]
+        }
+      end
+
+      def search(search_type, search_terms, link_text)
+        title = SL.spell(search_terms)
+
+        [nil, title, link_text]
+      end
+    end
+
+    SL::Searches.register 'spelling', :search, self
+  end
+
+  class << self
     def spell(phrase)
       aspell = if File.exist?('/usr/local/bin/aspell')
                  '/usr/local/bin/aspell'
