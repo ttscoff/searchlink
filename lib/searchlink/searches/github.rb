@@ -3,8 +3,9 @@ module SL
     class << self
       def settings
         {
-          trigger: 'gist',
+          trigger: '(?:gist|gh)',
           searches: [
+            ['gh', 'GitHub User/Repo Link'],
             ['gist', 'Gist Search'],
             ['giste', 'Gist Embed']
           ]
@@ -12,8 +13,37 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
-        url, title = gist(search_terms, search_type)
+        case search_type
+        when /^gist/
+          url, title = gist(search_terms, search_type)
+        else
+          url, title = github(search_terms, link_text)
+        end
+
         [url, title, link_text]
+      end
+
+      def github(search_terms, link_text)
+        terms = search_terms.split(%r{[ /]+})
+        # SL.config['remove_seo'] = false
+
+        url = case terms.count
+              when 2
+                "https://github.com/#{terms[0]}/#{terms[1]}"
+              when 1
+                "https://github.com/#{terms[0]}"
+              else
+                url, title = SL.ddg("site:github.com #{search_terms}", link_text)
+              end
+
+        if SL::URL.valid_link?(url)
+          title = SL::URL.get_title(url) if title.nil?
+
+          [url, title]
+        else
+          SL.notify('Searching GitHub', 'Repo not found, performing search')
+          SL.ddg("site:github.com #{search_terms}", link_text)
+        end
       end
 
       def gist(terms, type)
