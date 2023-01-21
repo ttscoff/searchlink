@@ -57,7 +57,7 @@ module SL
         when /^v(er(s(ion)?)?)?$/
           print "[#{SL::version_check}]"
         when /^up(date|grade)$/
-          update_searchlink
+          SL.update_searchlink
         end
         Process.exit 0
       end

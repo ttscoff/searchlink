@@ -1,10 +1,11 @@
 ### 2.3.35
 
-2023-01-21 15:29
+2023-01-21 17:18
 
 #### NEW
 
 - Add GitHub search
+- Lyrics search and embed with !lyrics !lyricse
 
 #### IMPROVED
 

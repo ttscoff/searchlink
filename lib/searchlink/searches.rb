@@ -37,12 +37,41 @@ module SL
         end
       end
 
+      def available_searches_html
+        searches = []
+        plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }.sort_by { |s| s[0] }
+        out = ['<table>']
+        out << '<thead><td>Shortcut</td><td>Search Type</td></thead>'
+        out << '<tbody>'
+        searches.each { |s| out << "<tr><td><code>!#{s[0]}</code></td><td>#{s[1]}</td></tr>"}
+        out << '</tbody>'
+        out << '</table>'
+        out.join("\n")
+      end
+
       def available_searches
         searches = []
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
         out = ''
         searches.each { |s| out += "!#{s[0]}#{s[0].spacer}#{s[1]}\n" }
         out
+
+        ## I don't think two columns are going to work in an AppleScript display dialog
+        # div = (searches.count / 2.0).ceil
+        # first_half = searches.slice!(0, div)
+        # lines = []
+        # first_half.each_with_index do |search, i|
+        #   if searches.count > i
+        #     first = "!#{search[0]}#{search[0].spacer}#{search[1]}"
+        #     second = "!#{searches[i][0]}#{searches[i][0].spacer}#{searches[i][1]}"
+        #     space = 100 - first.length
+        #     lines.push("#{first}#{' ' * space}#{second}")
+        #   else
+        #     lines.push("!#{search[0]}#{search[0].spacer}#{search[1]}")
+        #   end
+        # end
+
+        # lines.join("\n")
       end
 
       def best_search_match(term)
