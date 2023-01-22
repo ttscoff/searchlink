@@ -48,7 +48,7 @@ class ::String
       end
 
       output
-    end
+    end.gsub(/ +/, ' ')
   end
 
   def parse_flags!
@@ -65,7 +65,7 @@ class ::String
   # @return     [String] slugified string
   #
   def slugify
-    downcase.gsub(/[^a-z0-9_]/i, '-').gsub(/-+/, '-')
+    downcase.gsub(/[^a-z0-9_]/i, '-').gsub(/-+/, '-').sub(/-?$/, '')
   end
 
   # Destructive slugify
@@ -98,12 +98,30 @@ class ::String
     input + append
   end
 
+  ##
+  ## Remove the protocol from a URL
+  ##
+  ## @return     [String] just hostname and path of URL
+  ##
+  def remove_protocol
+    sub(%r{^(https?|s?ftp|file)://}, '')
+  end
+
+  ##
+  ## Return just the path of a URL
+  ##
+  ## @return     [String] The path.
+  ##
+  def url_path
+    URI.parse(self).path
+  end
+
   # Extract the most relevant portions from a URL path
   #
   # @return     [Array] array of relevant path elements
   #
   def path_elements
-    path = URI.parse(self).path
+    path = url_path
     # force trailing slash
     path.sub!(%r{/?$}, '/')
     # remove last path element

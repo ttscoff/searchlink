@@ -94,7 +94,7 @@ module SL
       end
 
       def search_edge_bookmarks(term)
-        bookmarks_file = File.expand_path('~/Library/Application Support/Microsoft/Edge/Default/Bookmarks')
+        bookmarks_file = File.expand_path('~/Library/Application Support/Microsoft Edge/Default/Bookmarks')
 
         if File.exist?(bookmarks_file)
           SL.notify('Searching Edge Bookmarks', term)
@@ -117,7 +117,6 @@ module SL
 
       def search_chromium_bookmarks(bookmarks_file, term)
         chrome_bookmarks = JSON.parse(IO.read(bookmarks_file))
-
         if chrome_bookmarks
           terms = term.split(/\s+/)
           roots = chrome_bookmarks['roots']
@@ -128,32 +127,34 @@ module SL
             terms.each { |t| found = false unless u['url'] =~ /#{t}/i || u['title'] =~ /#{t}/i }
             found
           end
+
           unless urls.empty?
-            lastest_bookmark = urls[-1]
+            lastest_bookmark = urls.max_by { |u| "#{u['url']} #{u['title']}".matches_score(term) }
+
             return [lastest_bookmark['url'], lastest_bookmark['title'], lastest_bookmark['date']]
           end
         end
 
         false
       end
-    end
 
-    def extract_chrome_bookmarks(json, urls = [])
-      if json.instance_of?(Array)
-        json.each { |item| urls = extract_chrome_bookmarks(item, urls) }
-      elsif json.instance_of?(Hash)
-        if json.key? 'children'
-          urls = extract_chrome_bookmarks(json['children'], urls)
-        elsif json['type'] == 'url'
-          date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
-          urls << { 'url' => json['url'], 'title' => json['name'], 'date' => date }
+      def extract_chrome_bookmarks(json, urls = [])
+        if json.instance_of?(Array)
+          json.each { |item| urls = extract_chrome_bookmarks(item, urls) }
+        elsif json.instance_of?(Hash)
+          if json.key? 'children'
+            urls = extract_chrome_bookmarks(json['children'], urls)
+          elsif json['type'] == 'url'
+            date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
+            urls << { 'url' => json['url'], 'title' => json['name'], 'date' => date }
+          else
+            json.each { |_, v| urls = extract_chrome_bookmarks(v, urls) }
+          end
         else
-          json.each { |_, v| urls = extract_chrome_bookmarks(v, urls) }
+          return urls
         end
-      else
-        return urls
+        urls
       end
-      urls
     end
   end
 end

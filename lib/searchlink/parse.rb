@@ -41,9 +41,9 @@ module SL
 
     def parse_commands(input)
       # Handle commands like help or docs
-      if input.strip =~ /^(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
+      if input.strip =~ /^!?(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
         case input.strip
-        when /^help$/i
+        when /^!?help$/i
           if SILENT
             help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
           else
@@ -51,12 +51,12 @@ module SL
             $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
           end
           print input
-        when /^(wiki|docs)$/i
+        when /^!?(wiki|docs)$/i
           warn "Opening wiki in browser"
           `open https://github.com/ttscoff/searchlink/wiki`
-        when /^v(er(s(ion)?)?)?$/
+        when /^!?v(er(s(ion)?)?)?$/
           print "[#{SL::version_check}]"
-        when /^up(date|grade)$/
+        when /^!?up(date|grade)$/
           SL.update_searchlink
         end
         Process.exit 0

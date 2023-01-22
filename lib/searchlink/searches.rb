@@ -48,7 +48,8 @@ module SL
 
       def available_searches_html
         searches = []
-        plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }.sort_by { |s| s[0] }
+        plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
+        searches.sort_by! { |s| s[0] }
         out = ['<table id="searches">']
         out << '<thead><td>Shortcut</td><td>Search Type</td></thead>'
         out << '<tbody>'

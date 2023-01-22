@@ -1,4 +1,5 @@
 module SL
+  # GitHub search
   class GitHubSearch
     class << self
       def settings

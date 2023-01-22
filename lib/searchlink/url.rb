@@ -1,6 +1,7 @@
 module SL
   module URL
     class << self
+      # Validates that a link exists and returns 200
       def valid_link?(uri_str, limit = 5)
         SL.notify('Validating', uri_str)
         return false if limit.zero?
@@ -87,15 +88,16 @@ module SL
       def amazon_affiliatize(url, amazon_partner)
         return url if amazon_partner.nil? || amazon_partner.empty?
 
-        return [url, ''] unless url =~ %r{https?://(?<subdomain>.*?)amazon.com/(?:(?<title>.*?)/)?(?<type>[dg])p/(?<id>[^?]+)}
+        unless url =~ %r{https?://(?<subdomain>.*?)amazon.com/(?:(?<title>.*?)/)?(?<type>[dg])p/(?<id>[^?]+)}
+          return [url, '']
+        end
 
         m = Regexp.last_match
-        subdomain = m['subdomain']
+        sd = m['subdomain']
         title = m['title']
-        type = m['type']
+        t = m['type']
         id = m['id']
-        az_url = "https://#{subdomain}amazon.com/#{type}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}"
-        [az_url, title]
+        ["https://#{sd}amazon.com/#{t}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}", title]
       end
 
       def get_title(url)
@@ -115,7 +117,7 @@ module SL
           if title
             title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
             title.remove_seo!(url) if SL.config['remove_seo']
-            return title
+            return title.remove_protocol
           else
             SL.notify('Error retrieving title', 'Gather timed out')
           end
@@ -144,10 +146,10 @@ module SL
 
           # Skipping SEO removal until it's more reliable
           # title.remove_seo(url.strip)
-          title
-        rescue StandardError => e
+          title.remove_protocol
+        rescue StandardError
           warn "Error retrieving title for #{url.strip}"
-          raise e
+          url.remove_protocol
         end
       end
     end
