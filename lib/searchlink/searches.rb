@@ -6,7 +6,7 @@ module SL
       end
 
       def load_searches
-        Dir.glob(File.join(File.dirname(__FILE__), 'searches', '*.rb')).each { |f| require f }
+        Dir.glob(File.join(File.dirname(__FILE__), 'searches', '*.rb')).sort.each { |f| require f }
       end
 
       def register(title, type, klass)
@@ -29,6 +29,15 @@ module SL
         }
       end
 
+      def load_custom
+        plugins_folder = File.expand_path('~/.local/searchlink/plugins')
+        if File.directory?(plugins_folder)
+          Dir.glob(File.join(plugins_folder, '**/*.rb')).each do |plugin|
+            require plugin
+          end
+        end
+      end
+
       def do_search(search_type, search_terms, link_text)
         plugins[:search].each do |title, plugin|
           if search_type =~ /^#{plugin[:trigger]}$/
@@ -40,7 +49,7 @@ module SL
       def available_searches_html
         searches = []
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }.sort_by { |s| s[0] }
-        out = ['<table>']
+        out = ['<table id="searches">']
         out << '<thead><td>Shortcut</td><td>Search Type</td></thead>'
         out << '<tbody>'
         searches.each { |s| out << "<tr><td><code>!#{s[0]}</code></td><td>#{s[1]}</td></tr>"}
@@ -55,23 +64,6 @@ module SL
         out = ''
         searches.each { |s| out += "!#{s[0]}#{s[0].spacer}#{s[1]}\n" }
         out
-
-        ## I don't think two columns are going to work in an AppleScript display dialog
-        # div = (searches.count / 2.0).ceil
-        # first_half = searches.slice!(0, div)
-        # lines = []
-        # first_half.each_with_index do |search, i|
-        #   if searches.count > i
-        #     first = "!#{search[0]}#{search[0].spacer}#{search[1]}"
-        #     second = "!#{searches[i][0]}#{searches[i][0].spacer}#{searches[i][1]}"
-        #     space = 100 - first.length
-        #     lines.push("#{first}#{' ' * space}#{second}")
-        #   else
-        #     lines.push("!#{search[0]}#{search[0].spacer}#{search[1]}")
-        #   end
-        # end
-
-        # lines.join("\n")
       end
 
       def best_search_match(term)
@@ -94,31 +86,6 @@ module SL
         searches = []
         plugins[:search].each { |_, plugin| searches.push(plugin[:trigger]) }
         searches
-        # [
-        #   'h(([scfabe])([hb])?)*',
-        #   'a',
-        #   'imov',
-        #   'g',
-        #   'ddg',
-        #   'z(ero)?',
-        #   'wiki',
-        #   'def',
-        #   'masd?',
-        #   'itud?',
-        #   'tmdb[amt]?',
-        #   's',
-        #   '(i|am|l)(art|alb|song|pod)e?',
-        #   '@[tfilm]',
-        #   'r',
-        #   'sp(ell)?',
-        #   'pb',
-        #   'yte?',
-        #   'te',
-        #   'file',
-        #   'b(l|itly)',
-        #   'giste?',
-        #   'hook'
-        # ]
       end
 
       def valid_search?(term)
@@ -159,7 +126,6 @@ require_relative 'searches/history'
 # import
 require_relative 'searches/hook'
 
-
 # import
 require_relative 'searches/lastfm'
 
@@ -189,6 +155,3 @@ require_relative 'searches/wikipedia'
 
 # import
 require_relative 'searches/youtube'
-
-# import
-require_relative 'searches/lyrics'

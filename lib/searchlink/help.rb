@@ -13,13 +13,48 @@ module SL
         border-collapse:collapse;display:table;empty-cells:hide;margin:-1px 0 1.3125em;padding:0;table-layout:fixed;margin:0 auto}
         caption{display:table-caption;font-weight:700}col{display:table-column}colgroup{display:table-column-group}
         tbody{display:table-row-group}tfoot{display:table-footer-group}thead{display:table-header-group}
-        td,th{display:table-cell}tr{display:table-row}table th,table td{font-size:1.5em;line-height:1.3;padding:.5em 1em 0}
+        td,th{display:table-cell}tr{display:table-row}table th,table td{font-size:1.2em;line-height:1.3;padding:.5em 1em 0}
         table thead{background:rgba(0,0,0,0.15);border:1px solid rgba(0,0,0,0.15);border-bottom:1px solid rgba(0,0,0,0.2)}
         table tbody{background:rgba(0,0,0,0.05)}table tfoot{background:rgba(0,0,0,0.15);border:1px solid rgba(0,0,0,0.15);
         border-top:1px solid rgba(0,0,0,0.2)}p{font-size:1.1429em;line-height:1.72em;margin:1.3125em 0}dt,th{font-weight:700}
         table tr:nth-child(odd),table th:nth-child(odd),table td:nth-child(odd){background:rgba(255,255,255,0.06)}
         table tr:nth-child(even),table td:nth-child(even){background:rgba(200,200,200,0.25)}
+        input[type=text] {padding: 5px;border-radius: 5px;border: solid 1px #ccc;font-size: 20px;}
       ENDCSS
+    end
+
+    def help_js
+      <<~EOJS
+        function filterTable() {
+          let input, filter, table, tr, i, txtValue;
+          input = document.getElementById("filter");
+          filter = input.value.toUpperCase();
+          table = document.getElementById("searches");
+          table2 = document.getElementById("custom");
+
+          tr = table.getElementsByTagName("tr");
+
+          for (i = 0; i < tr.length; i++) {
+              txtValue = tr[i].textContent || tr[i].innerText;
+              if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+              } else {
+                tr[i].style.display = "none";
+              }
+          }
+
+          tr = table2.getElementsByTagName("tr");
+
+          for (i = 0; i < tr.length; i++) {
+              txtValue = tr[i].textContent || tr[i].innerText;
+              if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+              } else {
+                tr[i].style.display = "none";
+              }
+          }
+        }
+      EOJS
     end
 
     def help_text
@@ -36,10 +71,11 @@ module SL
     end
 
     def help_html
-      out = ['<h2>Available Searches</h2>']
+      out = ['<input type="text" id="filter" onkeyup="filterTable()" placeholder="Filter searches">']
+      out << '<h2>Available Searches</h2>'
       out << SL::Searches.available_searches_html
       out << '<h2>Custom Searches</h2>'
-      out << '<table>'
+      out << '<table id="custom">'
       out << '<thead><td>Shortcut</td><td>Search Type</td></thead>'
       out << '<tbody>'
       SL.config['custom_site_searches'].each { |label, site| out << "<tr><td><code>!#{label}</code></td><td>#{site}</td></tr>" }
@@ -49,7 +85,7 @@ module SL
     end
 
     def help_dialog
-      text = ["<html><head><style>#{help_css}</style></head><body>"]
+      text = ["<html><head><style>#{help_css}</style><script>#{help_js}</script></head><body>"]
       text << '<h1>SearchLink Help</h1>'
       text << "<p>[#{SL.version_check}] [<a href='https://github.com/ttscoff/searchlink/wiki'>Wiki</a>]</p>"
       text << help_html

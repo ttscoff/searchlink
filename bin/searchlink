@@ -15,6 +15,7 @@ end
 PINBOARD_CACHE = File.expand_path('~/.searchlink_cache')
 
 sl = SL::SearchLink.new({ echo: true })
+SL::Searches.load_custom
 
 # # ignore
 # SL::Searches.load_searches
