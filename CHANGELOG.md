@@ -1,3 +1,22 @@
+### 2.3.36
+
+2023-01-22 09:35
+
+#### NEW
+
+- Search for custom plugins
+- StackOverflow accepted answer search
+
+#### IMPROVED
+
+- More tests
+
+#### FIXED
+
+- Gist search fixes
+- Chromium bookmark search not returning most relevant result
+- Path to Microsoft Edge history file
+
 ### 2.3.35
 
 2023-01-21 17:19
