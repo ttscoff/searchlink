@@ -205,6 +205,7 @@ class ::String
     title.gsub!(/\s*(&ndash;|&mdash;)\s*/, ' - ')
     title.gsub!(/&[lr]dquo;/, '"')
     title.gsub!(/&[lr]dquo;/, "'")
+    title.gsub!(/&#8211;/, ' – ')
 
     seo_title_separators = %w[| « — – - · :]
 
@@ -231,7 +232,7 @@ class ::String
 
           next if parts.length == 1
 
-          remaining_separators = seo_title_separators[i..-1].map { |s| Regexp.escape(s) }.join('')
+          remaining_separators = seo_title_separators[i..].map { |s| Regexp.escape(s) }.join('')
           seps = Regexp.new("^[^#{remaining_separators}]+$")
 
           longest = parts.longest_element.strip

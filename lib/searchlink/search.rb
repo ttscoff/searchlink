@@ -27,8 +27,10 @@ module SL
             return [false, "Link not valid: #{search_terms}", link_text]
           end
 
-          link_text = search_terms if link_text == ''
-          return [search_terms, link_text, link_text]
+          title = SL::URL.get_title(search_terms) || search_terms
+
+          link_text = title if link_text == ''
+          return [search_terms, title, link_text]
         else
           if search_terms
             if search_type =~ /.+?\.\w{2,}$/

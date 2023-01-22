@@ -512,7 +512,7 @@ module SL
                     end
                     terms_p = terms.split(/ +/)
                     if terms_p.length > highest_token
-                      remainder = terms_p[highest_token - 1..-1].join(' ')
+                      remainder = terms_p[highest_token - 1..].join(' ')
                       terms_p = terms_p[0..highest_token - 2]
                       terms_p.push(remainder)
                     end
@@ -521,16 +521,17 @@ module SL
 
                       int = Regexp.last_match(1).to_i - 1
                       replacement = terms_p[int]
-                      case t
-                      when /d$/
-                        replacement.downcase!
-                        re_down = ''
-                      when /s$/
-                        replacement.slugify!
-                        re_down = ''
-                      else
-                        re_down = '(?!d|s)'
-                      end
+
+                      re_down = case t
+                                when /d$/
+                                  replacement.downcase!
+                                  ''
+                                when /s$/
+                                  replacement.slugify!
+                                  ''
+                                else
+                                  '(?!d|s)'
+                                end
                       v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
                     end
                     terms = v
