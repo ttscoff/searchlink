@@ -25,7 +25,7 @@ module SL
 
       def search_edge_history(term)
         # Google history
-        history_file = File.expand_path('~/Library/Application Support/Microsoft/Edge/Default/History')
+        history_file = File.expand_path('~/Library/Application Support/Microsoft Edge/Default/History')
         if File.exist?(history_file)
           SL.notify('Searching Edge History', term)
           search_chromium_history(history_file, term)
