@@ -33,7 +33,8 @@ module SL
               when 1
                 "https://github.com/#{terms[0]}"
               else
-                url, title, link_text = SL.ddg("site:github.com #{search_terms}", link_text)
+                nurl, title, link_text = SL.ddg("site:github.com #{search_terms}", link_text)
+                nurl
               end
 
         if SL::URL.valid_link?(url)
@@ -49,40 +50,46 @@ module SL
       def gist(terms, type, link_text)
         terms.strip!
         case terms
-        when %r{^(?<id>[a-z0-9]{32})(?:[#/](?<file>(file-)?.*?))?$}
+        # If an id (and optional file) are given, expand it to include username an generate link
+        when %r{^(?<id>[a-z0-9]{32})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           res = `curl -SsLI 'https://gist.github.com/#{m['id']}'`.strip
           url = res.match(/^location: (.*?)$/)[1].strip
-          title = titleize(url)
+          title = SL::URL.get_title(url)
           if m['file']
             url = "#{url}##{m['file']}"
             title = "#{title}: #{m['file']}"
           end
-        when %r{^(?<u>\S+)/(?<id>[a-z0-9]{32})(?:[#/](?<file>(file-)?.*?))?$}
+        # If a user an id (an o) are given, convert to a link
+        when %r{^(?<u>\w+)/(?<id>[a-z0-9]{32})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = "https://gist.github.com/#{m['u']}/#{m['id']}"
-          title = titleize(url)
+          title = SL::URL.get_title(url)
           if m['file']
             url = "#{url}##{m['file']}"
             title = "#{title}: #{m['file']}"
           end
-        when %r{(?<url>https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]{32}))(?:[#/](?<file>(file-)?.*?))?$}
+        # if a full gist URL is given, simply clean it up
+        when %r{(?<url>https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]{32}))(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = m['url']
-          title = titleize(url)
+          title = SL::URL.get_title(url)
           if m['file']
             url = "#{url}##{m['file']}"
             title = "#{title}: #{m['file']}"
           end
+        # Otherwise do a search of gist.github.com for the keywords
         else
           url, title, link_text = SL.ddg("site:gist.github.com #{terms}", link_text)
         end
 
-        if url =~ %r{https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]+?)(?:[#/](?<file>(file-)?.*?))?$}
+        # Assuming we retrieved a full gist URL
+        if url =~ %r{https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]+?)(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           user = m['user']
           id = m['id']
 
+          # If we're trying to create an embed, convert elements to a JS embed script
           if type =~ /e$/
             url = if m['file']
                     "https://gist.github.com/#{user}/#{id}.js?file=#{m['file'].fix_gist_file}"
@@ -90,12 +97,12 @@ module SL
                     "https://gist.github.com/#{user}/#{id}.js"
                   end
 
-            ['embed', %(<script src="#{url}"></script>)]
+            ['embed', %(<script src="#{url}"></script>), link_text]
           else
-            [url, title]
+            [url, title, link_text]
           end
         else
-          [false, title]
+          [false, title, link_text]
         end
       end
     end
