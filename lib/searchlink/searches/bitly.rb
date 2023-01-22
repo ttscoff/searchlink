@@ -30,6 +30,7 @@ module SL
         end
 
         domain = SL.config.key?('bitly_domain') ? SL.config['bitly_domain'] : 'bit.ly'
+        long_url = url.dup
         cmd = [
           %(curl -SsL -H 'Authorization: Bearer #{SL.config['bitly_access_token']}'),
           %(-H 'Content-Type: application/json'),
@@ -37,7 +38,7 @@ module SL
         ]
         data = JSON.parse(`#{cmd.join(' ')}`.strip)
         link = data['link']
-        title ||= SL.titleize ? SL::URL.get_title(url) : 'Bit.ly Link'
+        title ||= SL::URL.get_title(long_url)
         [link, title]
       end
     end
