@@ -1,5 +1,5 @@
 module SL
-  VERSION = '2.3.37'
+  VERSION = '2.3.38'
 end
 
 module SL
