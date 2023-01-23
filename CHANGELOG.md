@@ -1,3 +1,15 @@
+### 2.3.38
+
+2023-01-23 08:30
+
+#### IMPROVED
+
+- Detect encoded m-dash when removing SEO elements from titles
+
+#### FIXED
+
+- Browser history and bookmark fixes
+
 ### 2.3.37
 
 2023-01-22 10:44
