@@ -37,7 +37,7 @@ describe 'CLI' do
     ['* A [shortened link](!bl https://brettterpstra.com)', 'https://bit.ly/3uEzRKE'],
     # DuckDuckGo/Google
     ['* A DuckDuckGo search [brett terpstra](!ddg ++t)', '[brett terpstra](https://brettterpstra.com/ "BrettTerpstra.com")'],
-    ['* A search for specified text: [Marked](!g "Marked mac app").', 'https://apps.apple.com/us/app/marked-2-markdown-preview/id890031187?mt=12'],
+    ['* A search for specified text: [Marked](!g Marked 2 mac app store).', 'https://apps.apple.com/us/app/marked-2-markdown-preview/id890031187?mt=12'],
     ['* A simple google search [wikipedia neat neat neat](!g)', 'https://en.wikipedia.org/wiki/Neat_Neat_Neat'],
     # definition
     ['* This will put the definition of [ambiguous](!def) in the title field of a link to the dictionary entry.', 'https://www.wordnik.com/words/ambiguous'],
@@ -45,7 +45,8 @@ describe 'CLI' do
     ['* [%](!file brettterpstra header template filename:.afphoto)', 'BrettTerpstra.com%20Header%20Template.afphoto'],
     # GitHub
     ['* A GitHub search with user and repo [%](!gh ttscoff searchlink)', 'https://github.com/ttscoff/searchlink'],
-    ['* A Gist search with search term [searchlink.rb](!gist +ttscoff)', 'https://gist.github.com/ttscoff/3900158'],
+    ['* A GitHub search with specifiers [%](!gh u:ttscoff searchlink)', 'https://github.com/ttscoff/searchlink'],
+    ['* A Gist search with search term [%](!gist ttscoff searchlink.rb)', %r{https://gist.github.com/(ttscoff/)?3900158}],
     ['* A gist embed with user/id [%](!giste ttscoff/9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     ['* A gist embed with just id [%](!giste 9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     # history
@@ -59,7 +60,7 @@ describe 'CLI' do
     ['* An Edge bookmark search [%](!heb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* An Edge history search [%](!heh brett terpstra)', 'https://brettterpstra.com/'],
     ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
-    ['* A Firefox history search [GitHub Brett Terpstra](!hfh)', 'https://github.com/ttscoff'],
+    ['* A Firefox history search [markdown exports mindmeister](!hfh)', 'https://gist.github.com/ttscoff/cd2a6c17964cccfb6665'],
     ['* A Safari bookmark search [%](!hsb visionmedia mocha)', 'https://github.com/visionmedia/mocha'],
     ['* A Safari history search [%](!hsh brett terpstra)', 'https://brettterpstra.com'],
     # iTunes
@@ -103,7 +104,7 @@ describe 'CLI' do
 
   searches.each.with_index do |search, i|
     describe 'executes search' do
-      context "(#{i + 1}/#{searches.count}) when given the text #{search[0]}" do
+      context "(#{i + 1}/#{searches.count}) when given the text '#{search[0]}'" do
         it "returns #{search[1]}" do
           execute_script('bin/searchlink', use_bundler: true, stdin_data: search[0])
           expect(last_execution).to be_successful
