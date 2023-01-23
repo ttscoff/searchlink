@@ -1,6 +1,15 @@
 ### 2.3.39
 
-2023-01-23 13:08
+2023-01-23 13:11
+
+#### NEW
+
+- `!ghu USER` to link a GitHub user's homepage, can also search by
+
+#### IMPROVED
+
+- Switch GitHub searching to using the GitHub API
+- `!gh` can now search by language, readme contents, and more.
 
 ### 2.3.38
 
