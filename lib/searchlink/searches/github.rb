@@ -24,6 +24,8 @@ module SL
           url, title, link_text = github(search_terms, link_text)
         end
 
+        link_text = title if link_text == '' || link_text == search_terms
+
         [url, title, link_text]
       end
 
@@ -96,23 +98,19 @@ module SL
       end
 
       def github_user(search_terms, link_text)
-        link_text = '' if link_text == search_terms
-
         if search_terms.split(/ /).count > 1
           query = %(#{search_terms} in:name)
           res = github_search_curl('users', query)
         else
           query = %(user:#{search_terms})
           res = github_search_curl('users', query)
-          unless res
-            res = github_search_curl('users', search_terms)
-          end
+          res ||= github_search_curl('users', search_terms)
         end
 
         if res
           url = res['html_url']
           title = res['login']
-          link_text = title if link_text == ''
+
           [url, title, link_text]
         else
           [false, false, link_text]
@@ -120,8 +118,6 @@ module SL
       end
 
       def search_github(search_terms, link_text)
-        link_text = '' if link_text == search_terms
-
         search_terms.gsub!(%r{(\S+)/(\S+)}, 'user:\1 \2')
         search_terms.gsub!(/\bu\w*:(\w+)/, 'user:\1')
         search_terms.gsub!(/\bl\w*:(\w+)/, 'language:\1')
@@ -139,8 +135,6 @@ module SL
 
         url = res['html_url']
         title = res['description'] || res['full_name']
-        link_text = title if link_text == ''
-
         [url, title, link_text]
       end
 
