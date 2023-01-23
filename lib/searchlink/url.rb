@@ -3,6 +3,8 @@ module SL
     class << self
       # Validates that a link exists and returns 200
       def valid_link?(uri_str, limit = 5)
+        return false unless uri_str
+
         SL.notify('Validating', uri_str)
         return false if limit.zero?
 

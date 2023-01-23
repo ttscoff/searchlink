@@ -54,3 +54,5 @@ require 'searchlink/parse'
 
 # import
 require 'searchlink/output'
+
+module Secrets; end
