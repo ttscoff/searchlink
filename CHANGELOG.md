@@ -1,3 +1,11 @@
+### 2.3.40
+
+2023-01-23 16:33
+
+#### IMPROVED
+
+- Better link text for GitHub searches
+
 ### 2.3.39
 
 2023-01-23 13:11
