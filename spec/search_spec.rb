@@ -51,9 +51,17 @@ describe 'CLI' do
     # history
     ['* A general history and bookmark search [%](!h brett terpstra project searchlink)', '[SearchLink - BrettTerpstra.com](https://brettterpstra.com/projects/searchlink/'],
     ['* An Arc history search [%](!hah brett terpstra)', 'https://brettterpstra.com/'],
+    ['* An Arc bookmark search [%](!hab backbeat podman)', 'https://podman.backbeatmedia.com'],
+    ['* A Brave history search [%](!hbh 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
+    ['* A Brave bookmark search [%](!hbb backbeat podman)', 'https://podman.backbeatmedia.com'],
+    ['* A Chrome bookmark search [%](!hcb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
+    ['* A Chrome history search [%](!hch brett terpstra)', 'https://brettterpstra.com/'],
     ['* An Edge bookmark search [%](!heb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
+    ['* An Edge history search [%](!heh brett terpstra)', 'https://brettterpstra.com/'],
+    ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Firefox history search [GitHub Brett Terpstra](!hfh)', 'https://github.com/ttscoff'],
     ['* A Safari bookmark search [%](!hsb visionmedia mocha)', 'https://github.com/visionmedia/mocha'],
+    ['* A Safari history search [%](!hsh brett terpstra)', 'https://brettterpstra.com'],
     # iTunes
     ['* iTunes album search [Inside Voices / Outside Voices](!ialb + k.flay)', '[Inside Voices / Outside Voices](https://music.apple.com/us/album'],
     ['* iTunes Artist search: [BRMC](!iart "Black Rebel Motorcycle Club")', 'https://music.apple.com/us/artist/black-rebel-motorcycle-club/624658?uo=4&at=10l4tL&ct=searchlink'],
