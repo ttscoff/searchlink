@@ -35,7 +35,8 @@ module SL
           bm = JSON.parse(most_recent)[0]
 
           date = Time.parse(bm['datum'])
-          [bm['url'], bm['title'], date]
+          score = score_mark({url: bm['url'], title: bm['title']}, term)
+          [bm['url'], bm['title'], date, score]
         else
           false
         end
@@ -77,7 +78,8 @@ module SL
           bm = JSON.parse(most_recent)[0]
 
           date = Time.parse(bm['datum'])
-          [bm['url'], bm['title'], date]
+          score = score_mark({url: bm['url'], title: bm['title']}, term)
+          [bm['url'], bm['title'], date, score]
         else
           false
         end

@@ -205,9 +205,11 @@ class ::String
     title.gsub!(/\s*(&ndash;|&mdash;)\s*/, ' - ')
     title.gsub!(/&[lr]dquo;/, '"')
     title.gsub!(/&[lr]dquo;/, "'")
-    title.gsub!(/&#8211;/, ' – ')
+    title.gsub!(/&#8211;/, ' — ')
+    title = CGI.unescapeHTML(title)
+    title.gsub!(/ +/, ' ')
 
-    seo_title_separators = %w[| « — – - · :]
+    seo_title_separators = %w[| » « — – - · :]
 
     begin
       re_parts = []
@@ -228,7 +230,7 @@ class ::String
         break if dead_switch > 5
 
         seo_title_separators.each_with_index do |sep, i|
-          parts = title.split(/ +#{Regexp.escape(sep)} +/)
+          parts = title.split(/ *#{Regexp.escape(sep)} +/)
 
           next if parts.length == 1
 
@@ -236,7 +238,6 @@ class ::String
           seps = Regexp.new("^[^#{remaining_separators}]+$")
 
           longest = parts.longest_element.strip
-
 
           unless parts.empty?
             parts.delete_if do |pt|
@@ -259,19 +260,18 @@ class ::String
       end
     rescue StandardError => e
       return self unless SL.config['debug']
-      warn 'Error processing title'
-      p e
-      raise e
-      # return self
+
+      add_error('Error processing title', e)
+      return self
     end
 
-    seps = Regexp.new(" +[#{seo_title_separators.map { |s| Regexp.escape(s) }.join('')}] +")
+    seps = Regexp.new(" *[#{seo_title_separators.map { |s| Regexp.escape(s) }.join('')}] +")
     if title =~ seps
       seo_parts = title.split(seps)
       title = seo_parts.longest_element.strip if seo_parts.length.positive?
     end
 
-    title && title.length > 5 ? title.gsub(/\s+/, ' ') : self
+    title && title.length > 5 ? title.gsub(/\s+/, ' ') : CGI.unescapeHTML(self)
   end
 
   def truncate!(max)
@@ -281,21 +281,16 @@ class ::String
   def truncate(max)
     return self if length < max
 
-    max -= 3
-    counter = 0
-    trunc_title = ''
+    trunc_title = []
 
     words = split(/\s+/)
-    while trunc_title.length < max && counter < words.length
-      trunc_title += " #{words[counter]}"
-      break if trunc_title.length + 1 > max
+    words.each do |word|
+      break unless trunc_title.join(' ').length.close_punctuation + word.length <= max
 
-      counter += 1
+      trunc_title << word
     end
 
-    trunc_title = words[0] if trunc_title.nil? || trunc_title.empty?
-
-    trunc_title
+    trunc_title.empty? ? words[0] : trunc_title.join(' ')
   end
 
   def nil_if_missing
@@ -324,6 +319,8 @@ class ::String
     regexes.each do |rx|
       matched += 1 if self =~ rx
     end
+
+    return 0 if matched.zero?
 
     (matched / regexes.count.to_f) * 10
   end

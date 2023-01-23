@@ -52,7 +52,7 @@ module SL
         terms.strip!
         case terms
         # If an id (and optional file) are given, expand it to include username an generate link
-        when %r{^(?<id>[a-z0-9]{32})(?:[#/](?<file>(?:file-)?.*?))?$}
+        when %r{^(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           res = `curl -SsLI 'https://gist.github.com/#{m['id']}'`.strip
           url = res.match(/^location: (.*?)$/)[1].strip
@@ -62,7 +62,7 @@ module SL
             title = "#{title}: #{m['file']}"
           end
         # If a user an id (an o) are given, convert to a link
-        when %r{^(?<u>\w+)/(?<id>[a-z0-9]{32})(?:[#/](?<file>(?:file-)?.*?))?$}
+        when %r{^(?<u>\w+)/(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = "https://gist.github.com/#{m['u']}/#{m['id']}"
           title = SL::URL.get_title(url)
@@ -71,7 +71,7 @@ module SL
             title = "#{title}: #{m['file']}"
           end
         # if a full gist URL is given, simply clean it up
-        when %r{(?<url>https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]{32}))(?:[#/](?<file>(?:file-)?.*?))?$}
+        when %r{(?<url>https://gist.github.com/(?<user>\w+)/(?<id>[a-z0-9]{32}|[0-9]{6,10}))(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = m['url']
           title = SL::URL.get_title(url)

@@ -33,20 +33,33 @@ module SL
         end
       end
 
+      ##
+      ## Search Safari bookmarks for relevant search terms
+      ##
+      ## @param      terms  [String] The search terms
+      ##
+      ## @return     [Array] [url, title, date]
+      ##
       def search_safari_bookmarks(terms)
-        result = nil
-
         data = `plutil -convert xml1 -o - ~/Library/Safari/Bookmarks.plist`.strip
-        parent = Plist::parse_xml(data)
-        result = get_safari_bookmarks(parent, terms).first
-        return false if result.nil?
+        parent = Plist.parse_xml(data)
+        results = get_safari_bookmarks(parent, terms)
+        return false if results.empty?
+
+        result = results.max_by { |res| [res[:score], res[:title].length] }
 
         [result[:url], result[:title], Time.now]
       end
 
+      ##
+      ## Score bookmark for search term matches
+      ##
+      ## @param      mark   [Hash] The bookmark
+      ## @param      terms  [String] The search terms
+      ##
       def score_bookmark(mark, terms)
         score = if mark[:title].matches_exact(terms)
-                  15
+                  12 + mark[:url].matches_score(terms, start_word: false)
                 elsif mark[:url].matches_exact(terms)
                   11
                 elsif mark[:title].matches_score(terms) > 5
@@ -58,8 +71,19 @@ module SL
         { url: mark[:url], title: mark[:title], score: score }
       end
 
+      ##
+      ## Recursively parse bookmarks hash and score
+      ## bookmarks
+      ##
+      ## @param      parent  [Hash, Array] The parent
+      ##                     bookmark item
+      ## @param      terms   [String] The search terms
+      ##
+      ## @return     [Array] array of scored bookmarks
+      ##
       def get_safari_bookmarks(parent, terms)
         results = []
+
         if parent.is_a?(Array)
           parent.each do |c|
             if c.is_a?(Hash)
@@ -69,6 +93,7 @@ module SL
                 title = c['URIDictionary']['title']
                 url = c['URLString']
                 scored = score_bookmark({ url: url, title: title }, terms)
+
                 results.push(scored) if scored[:score] > 7
               end
             end
@@ -77,7 +102,6 @@ module SL
           results.concat(get_safari_bookmarks(parent['Children'], terms))
         end
         results.sort_by { |h| [h[:score], h[:title].length * -1] }.reverse
-
       end
     end
   end

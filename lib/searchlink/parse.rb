@@ -216,6 +216,38 @@ module SL
                 SL.add_report("#{match_string} => Footnote #{ref}")
                 res
               end
+            # Handle [](URL) and [%](URL), filling in title
+            elsif (link_text == '' || link_text == '%') && SL::URL.url?(link_info)
+              url = link_info
+              title = SL::URL.get_title(link_info)
+              link_text = title
+
+              if ref_title
+                unless links.key? url
+                  links[url] = link_text
+                  add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: false)
+                end
+                delete_line = true
+              elsif SL.config['inline']
+                res = SL.make_link('inline', link_text, url, title: title, force_title: false)
+                cursor_difference += SL.match_length - res.length
+                SL.match_length = res.length
+                SL.add_report("#{match_string} => #{url}")
+                res
+              else
+                unless links.key? url
+                  highest_marker += 1
+                  links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
+                  add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: false)
+                end
+
+                type = SL.config['inline'] ? 'inline' : 'ref_link'
+                res = SL.make_link(type, link_text, links[url], title: false, force_title: false)
+                cursor_difference += SL.match_length - res.length
+                SL.match_length = res.length
+                SL.add_report("#{match_string} => #{url}")
+                res
+              end
             elsif (link_text == '' && link_info == '') || SL::URL.url?(link_info)
               SL.add_error("Invalid search", match) unless SL::URL.url?(link_info)
               match
@@ -269,7 +301,7 @@ module SL
                   search_type = false
                   search_terms = false
                 end
-              elsif link_text && !link_text.empty? && (link_info.nil? || link_info.empty?)
+              elsif link_text && !link_text.empty? && (!link_info || link_info.empty?)
                 search_type = 'g'
                 search_terms = link_text
               elsif link_info && !link_info.empty?
@@ -338,11 +370,23 @@ module SL
                 end
               end
 
-              if search_type && search_terms
+              if (search_type && search_terms) || url
                 # warn "Searching #{search_type} for #{search_terms}"
-                search_count += 1
+                if (!url)
+                  search_count += 1
 
-                url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
+                  # begin
+                  #   Timeout.timeout(10) do
+                  #     url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
+                  #   end
+                  # rescue Timeout::Error
+                  #   SL.add_error('Timeout', 'search took too long')
+                  #   url = false
+                  #   title = false
+                  # end
+                  url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
+
+                end
 
                 if url
                   title = SL::URL.get_title(url) if SL.titleize && title == ''

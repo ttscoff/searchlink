@@ -18,6 +18,7 @@ describe 'CLI' do
   searches = [
     # default
     ['* A default search [brett terpstra]()', 'https://brettterpstra.com'],
+    ['* An empty link that needs a title [](https://rspec.rubystyle.guide/)', '[RSpec Style Guide](https://rspec.rubystyle.guide/'],
     # social links
     ['* [%](!@f ttscoff)', 'https://www.facebook.com/ttscoff'],
     ['* [%](!@i ttscoff)', 'https://www.instagram.com/ttscoff/'],
@@ -44,10 +45,11 @@ describe 'CLI' do
     ['* [%](!file brettterpstra header template filename:.afphoto)', 'BrettTerpstra.com%20Header%20Template.afphoto'],
     # GitHub
     ['* A GitHub search with user and repo [%](!gh ttscoff searchlink)', 'https://github.com/ttscoff/searchlink'],
-    ['* A Gist search with search term [%](!gist searchlink)', 'https://gist.github.com/ttscoff/9064738'],
-    ['* A gist embed with full user/id [%](!giste ttscoff/9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
+    ['* A Gist search with search term [searchlink.rb](!gist +ttscoff)', 'https://gist.github.com/ttscoff/3900158'],
+    ['* A gist embed with user/id [%](!giste ttscoff/9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
+    ['* A gist embed with just id [%](!giste 9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     # history
-    ['* A general history and bookmark search [%](!h brett terpstra searchlink)', '[SearchLink - BrettTerpstra.com](https://brettterpstra.com/projects/searchlink/'],
+    ['* A general history and bookmark search [%](!h brett terpstra project searchlink)', '[SearchLink - BrettTerpstra.com](https://brettterpstra.com/projects/searchlink/'],
     ['* An Arc history search [%](!hah brett terpstra)', 'https://brettterpstra.com/'],
     ['* An Edge bookmark search [%](!heb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Firefox history search [GitHub Brett Terpstra](!hfh)', 'https://github.com/ttscoff'],
@@ -91,9 +93,9 @@ describe 'CLI' do
     ['* Site specific search: [Keybindings](!brettterpstra.com "Keybinding Madness")', 'https://brettterpstra.com/2011/08/13/keybinding-madness/']
   ]
 
-  searches.each do |search|
+  searches.each.with_index do |search, i|
     describe 'executes search' do
-      context "when given the text #{search[0]}" do
+      context "(#{i + 1}/#{searches.count}) when given the text #{search[0]}" do
         it "returns #{search[1]}" do
           execute_script('bin/searchlink', use_bundler: true, stdin_data: search[0])
           expect(last_execution).to be_successful

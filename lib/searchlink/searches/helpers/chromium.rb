@@ -118,42 +118,63 @@ module SL
       def search_chromium_bookmarks(bookmarks_file, term)
         chrome_bookmarks = JSON.parse(IO.read(bookmarks_file))
         if chrome_bookmarks
-          terms = term.split(/\s+/)
           roots = chrome_bookmarks['roots']
-          urls = extract_chrome_bookmarks(roots)
-          urls.sort_by! { |bookmark| bookmark['date_added'] }
-          urls.select do |u|
-            found = true
-            terms.each { |t| found = false unless u['url'] =~ /#{t}/i || u['title'] =~ /#{t}/i }
-            found
-          end
+          urls = extract_chrome_bookmarks(roots, [], term)
 
           unless urls.empty?
-            lastest_bookmark = urls.max_by { |u| "#{u['url']} #{u['title']}".matches_score(term) }
+            lastest_bookmark = urls.max_by { |u| u[:score] }
 
-            return [lastest_bookmark['url'], lastest_bookmark['title'], lastest_bookmark['date']]
+            return [lastest_bookmark[:url], lastest_bookmark[:title], lastest_bookmark[:date]]
           end
         end
 
         false
       end
 
-      def extract_chrome_bookmarks(json, urls = [])
+      def extract_chrome_bookmarks(json, urls = [], term = '')
         if json.instance_of?(Array)
-          json.each { |item| urls = extract_chrome_bookmarks(item, urls) }
+          json.each { |item| urls = extract_chrome_bookmarks(item, urls, term) }
         elsif json.instance_of?(Hash)
           if json.key? 'children'
-            urls = extract_chrome_bookmarks(json['children'], urls)
+            urls = extract_chrome_bookmarks(json['children'], urls, term)
           elsif json['type'] == 'url'
             date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
-            urls << { 'url' => json['url'], 'title' => json['name'], 'date' => date }
+            url = { url: json['url'], title: json['name'], date: date }
+            score = score_mark(url, term)
+
+            if score > 7
+              url[:score] = score
+              urls << url
+            end
           else
-            json.each { |_, v| urls = extract_chrome_bookmarks(v, urls) }
+            json.each { |_, v| urls = extract_chrome_bookmarks(v, urls, term) }
           end
         else
           return urls
         end
         urls
+      end
+
+      ##
+      ## Score bookmark for search term matches
+      ##
+      ## @param      mark   [Hash] The bookmark
+      ## @param      terms  [String] The search terms
+      ##
+      def score_mark(mark, terms)
+        score = if mark[:title].matches_exact(terms)
+                  12 + mark[:url].matches_score(terms, start_word: false)
+                elsif mark[:url].matches_exact(terms)
+                  11
+                elsif mark[:title].matches_score(terms) > 5
+                  mark[:title].matches_score(terms)
+                elsif mark[:url].matches_score(terms, start_word: false)
+                  mark[:url].matches_score(terms, start_word: false)
+                else
+                  0
+                end
+
+        score
       end
     end
   end

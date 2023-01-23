@@ -15,7 +15,9 @@ module SL
         sleep 5
       end
 
-      SL.notify('Searching', search_terms)
+      description = SL::Searches.description_for_search(search_type)
+
+      SL.notify(description, search_terms)
       return [false, search_terms, link_text] if search_terms.empty?
 
       if SL::Searches.valid_search?(search_type)
@@ -34,9 +36,9 @@ module SL
         else
           if search_terms
             if search_type =~ /.+?\.\w{2,}$/
-              url, title = SL.ddg(%(site:#{search_type} #{search_terms}), link_text)
+              url, title, link_text = SL.ddg(%(site:#{search_type} #{search_terms}), link_text)
             else
-              url, title = SL.ddg(search_terms, link_text)
+              url, title, link_text = SL.ddg(search_terms, link_text)
             end
           end
         end

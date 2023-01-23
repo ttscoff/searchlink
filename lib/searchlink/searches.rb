@@ -46,6 +46,18 @@ module SL
         end
       end
 
+      def description_for_search(search_type)
+        description = "#{search_type} search"
+        plugins[:search].each do |_, plugin|
+          s = plugin[:searches].select { |s| s[0] == search_type }
+          unless s.empty?
+            description = s[0][1]
+            break
+          end
+        end
+        description
+      end
+
       def available_searches_html
         searches = []
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
