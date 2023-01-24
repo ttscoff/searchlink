@@ -23,7 +23,7 @@ module SL
       end
 
       def twitter_embed(tweet)
-        res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{ERB::Util.url_encode(tweet)}'`.strip
+        res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{tweet.url_encode}'`.strip
         if res
           begin
             json = JSON.parse(res)

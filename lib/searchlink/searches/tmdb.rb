@@ -24,7 +24,7 @@ module SL
                else
                  'multi'
                end
-        body = `/usr/bin/curl -sSL 'https://api.themoviedb.org/3/search/#{type}?query=#{ERB::Util.url_encode(terms)}&api_key=2bd76548656d92517f14d64766e87a02'`
+        body = `/usr/bin/curl -sSL 'https://api.themoviedb.org/3/search/#{type}?query=#{terms.url_encode}&api_key=2bd76548656d92517f14d64766e87a02'`
         data = JSON.parse(body)
         if data.key?('results') && data['results'].count.positive?
           res = data['results'][0]

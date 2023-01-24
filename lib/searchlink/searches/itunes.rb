@@ -46,7 +46,7 @@ module SL
       def search_itunes(entity, terms, dev, aff = nil)
         aff ||= SL.config['itunes_affiliate']
 
-        url = URI.parse("http://itunes.apple.com/search?term=#{ERB::Util.url_encode(terms)}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1")
+        url = URI.parse("http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1")
 
         res = Net::HTTP.get_response(url).body
         res = res.force_encoding('utf-8').encode # if RUBY_VERSION.to_f > 1.9

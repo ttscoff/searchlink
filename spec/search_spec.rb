@@ -62,7 +62,7 @@ describe 'CLI' do
     ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Firefox history search [markdown exports mindmeister](!hfh)', 'https://gist.github.com/ttscoff/cd2a6c17964cccfb6665'],
     ['* A Safari bookmark search [%](!hsb visionmedia mocha)', 'https://github.com/visionmedia/mocha'],
-    ['* A Safari history search [%](!hsh brett terpstra)', 'https://brettterpstra.com'],
+    ['* A Safari history search [%](!hsh brett terpstra)', %r{https?://brettterpstra.com}],
     # iTunes
     ['* iTunes album search [Inside Voices / Outside Voices](!ialb + k.flay)', '[Inside Voices / Outside Voices](https://music.apple.com/us/album'],
     ['* iTunes Artist search: [BRMC](!iart "Black Rebel Motorcycle Club")', 'https://music.apple.com/us/artist/black-rebel-motorcycle-club/624658?uo=4&at=10l4tL&ct=searchlink'],
@@ -72,7 +72,7 @@ describe 'CLI' do
     ['* A Last.fm track search [neat neat neat](!lsong "The Damned Neat Neat Neat") (with specified search terms)', 'https://www.last.fm/music/The+Damned/_/Neat+Neat+Neat'],
     # Mac App Store
     ['* Mac app store search: [Marked on the MAS](!mas "Marked 2")', 'https://apps.apple.com/us/app/marked-2-markdown-preview/id890031187?mt=12&uo=4&at=10l4tL&ct=searchlink'],
-    ['* This search: [](!mas "Omnifocus") will have its link text filled in', '[Omnifocus](https://apps.apple.com/us/app/omnifocus-3'],
+    ['* This search: [](!mas "Omnifocus 3" accomplish more) will have its link text filled in', '[Omnifocus 3](https://apps.apple.com/us/app/omnifocus-3'],
     ['* Mac App Store search [Marked direct](!masd "Marked") with direct dev site link.', 'http://marked2app.com'],
     # iTunes App Store
     ['* iTunes app search: [Grindstone](!itu)', 'https://apps.apple.com/us/app/grindstone/id1357426636?uo=4&at=10l4tL&ct=searchlink'],

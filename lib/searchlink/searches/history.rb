@@ -128,6 +128,7 @@ module SL
         end
 
         url, title = search_history(search_terms, types)
+        link_text = title if link_text == '' || link_text == search_terms
         [url, title, link_text]
       end
 

@@ -172,8 +172,12 @@ module SL
               link_info.gsub!(/"(.*?)"/) do
                 m = Regexp.last_match(1)
                 link_text = m if link_text == ''
-                m
+                %("#")
               end
+            end
+
+            link_info.gsub!(/<(.*?)>/) do
+              %(%22#{Regexp.last_match(1)}%22)
             end
 
             if link_info.strip =~ /:$/ && line.strip == match
@@ -351,14 +355,14 @@ module SL
                         else
                           re_down = '(?!d|s)'
                         end
-                        v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
+                        v.gsub!(/#{Regexp.escape(t) + re_down}/, replacement.url_encode)
                       end
                       search_terms = v
                     else
                       search_terms = v.gsub(/\$term[ds]?/i) do |mtch|
                         search_terms.downcase! if mtch =~ /d$/i
                         search_terms.slugify! if mtch =~ /s$/i
-                        ERB::Util.url_encode(search_terms)
+                        search_terms.url_encode
                       end
                     end
                   else
@@ -576,14 +580,14 @@ module SL
                                 else
                                   '(?!d|s)'
                                 end
-                      v.gsub!(/#{Regexp.escape(t) + re_down}/, ERB::Util.url_encode(replacement))
+                      v.gsub!(/#{Regexp.escape(t) + re_down}/, replacement.url_encode)
                     end
                     terms = v
                   else
                     terms = v.gsub(/\$term[ds]?/i) do |mtch|
                       terms.downcase! if mtch =~ /d$/i
                       terms.slugify! if mtch =~ /s$/i
-                      ERB::Util.url_encode(terms)
+                      terms.url_encode
                     end
                   end
                 else

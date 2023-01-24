@@ -4,7 +4,7 @@ module SL
 
     def initialize(semver)
       @maj, @min, @patch = semver.split(/\./)
-      if @patch =~ /([^0-9]+)$/
+      if @patch =~ /([^0-9]+\d?)$/
         @pre = Regexp.last_match(1)
         @patch = @patch.sub(/([^0-9]+)$/, '')
       else
@@ -35,12 +35,11 @@ module SL
       v.older_than(self) && !v.equal?(self)
     end
 
-    def equal?(semver)
-      v = semver.is_a?(SemVer) ? semver : SemVer.new(semver)
+    def equal?(other)
+      v = other.is_a?(SemVer) ? other : SemVer.new(other)
 
-      v.maj == @maj && v.min == @min && v.patch == @patch
+      v.maj == @maj && v.min == @min && v.patch == @patch && v.pre == @pre
     end
-
 
     def inspect
       {

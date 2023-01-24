@@ -6,22 +6,42 @@ module SL
         src = File.expand_path('~/Library/Safari/History.db')
         if File.exist?(src)
           SL.notify('Searching Safari History', term)
-          tmpfile = "#{src}.tmp"
-          FileUtils.cp(src, tmpfile)
+
+          exact_match = false
+          match_phrases = []
+
+          # If search terms start with ''term, only search for exact string matches
+          if term =~ /^ *'/
+            exact_match = true
+            term.gsub!(/(^ *'+|'+ *$)/, '')
+          elsif term =~ /%22(.*?)%22/
+            match_phrases = term.scan(/%22(\S.*?\S)%22/)
+            term.gsub!(/%22(\S.*?\S)%22/, '')
+          end
 
           terms = []
           terms.push("(url NOT LIKE '%search/?%'
                      AND url NOT LIKE '%?q=%' AND url NOT LIKE '%?s=%'
                      AND url NOT LIKE '%duckduckgo.com/?t%')")
-          terms.concat(term.split(/\s+/).map do |t|
-            "(url LIKE '%#{t.strip.downcase}%' OR title LIKE '%#{t.strip.downcase}%')"
-          end)
+          if exact_match
+            terms.push("(url LIKE '%#{term.strip.downcase}%' OR title LIKE '%#{term.strip.downcase}%')")
+          else
+            terms.concat(term.split(/\s+/).map do |t|
+              "(url LIKE '%#{t.strip.downcase}%' OR title LIKE '%#{t.strip.downcase}%')"
+            end)
+            terms.concat(match_phrases.map do |t|
+              "(url LIKE '%#{t[0].strip.downcase}%' OR title LIKE '%#{t[0].strip.downcase}%')"
+            end)
+          end
+
           query = terms.join(' AND ')
-          most_recent = `sqlite3 -json '#{tmpfile}' "select title, url,
+
+          cmd = %(sqlite3 -json '#{src}' "select title, url,
           datetime(visit_time/1000000, 'unixepoch', 'localtime') as datum
           from history_visits INNER JOIN history_items ON history_items.id = history_visits.history_item
-          where #{query} order by datum desc limit 1 COLLATE NOCASE;"`.strip
-          FileUtils.rm_f(tmpfile)
+          where #{query} order by datum desc limit 1 COLLATE NOCASE;")
+
+          most_recent = `#{cmd}`.strip
 
           return false if most_recent.strip.empty?
 

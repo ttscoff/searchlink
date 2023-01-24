@@ -101,12 +101,16 @@ module SL
 
         top = nil
 
+        exact_match = false
+        match_phrases = []
+
         # If search terms start with ''term, only search for exact string matches
         if search_terms =~ /^ *'/
           exact_match = true
           search_terms.gsub!(/(^ *'+|'+ *$)/, '')
-        else
-          exact_match = false
+        elsif search_terms =~ /%22(.*?)%22/
+          match_phrases = search_terms.scan(/%22(\S.*?\S)%22/)
+          search_terms.gsub!(/%22(\S.*?\S)%22/, '')
         end
 
         cache = load_pinboard_cache
@@ -121,38 +125,49 @@ module SL
           end
 
           return false
-        else
-          matches = []
-          bookmarks.each do |bm|
-            title_tags = [bm['description'], bm['tags']].join(' ')
-            full_text = [bm['description'], bm['extended'], bm['tags']].join(' ')
-
-            score = if title_tags.matches_exact(search_terms)
-                      14.0
-                    elsif full_text.matches_exact(search_terms)
-                      13.0
-                    elsif full_text.matches_any(search_terms)
-                      full_text.matches_score(search_terms)
-                    else
-                      0
-                    end
-
-            return [bm['href'], bm['description']] if score == 14
-
-            next unless score.positive?
-
-            matches.push({
-                           score: score,
-                           href: bm['href'],
-                           title: bm['description'],
-                           date: bm['time']
-                         })
-          end
-
-          return false if matches.empty?
-
-          top = matches.max_by { |bm| [bm[:score], bm[:date]] }
         end
+
+        unless match_phrases.empty?
+          bookmarks.delete_if do |bm|
+            matched = tru
+            full_text = [bm['description'], bm['extended'], bm['tags']].join(' ')
+            match_phrases.each do |phrase|
+              matched = false unless full_text.matches_exact(phrase)
+            end
+            !matched
+          end
+        end
+
+        matches = []
+        bookmarks.each do |bm|
+          title_tags = [bm['description'], bm['tags']].join(' ')
+          full_text = [bm['description'], bm['extended'], bm['tags']].join(' ')
+
+          score = if title_tags.matches_exact(search_terms)
+                    14.0
+                  elsif full_text.matches_exact(search_terms)
+                    13.0
+                  elsif full_text.matches_any(search_terms)
+                    full_text.matches_score(search_terms)
+                  else
+                    0
+                  end
+
+          return [bm['href'], bm['description']] if score == 14
+
+          next unless score.positive?
+
+          matches.push({
+                         score: score,
+                         href: bm['href'],
+                         title: bm['description'],
+                         date: bm['time']
+                       })
+        end
+
+        return false if matches.empty?
+
+        top = matches.max_by { |bm| [bm[:score], bm[:date]] }
 
         return false unless top
 

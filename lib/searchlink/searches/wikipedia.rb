@@ -12,7 +12,7 @@ module SL
 
       def search(search_type, search_terms, link_text)
         ## Hack to scrape wikipedia result
-        body = `/usr/bin/curl -sSL 'https://en.wikipedia.org/wiki/Special:Search?search=#{ERB::Util.url_encode(search_terms)}&go=Go'`
+        body = `/usr/bin/curl -sSL 'https://en.wikipedia.org/wiki/Special:Search?search=#{search_terms.url_encode}&go=Go'`
         return false unless body
 
         body = body.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9

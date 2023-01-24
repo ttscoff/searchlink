@@ -11,7 +11,7 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
-        query = search_terms
+        query = search_terms.gsub(/%22/, '"')
         res = `mdfind '#{query}' 2>/dev/null|head -n 1`
         return [false, query] if res.strip.empty?
         title = File.basename(res)

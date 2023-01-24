@@ -1,5 +1,13 @@
 # String helpers
 class ::String
+  # URL Encode string
+  #
+  # @return     [String] url encoded string
+  #
+  def url_encode
+    ERB::Util.url_encode(gsub(/%22/, '"'))
+  end
+
   ##
   ## Adds ?: to any parentheticals in a regular expression
   ## to avoid match groups

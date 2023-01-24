@@ -49,8 +49,7 @@ module SL
         #     return [wiki_link, title]
         #   end
         # end
-
-        def_url = "https://www.wordnik.com/words/#{ERB::Util.url_encode(terms)}"
+        def_url = "https://www.wordnik.com/words/#{terms.url_encode}"
         body = `/usr/bin/curl -sSL '#{def_url}'`
         if body =~ /id="define"/
           first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]

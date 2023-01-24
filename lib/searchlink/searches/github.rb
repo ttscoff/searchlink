@@ -38,7 +38,7 @@ module SL
           auth
         ]
 
-        url = "https://api.github.com/search/#{endpoint}?q=#{ERB::Util.url_encode(query)}&per_page=1&page=1&order=desc"
+        url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
 
         res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}")}.join(' ')} #{url}`)
 

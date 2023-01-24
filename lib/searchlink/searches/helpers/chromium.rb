@@ -49,15 +49,34 @@ module SL
         tmpfile = "#{history_file}.tmp"
         FileUtils.cp(history_file, tmpfile)
 
+        exact_match = false
+        match_phrases = []
+
+        # If search terms start with ''term, only search for exact string matches
+        if term =~ /^ *'/
+          exact_match = true
+          term.gsub!(/(^ *'+|'+ *$)/, '')
+        elsif term =~ /%22(.*?)%22/
+          match_phrases = term.scan(/%22(\S.*?\S)%22/)
+          term.gsub!(/%22(\S.*?\S)%22/, '')
+        end
+
         terms = []
         terms.push("(url NOT LIKE '%search/?%'
                    AND url NOT LIKE '%?q=%'
                    AND url NOT LIKE '%?s=%'
                    AND url NOT LIKE '%duckduckgo.com/?t%')")
-        terms.concat(term.split(/\s+/).map do |t|
-          "(url LIKE '%#{t.strip.downcase}%'
-          OR title LIKE '%#{t.strip.downcase}%')"
-        end)
+        if exact_match
+          terms.push("(url LIKE '%#{term.strip.downcase}%' OR title LIKE '%#{term.strip.downcase}%')")
+        else
+          terms.concat(term.split(/\s+/).map do |t|
+            "(url LIKE '%#{t.strip.downcase}%' OR title LIKE '%#{t.strip.downcase}%')"
+          end)
+          terms.concat(match_phrases.map do |t|
+            "(url LIKE '%#{t[0].strip.downcase}%' OR title LIKE '%#{t[0].strip.downcase}%')"
+          end)
+        end
+
         query = terms.join(' AND ')
         most_recent = `sqlite3 -json '#{tmpfile}' "select title, url,
         datetime(last_visit_time / 1000000 + (strftime('%s', '1601-01-01')), 'unixepoch') as datum
@@ -117,11 +136,40 @@ module SL
 
       def search_chromium_bookmarks(bookmarks_file, term)
         chrome_bookmarks = JSON.parse(IO.read(bookmarks_file))
+
+        exact_match = false
+        match_phrases = []
+
+        # If search terms start with ''term, only search for exact string matches
+        if term =~ /^ *'/
+          exact_match = true
+          term.gsub!(/(^ *'+|'+ *$)/, '')
+        elsif term =~ /%22(.*?)%22/
+          match_phrases = term.scan(/%22(\S.*?\S)%22/)
+          term.gsub!(/%22(\S.*?\S)%22/, '')
+        end
+
         if chrome_bookmarks
           roots = chrome_bookmarks['roots']
+
           urls = extract_chrome_bookmarks(roots, [], term)
 
           unless urls.empty?
+            urls.delete_if { |bm| !(bm[:url].matches_exact(term) || bm[:title].matches_exact(term)) } if exact_match
+
+            if match_phrases
+              match_phrases.map! { |phrase| phrase[0] }
+              urls.delete_if do |bm|
+                matched = true
+                match_phrases.each do |phrase|
+                  matched = false unless bm[:url].matches_exact(phrase) || bm[:title].matches_exact(phrase)
+                end
+                !matched
+              end
+            end
+
+            return false if urls.empty?
+
             lastest_bookmark = urls.max_by { |u| u[:score] }
 
             return [lastest_bookmark[:url], lastest_bookmark[:title], lastest_bookmark[:date]]
@@ -162,11 +210,13 @@ module SL
       ## @param      terms  [String] The search terms
       ##
       def score_mark(mark, terms)
-        score = if mark[:title].matches_exact(terms)
+        return 0 unless mark[:url]
+
+        score = if mark[:title] && mark[:title].matches_exact(terms)
                   12 + mark[:url].matches_score(terms, start_word: false)
                 elsif mark[:url].matches_exact(terms)
                   11
-                elsif mark[:title].matches_score(terms) > 5
+                elsif mark[:title] && mark[:title].matches_score(terms) > 5
                   mark[:title].matches_score(terms)
                 elsif mark[:url].matches_score(terms, start_word: false)
                   mark[:url].matches_score(terms, start_word: false)
