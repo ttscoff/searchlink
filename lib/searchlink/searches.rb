@@ -38,10 +38,11 @@ module SL
         end
       end
 
-      def do_search(search_type, search_terms, link_text)
+      def do_search(search_type, search_terms, link_text, timeout: SL.config['timeout'])
         plugins[:search].each do |title, plugin|
           if search_type =~ /^#{plugin[:trigger]}$/
-            return plugin[:class].search(search_type, search_terms, link_text)
+            search = proc { plugin[:class].search(search_type, search_terms, link_text) }
+            return SL::Util.search_with_timeout(search, timeout)
           end
         end
       end

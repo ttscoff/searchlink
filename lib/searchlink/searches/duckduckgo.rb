@@ -69,10 +69,12 @@ module SL
   end
 end
 
+# SL module methods
 module SL
   class << self
-    def ddg(search_terms, link_text = nil)
-      SL::Searches.plugins[:search]['duckduckgo'][:class].search('ddg', search_terms, link_text)
+    def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'])
+      search = proc { SL::Searches.plugins[:search]['duckduckgo'][:class].search('ddg', search_terms, link_text) }
+      SL::Util.search_with_timeout(search, timeout)
     end
   end
 end

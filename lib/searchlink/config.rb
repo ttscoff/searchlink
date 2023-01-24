@@ -36,11 +36,15 @@ module SL
           # when running on a file, back up original to *.bak
           backup: true
 
+          # Time limit for searches. Increase if your searches are regularly
+          # timing out
+          timeout: 15
+
           # change this to set a specific country for search (default US)
           country_code: US
 
           # set to true to force inline Markdown links. Can be disabled
-          # per search with `--i`, or enabled with `++i`.
+          # per search with `--i`, or enabled with `++i`
           inline: false
 
           # set to true to include a random string in reference titles.
@@ -156,6 +160,8 @@ module SL
       config['report'] ||= false
 
       config['backup'] = true unless config.key? 'backup'
+
+      config['timeout'] ||= 15
 
       # set to true to force inline links
       config['inline'] ||= false

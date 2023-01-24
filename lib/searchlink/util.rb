@@ -33,6 +33,29 @@ module SL
         
         stdout
       end
+
+      def search_with_timeout(p, timeout)
+        url = nil
+        title = nil
+        link_text = nil
+
+        begin
+          Timeout.timeout(timeout) do
+            url, title, link_text = p.call
+          end
+        rescue Timeout::Error
+          SL.add_error('Timeout', 'Search timed out')
+          url, title, link_text = false
+        end
+
+        [url, title, link_text]
+      end
+
+      def cache_file_for(filename)
+        cache_folder = File.expand_path('~/.local/share/searchlink/cache')
+        FileUtils.mkdir_p(cache_folder) unless File.directory?(cache_folder)
+        File.join(cache_folder, filename.sub(/(\.cache)?$/, '.cache'))
+      end
     end
   end
 end
