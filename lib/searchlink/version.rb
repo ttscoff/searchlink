@@ -1,5 +1,5 @@
 module SL
-  VERSION = '2.3.42'
+  VERSION = '2.3.40'
 end
 
 module SL
@@ -64,9 +64,7 @@ module SL
 
       false
     end
-  end
 
-  class SearchLink
     def update_searchlink
       new_version = SL::new_version?
       if new_version
@@ -81,10 +79,13 @@ module SL
         ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
           src = File.join(folder, 'SearchLink Services', wflow)
           dest = File.join(services, wflow)
-          FileUtils.cp_r(src, dest)
+          if File.exist?(src) && File.exist?(dest)
+            FileUtils.rm_rf(dest)
+            FileUtils.mv(src, dest, force: true)
+          end
         end
         add_output("Installed SearchLink #{new_version}")
-        FileUtils.rm_rf('SearchLink Services')
+        # FileUtils.rm_rf('SearchLink Services')
       else
         add_output("Already up to date.")
       end
