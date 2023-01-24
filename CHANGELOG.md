@@ -1,6 +1,15 @@
 ### 2.3.41
 
-2023-01-23 16:46
+2023-01-24 05:57
+
+#### NEW
+
+- Surround a section of text in angle brackets to require an exact phrase match
+- Searches now have a timeout of 15 seconds by default, can be adjusted with the `timeout:` setting in config
+
+#### IMPROVED
+
+- All searches allow starting with a single quote to perform an exact string match (case-insensitive)
 
 ### 2.3.40
 

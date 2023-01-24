@@ -1,5 +1,7 @@
 module SL
   class PinboardSearch
+    PINBOARD_CACHE = SL::Util.cache_file_for('pinboard')
+
     class << self
       def settings
         {

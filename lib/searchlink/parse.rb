@@ -229,7 +229,7 @@ module SL
               if ref_title
                 unless links.key? url
                   links[url] = link_text
-                  add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: false)
+                  SL.add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: false)
                 end
                 delete_line = true
               elsif SL.config['inline']
@@ -242,7 +242,7 @@ module SL
                 unless links.key? url
                   highest_marker += 1
                   links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                  add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: false)
+                  SL.add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: false)
                 end
 
                 type = SL.config['inline'] ? 'inline' : 'ref_link'
@@ -407,7 +407,7 @@ module SL
                   elsif ref_title
                     unless links.key? url
                       links[url] = link_text
-                      add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: force_title)
+                      SL.add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: force_title)
                     end
                     delete_line = true
                   elsif SL.config['inline']
@@ -420,7 +420,7 @@ module SL
                     unless links.key? url
                       highest_marker += 1
                       links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                      add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: force_title)
+                      SL.add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: force_title)
                     end
 
                     type = SL.config['inline'] ? 'inline' : 'ref_link'

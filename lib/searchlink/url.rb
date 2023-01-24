@@ -121,6 +121,7 @@ module SL
             title.remove_seo!(url) if SL.config['remove_seo']
             return title.remove_protocol
           else
+            SL.add_error('Error retrieving title', "Gather timed out on #{url}")
             SL.notify('Error retrieving title', 'Gather timed out')
           end
         end
@@ -150,6 +151,7 @@ module SL
           # title.remove_seo(url.strip)
           title.remove_protocol
         rescue StandardError
+          SL.add_error('Error retrieving title', "Error determining title for #{url.strip}")
           warn "Error retrieving title for #{url.strip}"
           url.remove_protocol
         end

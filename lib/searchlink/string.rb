@@ -207,6 +207,14 @@ class ::String
     title = dup
     url = URI.parse(url)
     host = url.hostname
+    unless host
+      return self unless SL.config['debug']
+
+      SL.add_error('Invalid URL', "Could not remove SEO for #{url}")
+      return self
+
+    end
+
     path = url.path
     root_page = path =~ %r{^/?$} ? true : false
 
@@ -269,7 +277,7 @@ class ::String
     rescue StandardError => e
       return self unless SL.config['debug']
 
-      add_error('Error processing title', e)
+      SL.add_error("Error SEO processing title for #{url}", e)
       return self
     end
 

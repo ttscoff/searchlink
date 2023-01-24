@@ -12,7 +12,6 @@ if RUBY_VERSION.to_f > 1.9
   Encoding.default_internal = Encoding::UTF_8
 end
 
-PINBOARD_CACHE = SL::Util.cache_file_for('pinboard')
 # GIST_CACHE = SL::Util.cache_file_for('gist')
 
 sl = SL::SearchLink.new({ echo: true })
