@@ -26,7 +26,6 @@ module SL
 
           url = locs[-1]
 
-
           result = url[0].strip || false
           return false unless result
 
