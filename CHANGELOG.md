@@ -1,6 +1,10 @@
 ### 2.3.43
 
-2023-01-25 08:40
+2023-01-25 08:41
+
+#### FIXED
+
+- Nil object in get_safari_bookmarks
 
 ### 2.3.42
 
