@@ -85,7 +85,7 @@ module SL
           end
         end
         add_output("Installed SearchLink #{new_version}")
-        # FileUtils.rm_rf('SearchLink Services')
+        FileUtils.rm_rf('SearchLink Services')
       else
         add_output("Already up to date.")
       end
