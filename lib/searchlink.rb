@@ -14,7 +14,7 @@ require 'json'
 require 'erb'
 
 # import
-if File.exist?('tokens.rb')
+if File.exist?('lib/tokens.rb')
   require 'tokens'
 end
 
