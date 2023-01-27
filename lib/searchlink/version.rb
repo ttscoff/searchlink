@@ -22,7 +22,7 @@ module SL
       latest_tag ||= SL::VERSION
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
-      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}")}
+      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}") }
 
       return "SearchLink v#{current.to_s}, #{latest.to_s} available. Run 'update' to download." if latest_tag && current.older_than(latest)
 
@@ -35,19 +35,17 @@ module SL
     def new_version?
       cmd = [
         'curl -SsL -H "Accept: application/vnd.github+json"',
-        %(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}"),
-        '-H "X-GitHub-Api-Version: 2022-11-28"',
-        'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
+        '-H "X-GitHub-Api-Version: 2022-11-28"'
       ]
+      cmd.push(%(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}")) if defined? Secrets::GH_AUTH_TOKEN
 
+      cmd.push('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
       res = `#{cmd.join(' ')}`.strip
 
       res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
       result = JSON.parse(res)
 
       if result
-        latest = {}
-        current = {}
         latest_tag = result['tag_name']
 
         return false unless latest_tag
@@ -66,7 +64,7 @@ module SL
     end
 
     def update_searchlink
-      new_version = SL::new_version?
+      new_version = SL.new_version?
       if new_version
         folder = File.expand_path('~/Downloads')
         services = File.expand_path('~/Library/Services')
@@ -76,7 +74,8 @@ module SL
         `unzip -qo #{dl} -d #{folder}`
         FileUtils.rm(dl)
 
-        ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
+        ['SearchLink', 'SearchLink File', 'Jump to SearchLink Error'].each do |workflow|
+          wflow = "#{workflow}.workflow"
           src = File.join(folder, 'SearchLink Services', wflow)
           dest = File.join(services, wflow)
           if File.exist?(src) && File.exist?(dest)
@@ -87,7 +86,7 @@ module SL
         add_output("Installed SearchLink #{new_version}")
         FileUtils.rm_rf('SearchLink Services')
       else
-        add_output("Already up to date.")
+        add_output('Already up to date.')
       end
     end
   end
