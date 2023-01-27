@@ -5,3 +5,4 @@ lib/tokens.secret
 lib/tokens.rb
 searchlink.rb
 SearchLink Services/*
+.irb_history
