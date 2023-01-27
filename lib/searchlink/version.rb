@@ -22,7 +22,7 @@ module SL
       latest_tag ||= SL::VERSION
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
-      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}")}
+      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}") }
 
       return "SearchLink v#{current.to_s}, #{latest.to_s} available. Run 'update' to download." if latest_tag && current.older_than(latest)
 
@@ -46,8 +46,6 @@ module SL
       result = JSON.parse(res)
 
       if result
-        latest = {}
-        current = {}
         latest_tag = result['tag_name']
 
         return false unless latest_tag
@@ -66,7 +64,7 @@ module SL
     end
 
     def update_searchlink
-      new_version = SL::new_version?
+      new_version = SL.new_version?
       if new_version
         folder = File.expand_path('~/Downloads')
         services = File.expand_path('~/Library/Services')
