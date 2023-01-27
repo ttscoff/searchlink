@@ -35,7 +35,7 @@ module SL
     def new_version?
       cmd = [
         'curl -SsL -H "Accept: application/vnd.github+json"',
-        '-H "X-GitHub-Api-Version: 2022-11-28"',
+        '-H "X-GitHub-Api-Version: 2022-11-28"'
       ]
       cmd.push(%(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}")) if defined? Secrets::GH_AUTH_TOKEN
 
@@ -74,7 +74,8 @@ module SL
         `unzip -qo #{dl} -d #{folder}`
         FileUtils.rm(dl)
 
-        ['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each do |wflow|
+        ['SearchLink', 'SearchLink File', 'Jump to SearchLink Error'].each do |workflow|
+          wflow = "#{workflow}.workflow"
           src = File.join(folder, 'SearchLink Services', wflow)
           dest = File.join(services, wflow)
           if File.exist?(src) && File.exist?(dest)
@@ -85,7 +86,7 @@ module SL
         add_output("Installed SearchLink #{new_version}")
         FileUtils.rm_rf('SearchLink Services')
       else
-        add_output("Already up to date.")
+        add_output('Already up to date.')
       end
     end
   end
