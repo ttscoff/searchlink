@@ -15,12 +15,10 @@ module SL
       def search(search_type, search_terms, link_text)
         return zero_click(search_terms, link_text) if search_type =~ /^z$/
 
-        prefix = '%5C'
-
         begin
-          cmd = %(/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{prefix}#{search_terms.url_encode}' 2>/dev/null)
+          terms = "%5C#{search_terms.url_encode}"
+          body = `/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{terms}' 2>/dev/null`
 
-          body = `#{cmd}`
           locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
           return false if locs.empty?
 
@@ -44,9 +42,10 @@ module SL
         end
       end
 
-      def zero_click(search_terms, link_text)
+      def zero_click(search_terms, link_text, disambiguate: false)
         search_terms.gsub!(/%22/, '"')
-        url = URI.parse("http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=1")
+        d = disambiguate ? '0' : '1'
+        url = URI.parse("http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}")
         res = Net::HTTP.get_response(url).body
         res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
 
@@ -58,8 +57,10 @@ module SL
 
         if !wiki_link.empty? && !title.empty?
           [wiki_link, title, link_text]
-        else
+        elsif disambiguate
           search('ddg', search_terms, link_text)
+        else
+          zero_click(search_terms, link_text, disambiguate: true)
         end
       end
     end
