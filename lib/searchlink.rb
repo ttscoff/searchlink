@@ -14,7 +14,9 @@ require 'json'
 require 'erb'
 
 # import
-require 'tokens'
+if File.exist?('tokens.rb')
+  require 'tokens'
+end
 
 # import
 require 'searchlink/util'

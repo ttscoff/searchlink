@@ -35,11 +35,11 @@ module SL
     def new_version?
       cmd = [
         'curl -SsL -H "Accept: application/vnd.github+json"',
-        %(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}"),
         '-H "X-GitHub-Api-Version: 2022-11-28"',
-        'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
       ]
+      cmd.push(%(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}")) if defined? Secrets::GH_AUTH_TOKEN
 
+      cmd.push('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
       res = `#{cmd.join(' ')}`.strip
 
       res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
