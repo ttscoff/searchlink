@@ -8,9 +8,7 @@ module SL
       no_restore = opt[:no_restore] || false
       restore_prev_config unless no_restore
 
-      unless skip_flags
-        input.parse_flags!
-      end
+      input.parse_flags! unless skip_flags
 
       options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links]
       options.each do |o|
@@ -41,26 +39,26 @@ module SL
 
     def parse_commands(input)
       # Handle commands like help or docs
-      if input.strip =~ /^!?(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
-        case input.strip
-        when /^!?help$/i
-          if SILENT
-            help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
-          else
-            $stdout.puts "#{SL::version_check}"
-            $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
-          end
-          print input
-        when /^!?(wiki|docs)$/i
-          warn "Opening wiki in browser"
-          `open https://github.com/ttscoff/searchlink/wiki`
-        when /^!?v(er(s(ion)?)?)?$/
-          print "[#{SL::version_check}]"
-        when /^!?up(date|grade)$/
-          SL.update_searchlink
+      return unless input.strip =~ /^!?(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
+
+      case input.strip
+      when /^!?help$/i
+        if SILENT
+          help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
+        else
+          $stdout.puts SL.version_check.to_s
+          $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
         end
-        Process.exit 0
+        print input
+      when /^!?(wiki|docs)$/i
+        warn 'Opening wiki in browser'
+        `open https://github.com/ttscoff/searchlink/wiki`
+      when /^!?v(er(s(ion)?)?)?$/
+        print "[#{SL.version_check}]"
+      when /^!?up(date|grade)$/
+        SL.update_searchlink
       end
+      Process.exit 0
     end
 
     def parse(input)
@@ -77,8 +75,10 @@ module SL
       SL.report = []
 
       # Check for new version
-      latest_version = SL::new_version?
-      SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->") if latest_version
+      latest_version = SL.new_version?
+      if latest_version
+        SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->")
+      end
 
       links = {}
       SL.footer = []
@@ -253,7 +253,7 @@ module SL
                 res
               end
             elsif (link_text == '' && link_info == '') || SL::URL.url?(link_info)
-              SL.add_error("Invalid search", match) unless SL::URL.url?(link_info)
+              SL.add_error('Invalid search', match) unless SL::URL.url?(link_info)
               match
             else
               link_info = link_text if !link_text.empty? && link_info == ''
@@ -649,10 +649,10 @@ module SL
 
         if SL.clipboard
           if SL.output == SL.originput
-            warn "No results found"
+            warn 'No results found'
           else
             `echo #{Shellwords.escape(SL.output)}|tr -d "\n"|pbcopy`
-            warn "Results in clipboard"
+            warn 'Results in clipboard'
           end
         end
       end

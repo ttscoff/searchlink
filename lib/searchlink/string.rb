@@ -315,19 +315,6 @@ class ::String
     self
   end
 
-  def split_hook
-    elements = split(/\|\|/)
-    {
-      name: elements[0].nil_if_missing,
-      url: elements[1].nil_if_missing,
-      path: elements[2].nil_if_missing
-    }
-  end
-
-  def split_hooks
-    split(/\^\^/).map(&:split_hook)
-  end
-
   def matches_score(terms, separator: ' ', start_word: true)
     matched = 0
     regexes = terms.to_rx_array(separator: separator, start_word: start_word)

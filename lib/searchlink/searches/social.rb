@@ -15,28 +15,44 @@ module SL
       end
 
       def search(search_type, search_terms, link_text = '')
-        type = 't'
         type = case search_type
                when /^@t/ # twitter-ify username
-                 return [false, "#{search_terms} is not a valid Twitter handle", link_text] unless search_terms.strip =~ /^@?[0-9a-z_$]+$/i
+                 unless search_terms.strip =~ /^@?[0-9a-z_$]+$/i
+                   return [false, "#{search_terms} is not a valid Twitter handle", link_text]
+
+                 end
 
                  't'
                when /^@fb?/ # fb-ify username
-                 return [false, "#{search_terms} is not a valid Facebook username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                   return [false, "#{search_terms} is not a valid Facebook username", link_text]
+
+                 end
 
                  'f'
                when /^@i/ # intagramify username
-                 return [false, "#{search_terms} is not a valid Instagram username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                   return [false, "#{search_terms} is not a valid Instagram username", link_text]
+
+                 end
 
                  'i'
                when /^@l/ # linked-inify username
-                 return [false, "#{search_terms} is not a valid LinkedIn username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                   return [false, "#{search_terms} is not a valid LinkedIn username", link_text]
+
+                 end
 
                  'l'
                when /^@m/ # mastodonify username
-                 return [false, "#{search_terms} is not a valid Mastodon username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+@[0-9a-z_.]+$/i
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+@[0-9a-z_.]+$/i
+                   return [false, "#{search_terms} is not a valid Mastodon username", link_text]
+
+                 end
 
                  'm'
+               else
+                 't'
                end
 
         url, title = social_handle(type, search_terms)
@@ -45,7 +61,6 @@ module SL
       end
 
       def template_social(user, url, service)
-
         template = SL.config['social_template'].dup
 
         template.sub!(/%user%/, user)

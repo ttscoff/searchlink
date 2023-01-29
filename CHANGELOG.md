@@ -1,6 +1,15 @@
 ### 2.3.44
 
-2023-01-27 09:01
+2023-01-29 10:09
+
+#### IMPROVED
+
+- Code cleanup
+- Test disambiguation of zero-click results
+
+#### FIXED
+
+- Accomodate missing secret tokens so gem can compile and run on other systems
 
 ### 2.3.43
 
