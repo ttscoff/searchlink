@@ -54,7 +54,7 @@ module SL
         if body =~ /id="define"/
           first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]
           parts = first_definition.match(%r{<abbr title="partOfSpeech">(.*?)</abbr> (.*?)$})
-          return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(/ *<\/?.*?> /, '')]
+          return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(%r{ *</?.*?>}, '')]
         end
 
         false
