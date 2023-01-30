@@ -49,7 +49,11 @@ if !ARGV.empty?
     if File.exist?(file) && `file -b "#{file}"|grep -c text`.to_i.positive?
       input = RUBY_VERSION.to_f > 1.9 ? IO.read(file).force_encoding('utf-8') : IO.read(file)
 
-      FileUtils.cp(file, "#{file}.bak") if backup && overwrite
+      backup_file = "#{file}.bak"
+      backup_file = "#{file}.bak 1" if File.exist(backup_file)
+      backup_file.next! while File.exist?(backup_file)
+
+      FileUtils.cp(file, backup_file) if backup && overwrite
 
       sl.parse(input)
       output = SL.output&.join('')

@@ -1,6 +1,6 @@
 ### 2.3.44
 
-2023-01-30 11:51
+2023-01-30 13:00
 
 #### IMPROVED
 
@@ -12,6 +12,8 @@
 
 - Accomodate missing secret tokens so gem can compile and run on other systems
 - Partial removal of HTML tags from !def definition title
+- SearchLink File service returning blank file
+- Unprintable characters in titles
 
 ### 2.3.43
 
