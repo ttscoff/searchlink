@@ -50,7 +50,7 @@ if !ARGV.empty?
       input = RUBY_VERSION.to_f > 1.9 ? IO.read(file).force_encoding('utf-8') : IO.read(file)
 
       backup_file = "#{file}.bak"
-      backup_file = "#{file}.bak 1" if File.exist(backup_file)
+      backup_file = "#{file}.bak 1" if File.exist?(backup_file)
       backup_file.next! while File.exist?(backup_file)
 
       FileUtils.cp(file, backup_file) if backup && overwrite
