@@ -1,13 +1,19 @@
 module SL
   class << self
-    attr_accessor :config, :prev_config
-
     def config
       @config ||= SL::SearchLink.new({ echo: true })
     end
 
+    def config=(config)
+      @config = config
+    end
+
     def prev_config
       @prev_config ||= {}
+    end
+
+    def prev_config=(config)
+      @prev_config=config
     end
   end
 end

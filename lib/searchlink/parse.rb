@@ -62,7 +62,7 @@ module SL
     end
 
     def parse(input)
-      SL.output = ''
+      SL.output = []
       return false if input.empty?
 
       parse_arguments(input, { only_meta: true })
@@ -379,15 +379,6 @@ module SL
                 if (!url)
                   search_count += 1
 
-                  # begin
-                  #   Timeout.timeout(10) do
-                  #     url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
-                  #   end
-                  # rescue Timeout::Error
-                  #   SL.add_error('Timeout', 'search took too long')
-                  #   url = false
-                  #   title = false
-                  # end
                   url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
 
                 end
@@ -467,6 +458,7 @@ module SL
           end
           SL.add_output "#{SL.print_footer}\n\n"
         end
+
         SL.line_num = nil
         SL.add_report("Processed: #{total_links} links, #{counter_errors} errors.")
         SL.print_report
@@ -651,7 +643,7 @@ module SL
           if SL.output == SL.originput
             warn 'No results found'
           else
-            `echo #{Shellwords.escape(SL.output)}|tr -d "\n"|pbcopy`
+            `echo #{Shellwords.escape(SL.output.join(''))}|tr -d "\n"|pbcopy`
             warn 'Results in clipboard'
           end
         end

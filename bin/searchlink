@@ -14,7 +14,8 @@ end
 
 # GIST_CACHE = SL::Util.cache_file_for('gist')
 
-sl = SL::SearchLink.new({ echo: true })
+sl = SL::SearchLink.new({ echo: false })
+
 SL::Searches.load_custom
 
 # # ignore
@@ -51,13 +52,16 @@ if !ARGV.empty?
       FileUtils.cp(file, "#{file}.bak") if backup && overwrite
 
       sl.parse(input)
+      output = SL.output&.join('')
+
+      next unless output
 
       if overwrite
         File.open(file, 'w') do |f|
-          f.puts sl.output
+          f.puts output
         end
       else
-        puts sl.output
+        puts output || input
       end
     else
       warn "Error reading #{file}"
@@ -67,9 +71,11 @@ else
   input = RUBY_VERSION.to_f > 1.9 ? $stdin.read.force_encoding('utf-8').encode : $stdin.read
 
   sl.parse(input)
-  if sl.clipboard
+  output = SL.output&.join('')
+
+  if SL.clipboard
     print input
   else
-    print sl.output
+    print output
   end
 end

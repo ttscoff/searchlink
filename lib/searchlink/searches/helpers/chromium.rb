@@ -1,6 +1,16 @@
+##
+## Chromium (Chrome, Arc, Brave, Edge) search methods
+##
 module SL
+  # Chromium history search
   class HistorySearch
     class << self
+      ## Search Arc history
+      ##
+      ## @param      term  The search term
+      ##
+      ## @return     [Array] Single bookmark, [url, title, date]
+      ##
       def search_arc_history(term)
         # Google history
         history_file = File.expand_path('~/Library/Application Support/Arc/User Data/Default/History')
@@ -12,6 +22,12 @@ module SL
         end
       end
 
+      ## Search Brave history
+      ##
+      ## @param      term  The search term
+      ##
+      ## @return     [Array] Single bookmark, [url, title, date]
+      ##
       def search_brave_history(term)
         # Google history
         history_file = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/Default/History')
@@ -23,6 +39,12 @@ module SL
         end
       end
 
+      ## Search Edge history
+      ##
+      ## @param      term  The search term
+      ##
+      ## @return     [Array] Single bookmark, [url, title, date]
+      ##
       def search_edge_history(term)
         # Google history
         history_file = File.expand_path('~/Library/Application Support/Microsoft Edge/Default/History')
@@ -34,6 +56,12 @@ module SL
         end
       end
 
+      ## Search Chrome history
+      ##
+      ## @param      term  The search term
+      ##
+      ## @return     [Array] Single bookmark, [url, title, date]
+      ##
       def search_chrome_history(term)
         # Google history
         history_file = File.expand_path('~/Library/Application Support/Google/Chrome/Default/History')
@@ -45,6 +73,16 @@ module SL
         end
       end
 
+      ##
+      ## Generic chromium history search
+      ##
+      ## @param      history_file  [String] The history file
+      ##                           path for the selected
+      ##                           browser
+      ## @param      term          [String] The search term
+      ##
+      ## @return     [Array] Single bookmark, [url, title, date]
+      ##
       def search_chromium_history(history_file, term)
         tmpfile = "#{history_file}.tmp"
         FileUtils.cp(history_file, tmpfile)
@@ -90,6 +128,13 @@ module SL
         [bm['url'], bm['title'], date]
       end
 
+      ##
+      ## Search Arc bookmarks
+      ##
+      ## @param      term  [String] The search term
+      ##
+      ## @return     [Array] single bookmark [url, title, date]
+      ##
       def search_arc_bookmarks(term)
         bookmarks_file = File.expand_path('~/Library/Application Support/Arc/User Data/Default/Bookmarks')
 
@@ -101,6 +146,13 @@ module SL
         false
       end
 
+      ##
+      ## Search Brave bookmarks
+      ##
+      ## @param      term  [String] The search term
+      ##
+      ## @return     [Array] single bookmark [url, title, date]
+      ##
       def search_brave_bookmarks(term)
         bookmarks_file = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Bookmarks')
 
@@ -112,6 +164,13 @@ module SL
         false
       end
 
+      ##
+      ## Search Ege bookmarks
+      ##
+      ## @param      term  [String] The search term
+      ##
+      ## @return     [Array] single bookmark [url, title, date]
+      ##
       def search_edge_bookmarks(term)
         bookmarks_file = File.expand_path('~/Library/Application Support/Microsoft Edge/Default/Bookmarks')
 
@@ -123,6 +182,13 @@ module SL
         false
       end
 
+      ##
+      ## Search Chrome bookmarks
+      ##
+      ## @param      term  [String] The search term
+      ##
+      ## @return     [Array] single bookmark [url, title, date]
+      ##
       def search_chrome_bookmarks(term)
         bookmarks_file = File.expand_path('~/Library/Application Support/Google/Chrome/Default/Bookmarks')
 
@@ -134,6 +200,16 @@ module SL
         false
       end
 
+      ##
+      ## Generic chromium bookmark search
+      ##
+      ## @param      bookmarks_file  [String] The path to
+      ##                             bookmarks file for
+      ##                             selected browser
+      ## @param      term            [String] The term
+      ##
+      ## @return     [Array] single bookmark [url, title, date]
+      ##
       def search_chromium_bookmarks(bookmarks_file, term)
         chrome_bookmarks = JSON.parse(IO.read(bookmarks_file))
 
@@ -179,6 +255,17 @@ module SL
         false
       end
 
+      ##
+      ## Extract chromium bookmarks from JSON file
+      ##
+      ## @param      json  [String] The json data
+      ## @param      urls  [Array] The gathered urls,
+      ##                   appended to recursively
+      ## @param      term  [String] The search term
+      ##                   (optional)
+      ##
+      ## @return [Array] array of bookmarks
+      ##
       def extract_chrome_bookmarks(json, urls = [], term = '')
         if json.instance_of?(Array)
           json.each { |item| urls = extract_chrome_bookmarks(item, urls, term) }
