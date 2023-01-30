@@ -1,6 +1,19 @@
 module SL
   class << self
-    attr_accessor :titleize, :clipboard, :output, :footer, :line_num, :match_column, :match_length, :originput, :errors, :report, :printout
+    attr_writer :titleize, :clipboard, :output, :footer, :line_num,
+                :match_column, :match_length, :originput, :errors, :report, :printout
+
+    def titleize
+      @titleize ||= false
+    end
+
+    def clipboard
+      @clipboard ||= false
+    end
+
+    def printout
+      @printout ||= false
+    end
 
     def output
       @output ||= []
@@ -45,7 +58,7 @@ end
 module SL
   class << self
     def make_link(type, text, url, title: false, force_title: false)
-      title = title.gsub(/\P{Print}|\p{Cf}/, '')
+      title = title.gsub(/\P{Print}|\p{Cf}/, '') if title
       text = title || SL::URL.get_title(url) if SL.titleize && (!text || text.strip.empty?)
       text = text ? text.strip : title
       title = title && (SL.config['include_titles'] || force_title) ? %( "#{title.clean}") : ''

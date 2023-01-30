@@ -36,6 +36,7 @@ if !ARGV.empty?
       Process.exit
     when /^(--?)?v(er(s(ion)?)?)?$/
       print SL.version_check
+      Process.exit
     when /^--?(stdout)$/
       overwrite = false
     when /^--?no[\-_]backup$/

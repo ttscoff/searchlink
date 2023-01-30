@@ -591,6 +591,7 @@ module SL
               end
             end
 
+            # if contains TLD, use site-specific search
             if type =~ /^(\S+\.)+\S+$/
               terms = "site:#{type} #{terms}"
               type = 'g'
@@ -603,9 +604,11 @@ module SL
             SL.add_error("Invalid search#{SL::Searches.did_you_mean(type)}", input)
             counter_errors += 1
           end
+        # Social handle expansion
         when /^([tfilm])?@(\S+)\s*$/
           type = Regexp.last_match(1)
           unless type
+            # If contains @ mid-handle, use Mastodon
             if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
               type = 'm'
             else
