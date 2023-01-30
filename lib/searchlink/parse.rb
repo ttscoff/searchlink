@@ -229,7 +229,7 @@ module SL
               if ref_title
                 unless links.key? url
                   links[url] = link_text
-                  SL.add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: false)
+                  SL.add_footer SL.make_link(:ref_title, link_text, url, title: title, force_title: false)
                 end
                 delete_line = true
               elsif SL.config['inline']
@@ -242,7 +242,7 @@ module SL
                 unless links.key? url
                   highest_marker += 1
                   links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                  SL.add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: false)
+                  SL.add_footer SL.make_link(:ref_title, links[url], url, title: title, force_title: false)
                 end
 
                 type = SL.config['inline'] ? 'inline' : 'ref_link'
@@ -398,7 +398,7 @@ module SL
                   elsif ref_title
                     unless links.key? url
                       links[url] = link_text
-                      SL.add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: force_title)
+                      SL.add_footer SL.make_link(:ref_title, link_text, url, title: title, force_title: force_title)
                     end
                     delete_line = true
                   elsif SL.config['inline']
@@ -411,7 +411,7 @@ module SL
                     unless links.key? url
                       highest_marker += 1
                       links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                      SL.add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: force_title)
+                      SL.add_footer SL.make_link(:ref_title, links[url], url, title: title, force_title: force_title)
                     end
 
                     type = SL.config['inline'] ? 'inline' : 'ref_link'
@@ -483,7 +483,7 @@ module SL
           input.sub!(/[:!\^\s~]*$/, '')
           clipboard = `__CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbpaste`.strip
           if SL::URL.url?(clipboard)
-            type = reference_link ? 'ref_title' : 'inline'
+            type = reference_link ? :ref_title : :inline
             print SL.make_link(type, input.strip, clipboard)
           else
             print SL.originput
@@ -496,7 +496,7 @@ module SL
         ## Maybe if input is just a URL, convert it to a link
         ## using hostname as text without doing search
         if SL::URL.only_url?(input.strip)
-          type = reference_link ? 'ref_title' : 'inline'
+          type = reference_link ? :ref_title : :inline
           url, title = SL::URL.url_to_link(input.strip, type)
           print SL.make_link(type, title, url, title: false, force_title: false)
           Process.exit
@@ -535,6 +535,7 @@ module SL
 
           if SL::Searches.valid_search?(type) || type =~ /^(\S+\.)+\S+$/
             if type && terms && !terms.empty?
+              # Iterate through custom searches for a match, perform search if matched
               SL.config['custom_site_searches'].each do |k, v|
                 next unless type == k
 
@@ -631,7 +632,7 @@ module SL
           elsif url == 'embed'
             SL.add_output(title)
           else
-            type = reference_link ? 'ref_title' : 'inline'
+            type = reference_link ? :ref_title : :inline
 
             SL.add_output SL.make_link(type, link_text, url, title: title, force_title: false)
             SL.print_errors

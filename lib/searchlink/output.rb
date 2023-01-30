@@ -65,12 +65,12 @@ module SL
 
       title.gsub!(/[ \t]+/, ' ')
 
-      case type
-      when 'ref_title'
+      case type.to_sym
+      when :ref_title
         %(\n[#{text}]: #{url}#{title})
-      when 'ref_link'
+      when :ref_link
         %([#{text}][#{url}])
-      when 'inline'
+      when :inline
         %([#{text}](#{url}#{title}))
       end
     end

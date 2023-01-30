@@ -76,7 +76,7 @@ module SL
           input.sub!(%r{(?mi)^(?!https?://)(.*?)$}, 'https://\1')
           url = URI.parse(input.downcase)
 
-          title = if type == 'ref_title'
+          title = if type == :ref_title
                     ref_title_for_url(url)
                   else
                     get_title(url.to_s) || input.sub(%r{^https?://}, '')
