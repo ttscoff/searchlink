@@ -1,6 +1,10 @@
 ### 2.3.45
 
-2023-01-30 13:02
+2023-01-30 13:03
+
+#### IMPROVED
+
+- When using SearchLink File, create numbered backups to avoid permissions overwriting backup file
 
 ### 2.3.44
 
