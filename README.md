@@ -29,10 +29,26 @@ Here's a video tutorial from Aaron Dowd ([@thepodcastdude](https://twitter.com/t
 And here some tutorial posts:
 
 {% series_list SearchLink Tips %}
+
+Including a couple of videos:
+
+Accurate searches for better results:
+
+{% youtube PBIfZh60jOY %}
+
+Browser history, bookmarks, and Pinboard search:
+
+{% youtube miMYFVUtg-Y %}
 -->
 
 <!--GITHUB-->
 [![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
+
+Also see:
+
+[![Accurate searches for better results](http://img.youtube.com/vi/PBIfZh60jOY/0.jpg)](https://youtu.be/PBIfZh60jOY)]
+
+[![Browser history, bookmarks, and Pinboard search](http://img.youtube.com/vi/miMYFVUtg-Y/0.jpg)](https://youtu.be/miMYFVUtg-Y)
 <!--END GITHUB-->
 
 ### Documentation
