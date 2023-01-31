@@ -1,3 +1,12 @@
+### 2.3.47
+
+2023-01-31 06:54
+
+#### FIXED
+
+- Apple Music search
+- Update mechanism not returning valid data
+
 ### 2.3.46
 
 2023-01-31 06:36
