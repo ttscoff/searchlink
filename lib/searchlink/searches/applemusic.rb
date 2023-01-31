@@ -21,9 +21,9 @@ module SL
 
       def search(search_type, search_terms, link_text)
         stype = search_type.downcase.sub(/^am/, '')
-        otype = 'link'
+        otype = :link
         if stype =~ /e$/
-          otype = 'embed'
+          otype = :embed
           stype.sub!(/e$/, '')
         end
         result = case stype
@@ -42,7 +42,7 @@ module SL
         return [false, "Not found: #{search_terms}", link_text] unless result
 
         # {:type=>,:id=>,:url=>,:title=>}
-        if otype == 'embed' && result[:type] =~ /(album|song)/
+        if otype == :embed && result[:type] =~ /(album|song)/
           url = 'embed'
           if result[:type] =~ /song/
             link = %(https://embed.music.apple.com/#{SL.config['country_code'].downcase}/album/#{result[:album]}?i=#{result[:id]}&app=music#{SL.config['itunes_affiliate']})
