@@ -46,7 +46,11 @@ Browser history, bookmarks, and Pinboard search:
 
 Also see:
 
+Accurate searches for better results:
+
 [![Accurate searches for better results](http://img.youtube.com/vi/PBIfZh60jOY/0.jpg)](https://youtu.be/PBIfZh60jOY)]
+
+Browser history, bookmarks, and Pinboard search:
 
 [![Browser history, bookmarks, and Pinboard search](http://img.youtube.com/vi/miMYFVUtg-Y/0.jpg)](https://youtu.be/miMYFVUtg-Y)
 <!--END GITHUB-->
