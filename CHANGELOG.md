@@ -1,6 +1,40 @@
+### 2.3.47
+
+2023-01-31 06:55
+
+#### FIXED
+
+- Apple Music search
+- Update mechanism not returning valid data
+
+### 2.3.46
+
+2023-01-31 06:36
+
+#### IMPROVED
+
+- Code cleanup
+
+### 2.3.45
+
+2023-01-31 06:47
+
 ### 2.3.44
 
-2023-01-27 09:01
+2023-01-30 13:01
+
+#### IMPROVED
+
+- Code cleanup
+- Test disambiguation of zero-click results
+- Code cleanup
+
+#### FIXED
+
+- Accomodate missing secret tokens so gem can compile and run on other systems
+- Partial removal of HTML tags from !def definition title
+- SearchLink File service returning blank file
+- Unprintable characters in titles
 
 ### 2.3.43
 

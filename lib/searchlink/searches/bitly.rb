@@ -1,4 +1,5 @@
 module SL
+  # Bit.ly link shortening
   class BitlySearch
     class << self
       def settings
@@ -11,7 +12,7 @@ module SL
         }
       end
 
-      def search(search_type, search_terms, link_text)
+      def search(_, search_terms, link_text)
         if SL::URL.url?(search_terms)
           link = search_terms
         else
@@ -19,7 +20,7 @@ module SL
         end
 
         url, title = bitly_shorten(link, rtitle)
-        link_text = title ? title : url
+        link_text = title || url
         [url, title, link_text]
       end
 

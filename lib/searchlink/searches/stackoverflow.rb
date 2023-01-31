@@ -1,4 +1,5 @@
 module SL
+  # Stack Overflow search
   class StackOverflowSearch
     class << self
       def settings

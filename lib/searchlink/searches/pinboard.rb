@@ -96,21 +96,20 @@ module SL
       def search(_, search_terms, link_text)
         unless SL.config['pinboard_api_key']
           SL.add_error('Missing Pinboard API token',
-                    'Find your api key at https://pinboard.in/settings/password and add it
-                    to your configuration (pinboard_api_key: YOURKEY)')
+                       'Find your api key at https://pinboard.in/settings/password and add it
+                        to your configuration (pinboard_api_key: YOURKEY)')
           return false
         end
-
-        top = nil
 
         exact_match = false
         match_phrases = []
 
         # If search terms start with ''term, only search for exact string matches
-        if search_terms =~ /^ *'/
+        case search_terms
+        when /^ *'/
           exact_match = true
           search_terms.gsub!(/(^ *'+|'+ *$)/, '')
-        elsif search_terms =~ /%22(.*?)%22/
+        when /%22(.*?)%22/
           match_phrases = search_terms.scan(/%22(\S.*?\S)%22/)
           search_terms.gsub!(/%22(\S.*?\S)%22/, '')
         end

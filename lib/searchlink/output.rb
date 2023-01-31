@@ -1,6 +1,19 @@
 module SL
   class << self
-    attr_accessor :titleize, :clipboard, :output, :footer, :line_num, :match_column, :match_length, :originput, :errors, :report, :printout
+    attr_writer :titleize, :clipboard, :output, :footer, :line_num,
+                :match_column, :match_length, :originput, :errors, :report, :printout
+
+    def titleize
+      @titleize ||= false
+    end
+
+    def clipboard
+      @clipboard ||= false
+    end
+
+    def printout
+      @printout ||= false
+    end
 
     def output
       @output ||= []
@@ -45,24 +58,26 @@ end
 module SL
   class << self
     def make_link(type, text, url, title: false, force_title: false)
+      title = title.gsub(/\P{Print}|\p{Cf}/, '') if title
       text = title || SL::URL.get_title(url) if SL.titleize && (!text || text.strip.empty?)
+      text = text ? text.strip : title
       title = title && (SL.config['include_titles'] || force_title) ? %( "#{title.clean}") : ''
 
       title.gsub!(/[ \t]+/, ' ')
 
-      case type
-      when 'ref_title'
-        %(\n[#{text.strip}]: #{url}#{title})
-      when 'ref_link'
-        %([#{text.strip}][#{url}])
-      when 'inline'
-        %([#{text.strip}](#{url}#{title}))
+      case type.to_sym
+      when :ref_title
+        %(\n[#{text}]: #{url}#{title})
+      when :ref_link
+        %([#{text}][#{url}])
+      when :inline
+        %([#{text}](#{url}#{title}))
       end
     end
 
     def add_output(str)
       print str if SL.printout && !SL.clipboard
-      SL.output += str
+      SL.output << str
     end
 
     def add_footer(str)

@@ -14,7 +14,8 @@ end
 
 # GIST_CACHE = SL::Util.cache_file_for('gist')
 
-sl = SL::SearchLink.new({ echo: true })
+sl = SL::SearchLink.new({ echo: false })
+
 SL::Searches.load_custom
 
 # # ignore
@@ -35,6 +36,7 @@ if !ARGV.empty?
       Process.exit
     when /^(--?)?v(er(s(ion)?)?)?$/
       print SL.version_check
+      Process.exit
     when /^--?(stdout)$/
       overwrite = false
     when /^--?no[\-_]backup$/
@@ -48,16 +50,23 @@ if !ARGV.empty?
     if File.exist?(file) && `file -b "#{file}"|grep -c text`.to_i.positive?
       input = RUBY_VERSION.to_f > 1.9 ? IO.read(file).force_encoding('utf-8') : IO.read(file)
 
-      FileUtils.cp(file, "#{file}.bak") if backup && overwrite
+      backup_file = "#{file}.bak"
+      backup_file = "#{file}.bak 1" if File.exist?(backup_file)
+      backup_file.next! while File.exist?(backup_file)
+
+      FileUtils.cp(file, backup_file) if backup && overwrite
 
       sl.parse(input)
+      output = SL.output&.join('')
+
+      next unless output
 
       if overwrite
         File.open(file, 'w') do |f|
-          f.puts sl.output
+          f.puts output
         end
       else
-        puts sl.output
+        puts output || input
       end
     else
       warn "Error reading #{file}"
@@ -67,9 +76,11 @@ else
   input = RUBY_VERSION.to_f > 1.9 ? $stdin.read.force_encoding('utf-8').encode : $stdin.read
 
   sl.parse(input)
-  if sl.clipboard
+  output = SL.output&.join('')
+
+  if SL.clipboard
     print input
   else
-    print sl.output
+    print output
   end
 end

@@ -14,10 +14,11 @@ module SL
         match_phrases = []
 
         # If search terms start with ''term, only search for exact string matches
-        if term =~ /^ *'/
+        case term
+        when /^ *'/
           exact_match = true
           term.gsub!(/(^ *'+|'+ *$)/, '')
-        elsif term =~ /%22(.*?)%22/
+        when /%22(.*?)%22/
           match_phrases = term.scan(/%22(\S.*?\S)%22/)
           term.gsub!(/%22(\S.*?\S)%22/, '')
         end

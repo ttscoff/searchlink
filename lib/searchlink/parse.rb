@@ -8,9 +8,7 @@ module SL
       no_restore = opt[:no_restore] || false
       restore_prev_config unless no_restore
 
-      unless skip_flags
-        input.parse_flags!
-      end
+      input.parse_flags! unless skip_flags
 
       options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links]
       options.each do |o|
@@ -41,30 +39,31 @@ module SL
 
     def parse_commands(input)
       # Handle commands like help or docs
-      if input.strip =~ /^!?(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
-        case input.strip
-        when /^!?help$/i
-          if SILENT
-            help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
-          else
-            $stdout.puts "#{SL::version_check}"
-            $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
-          end
-          print input
-        when /^!?(wiki|docs)$/i
-          warn "Opening wiki in browser"
-          `open https://github.com/ttscoff/searchlink/wiki`
-        when /^!?v(er(s(ion)?)?)?$/
-          print "[#{SL::version_check}]"
-        when /^!?up(date|grade)$/
-          SL.update_searchlink
+      return unless input.strip =~ /^!?(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/
+
+      case input.strip
+      when /^!?help$/i
+        if SILENT
+          help_dialog # %x{open http://brettterpstra.com/projects/searchlink/}
+        else
+          $stdout.puts SL.version_check.to_s
+          $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
         end
-        Process.exit 0
+        print input
+      when /^!?(wiki|docs)$/i
+        warn 'Opening wiki in browser'
+        `open https://github.com/ttscoff/searchlink/wiki`
+      when /^!?v(er(s(ion)?)?)?$/
+        print "[#{SL.version_check}]"
+      when /^!?up(date|grade)$/
+        SL.update_searchlink
+        print SL.output.join('')
       end
+      Process.exit 0
     end
 
     def parse(input)
-      SL.output = ''
+      SL.output = []
       return false if input.empty?
 
       parse_arguments(input, { only_meta: true })
@@ -77,8 +76,10 @@ module SL
       SL.report = []
 
       # Check for new version
-      latest_version = SL::new_version?
-      SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->") if latest_version
+      latest_version = SL.new_version?
+      if latest_version
+        SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->")
+      end
 
       links = {}
       SL.footer = []
@@ -229,11 +230,11 @@ module SL
               if ref_title
                 unless links.key? url
                   links[url] = link_text
-                  SL.add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: false)
+                  SL.add_footer SL.make_link(:ref_title, link_text, url, title: title, force_title: false)
                 end
                 delete_line = true
               elsif SL.config['inline']
-                res = SL.make_link('inline', link_text, url, title: title, force_title: false)
+                res = SL.make_link(:inline, link_text, url, title: title, force_title: false)
                 cursor_difference += SL.match_length - res.length
                 SL.match_length = res.length
                 SL.add_report("#{match_string} => #{url}")
@@ -242,10 +243,10 @@ module SL
                 unless links.key? url
                   highest_marker += 1
                   links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                  SL.add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: false)
+                  SL.add_footer SL.make_link(:ref_title, links[url], url, title: title, force_title: false)
                 end
 
-                type = SL.config['inline'] ? 'inline' : 'ref_link'
+                type = SL.config['inline'] ? :inline : :ref_link
                 res = SL.make_link(type, link_text, links[url], title: false, force_title: false)
                 cursor_difference += SL.match_length - res.length
                 SL.match_length = res.length
@@ -253,7 +254,7 @@ module SL
                 res
               end
             elsif (link_text == '' && link_info == '') || SL::URL.url?(link_info)
-              SL.add_error("Invalid search", match) unless SL::URL.url?(link_info)
+              SL.add_error('Invalid search', match) unless SL::URL.url?(link_info)
               match
             else
               link_info = link_text if !link_text.empty? && link_info == ''
@@ -379,15 +380,6 @@ module SL
                 if (!url)
                   search_count += 1
 
-                  # begin
-                  #   Timeout.timeout(10) do
-                  #     url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
-                  #   end
-                  # rescue Timeout::Error
-                  #   SL.add_error('Timeout', 'search took too long')
-                  #   url = false
-                  #   title = false
-                  # end
                   url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
 
                 end
@@ -407,11 +399,11 @@ module SL
                   elsif ref_title
                     unless links.key? url
                       links[url] = link_text
-                      SL.add_footer SL.make_link('ref_title', link_text, url, title: title, force_title: force_title)
+                      SL.add_footer SL.make_link(:ref_title, link_text, url, title: title, force_title: force_title)
                     end
                     delete_line = true
                   elsif SL.config['inline']
-                    res = SL.make_link('inline', link_text, url, title: title, force_title: force_title)
+                    res = SL.make_link(:inline, link_text, url, title: title, force_title: force_title)
                     cursor_difference += SL.match_length - res.length
                     SL.match_length = res.length
                     SL.add_report("#{match_string} => #{url}")
@@ -420,10 +412,10 @@ module SL
                     unless links.key? url
                       highest_marker += 1
                       links[url] = format('%<pre>s%<m>04d', pre: prefix, m: highest_marker)
-                      SL.add_footer SL.make_link('ref_title', links[url], url, title: title, force_title: force_title)
+                      SL.add_footer SL.make_link(:ref_title, links[url], url, title: title, force_title: force_title)
                     end
 
-                    type = SL.config['inline'] ? 'inline' : 'ref_link'
+                    type = SL.config['inline'] ? :inline : :ref_link
                     res = SL.make_link(type, link_text, links[url], title: false, force_title: force_title)
                     cursor_difference += SL.match_length - res.length
                     SL.match_length = res.length
@@ -467,6 +459,7 @@ module SL
           end
           SL.add_output "#{SL.print_footer}\n\n"
         end
+
         SL.line_num = nil
         SL.add_report("Processed: #{total_links} links, #{counter_errors} errors.")
         SL.print_report
@@ -491,7 +484,7 @@ module SL
           input.sub!(/[:!\^\s~]*$/, '')
           clipboard = `__CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbpaste`.strip
           if SL::URL.url?(clipboard)
-            type = reference_link ? 'ref_title' : 'inline'
+            type = reference_link ? :ref_title : :inline
             print SL.make_link(type, input.strip, clipboard)
           else
             print SL.originput
@@ -504,7 +497,7 @@ module SL
         ## Maybe if input is just a URL, convert it to a link
         ## using hostname as text without doing search
         if SL::URL.only_url?(input.strip)
-          type = reference_link ? 'ref_title' : 'inline'
+          type = reference_link ? :ref_title : :inline
           url, title = SL::URL.url_to_link(input.strip, type)
           print SL.make_link(type, title, url, title: false, force_title: false)
           Process.exit
@@ -543,6 +536,7 @@ module SL
 
           if SL::Searches.valid_search?(type) || type =~ /^(\S+\.)+\S+$/
             if type && terms && !terms.empty?
+              # Iterate through custom searches for a match, perform search if matched
               SL.config['custom_site_searches'].each do |k, v|
                 next unless type == k
 
@@ -599,6 +593,7 @@ module SL
               end
             end
 
+            # if contains TLD, use site-specific search
             if type =~ /^(\S+\.)+\S+$/
               terms = "site:#{type} #{terms}"
               type = 'g'
@@ -611,9 +606,11 @@ module SL
             SL.add_error("Invalid search#{SL::Searches.did_you_mean(type)}", input)
             counter_errors += 1
           end
+        # Social handle expansion
         when /^([tfilm])?@(\S+)\s*$/
           type = Regexp.last_match(1)
           unless type
+            # If contains @ mid-handle, use Mastodon
             if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
               type = 'm'
             else
@@ -636,7 +633,7 @@ module SL
           elsif url == 'embed'
             SL.add_output(title)
           else
-            type = reference_link ? 'ref_title' : 'inline'
+            type = reference_link ? :ref_title : :inline
 
             SL.add_output SL.make_link(type, link_text, url, title: title, force_title: false)
             SL.print_errors
@@ -649,10 +646,10 @@ module SL
 
         if SL.clipboard
           if SL.output == SL.originput
-            warn "No results found"
+            warn 'No results found'
           else
-            `echo #{Shellwords.escape(SL.output)}|tr -d "\n"|pbcopy`
-            warn "Results in clipboard"
+            `echo #{Shellwords.escape(SL.output.join(''))}|tr -d "\n"|pbcopy`
+            warn 'Results in clipboard'
           end
         end
       end

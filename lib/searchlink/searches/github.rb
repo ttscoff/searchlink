@@ -40,7 +40,7 @@ module SL
 
         url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
 
-        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}")}.join(' ')} #{url}`)
+        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}") }.join(' ')} #{url}`)
 
         if res.key?('total_count') && res['total_count'].positive?
           res['items'][0]
@@ -60,7 +60,7 @@ module SL
 
         url = "https://api.github.com/users/#{user}/gists?per_page=100&page=#{page}"
 
-        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}")}.join(' ')} '#{url}'`)
+        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}") }.join(' ')} '#{url}'`)
 
         best = nil
         best = filter_gists(res, search_terms) if res
@@ -222,7 +222,7 @@ module SL
         end
 
         # Assuming we retrieved a full gist URL
-        if url =~ %r{https://gist.github.com/(?:(?<user>\w+)/)?(?<id>[a-z0-9]+?)(?:[#/](?<file>(?:file-)?.*?))?$}
+        if url =~ %r{https://gist.github.com/(?:(?<user>[^/]+)/)?(?<id>[a-z0-9]+?)(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           user = m['user']
           id = m['id']

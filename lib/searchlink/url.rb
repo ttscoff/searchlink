@@ -76,7 +76,7 @@ module SL
           input.sub!(%r{(?mi)^(?!https?://)(.*?)$}, 'https://\1')
           url = URI.parse(input.downcase)
 
-          title = if type == 'ref_title'
+          title = if type == :ref_title
                     ref_title_for_url(url)
                   else
                     get_title(url.to_s) || input.sub(%r{^https?://}, '')
@@ -115,7 +115,7 @@ module SL
 
         if gather
           cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
-          title = SL::Util.exec_with_timeout(cmd, 8)
+          title = SL::Util.exec_with_timeout(cmd, 15)
           if title
             title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
             title.remove_seo!(url) if SL.config['remove_seo']
@@ -127,8 +127,6 @@ module SL
         end
 
         begin
-          # source = %x{/usr/bin/curl -sSL '#{url.strip}'}
-
           uri = URI.parse(url)
           res = Net::HTTP.get_response(uri)
 
@@ -147,8 +145,7 @@ module SL
             title.remove_seo!(url) if SL.config['remove_seo']
           end
 
-          # Skipping SEO removal until it's more reliable
-          # title.remove_seo(url.strip)
+          title.remove_seo!(url.strip) if SL.config['remove_seo']
           title.remove_protocol
         rescue StandardError
           SL.add_error('Error retrieving title', "Error determining title for #{url.strip}")

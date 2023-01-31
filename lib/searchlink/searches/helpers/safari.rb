@@ -118,9 +118,10 @@ module SL
               end
             end
           end
-        else
-          results.concat(get_safari_bookmarks(parent['Children'], terms)) if parent&.key?('Children')
+        elsif parent&.key?('Children')
+          results.concat(get_safari_bookmarks(parent['Children'], terms))
         end
+
         results.sort_by { |h| [h[:score], h[:title].length * -1] }.reverse
       end
     end

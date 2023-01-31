@@ -1,6 +1,6 @@
 module SL
   class << self
-    attr_accessor :config, :prev_config
+    attr_writer :config, :prev_config
 
     def config
       @config ||= SL::SearchLink.new({ echo: true })
@@ -15,8 +15,6 @@ end
 module SL
   # Main SearchLink class
   class SearchLink
-    attr_accessor :cfg
-
     # Values found in ~/.searchlink will override defaults in
     # this script
 
