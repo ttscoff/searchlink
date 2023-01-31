@@ -1,4 +1,5 @@
 module SL
+  # DuckDuckGo Search
   class DuckDuckGoSearch
     class << self
       def settings

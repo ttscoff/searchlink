@@ -1,4 +1,5 @@
 module SL
+  # The Movie Database search
   class TMDBSearch
     class << self
       def settings

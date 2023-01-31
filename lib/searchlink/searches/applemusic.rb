@@ -1,6 +1,7 @@
 # title: Apple Music Search
 # description: Search Apple Music
 module SL
+  # Apple Music Search
   class AppleMusicSearch
     class << self
       def settings
@@ -71,9 +72,6 @@ module SL
       # entity => optional: artist, song, album, podcast
       # returns {:type=>,:id=>,:url=>,:title}
       def applemusic(terms, media = 'music', entity = '')
-        aff = SL.config['itunes_affiliate']
-        output = {}
-
         url = URI.parse("http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&media=#{media}&entity=#{entity}")
         res = Net::HTTP.get_response(url).body
         res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
@@ -81,7 +79,16 @@ module SL
         json = JSON.parse(res)
         return false unless json['resultCount']&.positive?
 
-        result = json['results'][0]
+        output = process_result(json['results'][0])
+
+        return false if output.empty?
+
+        output
+      end
+
+      def process_result(result)
+        output = {}
+        aff = SL.config['itunes_affiliate']
 
         case result['wrapperType']
         when 'track'
@@ -108,7 +115,6 @@ module SL
           output[:url] = result['artistLinkUrl'].to_am + aff
           output[:title] = result['artistName']
         end
-        return false if output.empty?
 
         output
       end

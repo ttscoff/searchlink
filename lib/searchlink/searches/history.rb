@@ -8,6 +8,7 @@ require_relative 'helpers/firefox'
 require_relative 'helpers/safari'
 
 module SL
+  # Browser history/bookmark search
   class HistorySearch
     class << self
       def settings
@@ -113,18 +114,18 @@ module SL
             str.sub!(/^b([hb]*)/, '')
           end
 
-          if str =~ /^a([hb]*)$/
-            t = Regexp.last_match(1)
-            if t.length > 1 || t.empty?
-              types.push('arc_bookmarks')
-              types.push('arc_history')
-            elsif t == 'h'
-              types.push('arc_history')
-            elsif t == 'b'
-              types.push('arc_bookmarks')
-            end
-            str.sub!(/^a([hb]*)/, '')
+          next unless str =~ /^a([hb]*)$/
+
+          t = Regexp.last_match(1)
+          if t.length > 1 || t.empty?
+            types.push('arc_bookmarks')
+            types.push('arc_history')
+          elsif t == 'h'
+            types.push('arc_history')
+          elsif t == 'b'
+            types.push('arc_bookmarks')
           end
+          str.sub!(/^a([hb]*)/, '')
         end
 
         url, title = search_history(search_terms, types)

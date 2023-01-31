@@ -1,4 +1,5 @@
 module SL
+  # Amazon Search
   class AmazonSearch
     class << self
       def settings
@@ -10,7 +11,7 @@ module SL
         }
       end
 
-      def search(search_type, search_terms, link_text)
+      def search(_, search_terms, link_text)
         az_url, = SL.ddg("site:amazon.com #{search_terms}", link_text)
         url, title = SL::URL.amazon_affiliatize(az_url, SL.config['amazon_partner'])
         title ||= search_terms

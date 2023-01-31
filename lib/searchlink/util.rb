@@ -18,7 +18,7 @@ module SL
           rerr, werr = IO.pipe
           stdout, stderr = nil
 
-          pid = Process.spawn(cmd, pgroup: true, :out => wout, :err => werr)
+          pid = Process.spawn(cmd, pgroup: true, out: wout, err: werr)
 
           Timeout.timeout(timeout) do
             Process.waitpid(pid)
@@ -41,7 +41,7 @@ module SL
           rerr.close
         end
 
-        stdout
+        stdout&.strip
       end
 
       ##

@@ -233,7 +233,7 @@ module SL
                 end
                 delete_line = true
               elsif SL.config['inline']
-                res = SL.make_link('inline', link_text, url, title: title, force_title: false)
+                res = SL.make_link(:inline, link_text, url, title: title, force_title: false)
                 cursor_difference += SL.match_length - res.length
                 SL.match_length = res.length
                 SL.add_report("#{match_string} => #{url}")
@@ -245,7 +245,7 @@ module SL
                   SL.add_footer SL.make_link(:ref_title, links[url], url, title: title, force_title: false)
                 end
 
-                type = SL.config['inline'] ? 'inline' : 'ref_link'
+                type = SL.config['inline'] ? :inline : :ref_link
                 res = SL.make_link(type, link_text, links[url], title: false, force_title: false)
                 cursor_difference += SL.match_length - res.length
                 SL.match_length = res.length
@@ -402,7 +402,7 @@ module SL
                     end
                     delete_line = true
                   elsif SL.config['inline']
-                    res = SL.make_link('inline', link_text, url, title: title, force_title: force_title)
+                    res = SL.make_link(:inline, link_text, url, title: title, force_title: force_title)
                     cursor_difference += SL.match_length - res.length
                     SL.match_length = res.length
                     SL.add_report("#{match_string} => #{url}")
@@ -414,7 +414,7 @@ module SL
                       SL.add_footer SL.make_link(:ref_title, links[url], url, title: title, force_title: force_title)
                     end
 
-                    type = SL.config['inline'] ? 'inline' : 'ref_link'
+                    type = SL.config['inline'] ? :inline : :ref_link
                     res = SL.make_link(type, link_text, links[url], title: false, force_title: force_title)
                     cursor_difference += SL.match_length - res.length
                     SL.match_length = res.length
