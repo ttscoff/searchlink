@@ -1,4 +1,5 @@
 module SL
+  # Software Search
   class SoftwareSearch
     class << self
       def settings
