@@ -57,6 +57,7 @@ module SL
         print "[#{SL.version_check}]"
       when /^!?up(date|grade)$/
         SL.update_searchlink
+        print SL.output.join('')
       end
       Process.exit 0
     end
