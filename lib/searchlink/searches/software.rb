@@ -1,4 +1,5 @@
 module SL
+  # Software Search
   class SoftwareSearch
     class << self
       def settings
@@ -10,7 +11,7 @@ module SL
         }
       end
 
-      def search(search_type, search_terms, link_text)
+      def search(_, search_terms, link_text)
         excludes = %w[apple.com postmates.com download.cnet.com softpedia.com softonic.com macupdate.com]
         search_url = %(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} app)
 
