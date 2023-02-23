@@ -9,42 +9,16 @@ module SL
         Dir.glob(File.join(File.dirname(__FILE__), 'searches', '*.rb')).sort.each { |f| require f }
       end
 
+      #
+      # Register a plugin with the plugin manager
+      #
+      # @param [String, Array] title title or array of titles
+      # @param [Symbol] type plugin type (:search)
+      # @param [Class] klass class that handles plugin actions. Search plugins 
+      #                must have a #settings and a #search method
+      #
       def register(title, type, klass)
-        if title.is_a?(Array)
-          title.each { |t| register(t, type, klass) }
-          return
-        end
-
-        raise StandardError, "Plugin #{title} has no settings method" unless klass.respond_to? :settings
-
-        settings = klass.settings
-
-        raise StandardError, "Plugin #{title} has no search method" unless klass.respond_to? :search
-
-        plugins[type] ||= {}
-        plugins[type][title] = {
-          trigger: settings[:trigger].normalize_trigger || title.normalize_trigger,
-          searches: settings[:searches],
-          class: klass
-        }
-      end
-
-      def load_custom
-        plugins_folder = File.expand_path('~/.local/searchlink/plugins')
-        if File.directory?(plugins_folder)
-          Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
-            require plugin
-          end
-        end
-      end
-
-      def do_search(search_type, search_terms, link_text, timeout: SL.config['timeout'])
-        plugins[:search].each do |_title, plugin|
-          if search_type =~ /^#{plugin[:trigger]}$/
-            search = proc { plugin[:class].search(search_type, search_terms, link_text) }
-            return SL::Util.search_with_timeout(search, timeout)
-          end
-        end
+        Array(title).each { |t| register_plugin(t, type, klass) }
       end
 
       def description_for_search(search_type)
@@ -117,6 +91,39 @@ module SL
         valid = true if SL.config['custom_site_searches'].keys.include? term
         # SL.notify("Invalid search#{did_you_mean(term)}", term) unless valid
         valid
+      end
+
+      def register_plugin(title, type, klass)
+        raise StandardError, "Plugin #{title} has no settings method" unless klass.respond_to? :settings
+
+        settings = klass.settings
+
+        raise StandardError, "Plugin #{title} has no search method" unless klass.respond_to? :search
+
+        plugins[type] ||= {}
+        plugins[type][title] = {
+          trigger: settings.fetch(:trigger, title).normalize_trigger,
+          searches: settings[:searches],
+          class: klass
+        }
+      end
+
+      def load_custom
+        plugins_folder = File.expand_path('~/.local/searchlink/plugins')
+        return unless File.directory?(plugins_folder)
+
+        Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
+          require plugin
+        end
+      end
+
+      def do_search(search_type, search_terms, link_text, timeout: SL.config['timeout'])
+        plugins[:search].each do |_title, plugin|
+          if search_type =~ /^#{plugin[:trigger]}$/
+            search = proc { plugin[:class].search(search_type, search_terms, link_text) }
+            return SL::Util.search_with_timeout(search, timeout)
+          end
+        end
       end
     end
   end

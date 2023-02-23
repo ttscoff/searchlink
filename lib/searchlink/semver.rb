@@ -16,7 +16,7 @@ module SL
       @pre = nil
       if @patch =~ /(-?[^0-9]+\d*)$/
         @pre = Regexp.last_match(1).sub(/^-/, '')
-        @patch = @patch.sub(/(-?[^0-9]+)$/, '')
+        @patch = @patch.sub(/(-?[^0-9]+\d*)$/, '')
       end
 
       @maj = @maj.to_i
@@ -132,7 +132,8 @@ module SL
     end
 
     def to_s
-      [[@maj, @min, @patch].join('.'), @pre].join('-')
+      ver = [@maj, @min, @patch].join('.')
+      @pre.nil? ? ver : "#{ver}-#{@pre}"
     end
   end
 end

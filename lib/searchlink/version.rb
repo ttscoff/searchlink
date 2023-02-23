@@ -22,6 +22,7 @@ module SL
       latest_tag ||= SL::VERSION
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
+      
       File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}") }
 
       return "SearchLink v#{current.to_s}, #{latest.to_s} available. Run 'update' to download." if latest_tag && current.older_than(latest)
