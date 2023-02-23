@@ -37,6 +37,9 @@ module SL
       SL.clipboard ? string : input
     end
 
+    # Parse commands from the given input string
+    #
+    # @param      input  [String] the input string
     def parse_commands(input)
       # Handle commands like help or docs
       return unless input.strip =~ /^!?(h(elp)?|wiki|docs?|v(er(s(ion)?)?)?|up(date|grade))$/

@@ -2,6 +2,10 @@ module SL
   # Dictionary Definition Search
   class DefinitionSearch
     class << self
+      # Returns a hash of settings for the search
+      #
+      # @return     [Hash] the settings for the search
+      #
       def settings
         {
           trigger: 'def(?:ine)?',
@@ -12,6 +16,16 @@ module SL
         }
       end
 
+      # Searches for a definition of the given terms
+      #
+      # @param      _             [String] unused
+      # @param      search_terms  [String] the terms to
+      #                           search for
+      # @param      link_text     [String] the text to use
+      #                           for the link
+      # @return     [Array] the url, title, and link text for the
+      #             search
+      #
       def search(_, search_terms, link_text)
         fix = SL.spell(search_terms)
 
@@ -26,6 +40,11 @@ module SL
         url ? [url, title, link_text] : [false, false, link_text]
       end
 
+      # Searches for a definition of the given terms
+      #
+      # @param      terms  [String] the terms to search for
+      # @return     [Array] the url and title for the search
+      #
       def define(terms)
         def_url = "https://www.wordnik.com/words/#{terms.url_encode}"
         body = `/usr/bin/curl -sSL '#{def_url}'`
@@ -41,6 +60,7 @@ module SL
       end
     end
 
+    # Registers the search with the SL::Searches module
     SL::Searches.register 'definition', :search, self
   end
 end
