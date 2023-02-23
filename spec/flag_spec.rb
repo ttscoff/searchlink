@@ -21,14 +21,14 @@ describe 'Flags' do
   end
 
   it 'performs validation' do
-    execute_script('bin/searchlink', use_bundler: true, stdin_data: '[falafal](!btt ++v)')
+    execute_script('bin/searchlink', use_bundler: true, stdin_data: '[falafal fruff](!btt ++v)')
     expect(last_execution).to be_successful
     expected = 'No results'
     expect(last_execution.stdout).to match(/#{Regexp.escape(expected)}/)
   end
 
   it 'skips validation' do
-    execute_script('bin/searchlink', use_bundler: true, stdin_data: '[falafal](!btt --v)')
+    execute_script('bin/searchlink', use_bundler: true, stdin_data: '[falafal fruff](!btt --v)')
     expect(last_execution).to be_successful
     expected = 'No results'
     expect(last_execution.stdout).not_to match(/#{Regexp.escape(expected)}/)
