@@ -9,6 +9,16 @@ module SL
 
     private
 
+    #
+    # Run a search
+    #
+    # @param [String] search_type search abbreviation
+    # @param [String] search_terms search terms
+    # @param [String] link_text text of link
+    # @param [Number] search_count Iteration count
+    #
+    # @return [Array] [Url, link, text]
+    #
     def do_search(search_type, search_terms, link_text = '', search_count = 0)
       if (search_count % 5).zero?
         SL.notify('Throttling for 5s')

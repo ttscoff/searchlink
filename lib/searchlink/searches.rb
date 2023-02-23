@@ -32,14 +32,14 @@ module SL
       def load_custom
         plugins_folder = File.expand_path('~/.local/searchlink/plugins')
         if File.directory?(plugins_folder)
-          Dir.glob(File.join(plugins_folder, '**/*.rb')).each do |plugin|
+          Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
             require plugin
           end
         end
       end
 
       def do_search(search_type, search_terms, link_text, timeout: SL.config['timeout'])
-        plugins[:search].each do |title, plugin|
+        plugins[:search].each do |_title, plugin|
           if search_type =~ /^#{plugin[:trigger]}$/
             search = proc { plugin[:class].search(search_type, search_terms, link_text) }
             return SL::Util.search_with_timeout(search, timeout)
@@ -59,19 +59,28 @@ module SL
         description
       end
 
+      #
+      # Output an HTML table of available searches
+      #
+      # @return [String] Table HTML
+      #
       def available_searches_html
-        searches = []
-        plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
-        searches.sort_by! { |s| s[0] }
-        out = ['<table id="searches">']
-        out << '<thead><td>Shortcut</td><td>Search Type</td></thead>'
-        out << '<tbody>'
-        searches.each { |s| out << "<tr><td><code>!#{s[0]}</code></td><td>#{s[1]}</td></tr>"}
-        out << '</tbody>'
-        out << '</table>'
-        out.join("\n")
+        searches = plugins[:search]
+                   .flat_map { |_, plugin| plugin[:searches] }
+                   .reject { |s| s[1].nil? }
+                   .sort_by { |s| s[0] }
+        out = ['<table id="searches">',
+               '<thead><td>Shortcut</td><td>Search Type</td></thead>',
+               '<tbody>']
+        searches.each { |s| out << "<tr><td><code>!#{s[0]}</code></td><td>#{s[1]}</td></tr>" }
+        out.concat(['</tbody>', '</table>']).join("\n")
       end
 
+      #
+      # Aligned list of available searches
+      #
+      # @return [String] Aligned list of searches
+      #
       def available_searches
         searches = []
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
