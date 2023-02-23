@@ -18,6 +18,11 @@ class ::String
     gsub(/\((?!\?:)/, '(?:').downcase
   end
 
+  ##
+  ## Generate a spacer based on character widths for help dialog display
+  ##
+  ## @return     [String] string containing tabs
+  ##
   def spacer
     len = length
     scan(/[mwv]/).each { len += 1 }
@@ -63,6 +68,11 @@ class ::String
     replace parse_flags
   end
 
+  ##
+  ## Convert file-myfile-rb to myfile.rb
+  ##
+  ## @return     { description_of_the_return_value }
+  ##
   def fix_gist_file
     sub(/^file-/, '').sub(/-([^\-]+)$/, '.\1')
   end
@@ -144,7 +154,7 @@ class ::String
   ##
   ## Destructive punctuation close
   ##
-  ## @see #close_punctuation
+  ## @see        #close_punctuation
   ##
   def close_punctuation!
     replace close_punctuation
@@ -290,10 +300,22 @@ class ::String
     title && title.length > 5 ? title.gsub(/\s+/, ' ') : CGI.unescapeHTML(self)
   end
 
+  ##
+  ## Truncate in place
+  ##
+  ## @see        #truncate
+  ##
+  ## @param      max   [Number]  The maximum length
+  ##
   def truncate!(max)
     replace truncate(max)
   end
 
+  ##
+  ## Truncate string to given length, preserving words
+  ##
+  ## @param      max   [Number]  The maximum length
+  ##
   def truncate(max)
     return self if length < max
 
@@ -309,12 +331,28 @@ class ::String
     trunc_title.empty? ? words[0] : trunc_title.join(' ')
   end
 
+  ##
+  ## Test an AppleScript response, substituting nil for
+  ## 'Missing Value'
+  ##
+  ## @return     [Nil, String] nil if string is
+  ##             "missing value"
+  ##
   def nil_if_missing
     return nil if self =~ /missing value/
 
     self
   end
 
+  ##
+  ## Score string based on number of matches, 0 - 10
+  ##
+  ## @param      terms       [String]      The terms to
+  ##                         match
+  ## @param      separator   [String]  The word separator
+  ## @param      start_word  [Boolean] Require match to be
+  ##                         at beginning of word
+  ##
   def matches_score(terms, separator: ' ', start_word: true)
     matched = 0
     regexes = terms.to_rx_array(separator: separator, start_word: start_word)
@@ -328,26 +366,58 @@ class ::String
     (matched / regexes.count.to_f) * 10
   end
 
+  ##
+  ## Test if self contains exactl match for string (case insensitive)
+  ##
+  ## @param      string [String] The string to match
+  ##
   def matches_exact(string)
     comp = gsub(/[^a-z0-9 ]/i, '')
     comp =~ /\b#{string.gsub(/[^a-z0-9 ]/i, '').split(/ +/).map { |s| Regexp.escape(s) }.join(' +')}/i
   end
 
+  ##
+  ## Test that self does not contain any of terms
+  ##
+  ## @param      terms [String] The terms to test
+  ##
   def matches_none(terms)
-    terms.to_rx_array.each { |rx| return false if gsub(/[^a-z0-9 ]/i, '') =~ rx }
+    rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
+    rx_terms.each { |rx| return false if gsub(/[^a-z0-9 ]/i, '') =~ rx }
     true
   end
 
+  ##
+  ## Test if self contains any of terms
+  ##
+  ## @param      terms [String] The terms to test
+  ##
   def matches_any(terms)
-    terms.to_rx_array.each { |rx| return true if gsub(/[^a-z0-9 ]/i, '') =~ rx }
+    rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
+    rx_terms.each { |rx| return true if gsub(/[^a-z0-9 ]/i, '') =~ rx }
     false
   end
 
+  ##
+  ## Test that self matches every word in terms
+  ##
+  ## @param      terms [String] The terms to test
+  ##
   def matches_all(terms)
-    terms.to_rx_array.each { |rx| return false unless gsub(/[^a-z0-9 ]/i, '') =~ rx }
+    rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
+    rx_terms.each { |rx| return false unless gsub(/[^a-z0-9 ]/i, '') =~ rx }
     true
   end
 
+  ##
+  ## Break a string into an array of Regexps
+  ##
+  ## @param      separator   [String]  The word separator
+  ## @param      start_word  [Boolean] Require matches at
+  ##                         start of word
+  ##
+  ## @return     [Array] array of regular expressions
+  ##
   def to_rx_array(separator: ' ', start_word: true)
     bound = start_word ? '\b' : ''
     split(/#{separator}/).map { |arg| /#{bound}#{Regexp.escape(arg.gsub(/[^a-z0-9]/i, ''))}/i }

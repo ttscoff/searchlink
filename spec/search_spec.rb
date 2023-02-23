@@ -50,7 +50,7 @@ describe 'CLI' do
     ['* A gist embed with user/id [%](!giste ttscoff/9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     ['* A gist embed with just id [%](!giste 9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     # history
-    ['* A general history and bookmark search [%](!h brett terpstra project searchlink)', '[SearchLink - BrettTerpstra.com](https://brettterpstra.com/projects/searchlink/'],
+    ['* A general history and bookmark search [%](!h brett terpstra project searchlink)', '/projects/searchlink/'],
     ['* An Arc history search [%](!hah brett terpstra)', 'https://brettterpstra.com/'],
     ['* An Arc bookmark search [%](!hab backbeat podman)', 'https://podman.backbeatmedia.com'],
     ['* A Brave history search [%](!hbh 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
@@ -62,7 +62,7 @@ describe 'CLI' do
     ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Firefox history search [markdown exports mindmeister](!hfh)', 'https://gist.github.com/ttscoff/cd2a6c17964cccfb6665'],
     ['* A Safari bookmark search [%](!hsb visionmedia mocha)', 'https://github.com/visionmedia/mocha'],
-    ['* A Safari history search [%](!hsh brett terpstra)', %r{https?://brettterpstra.com}],
+    ['* A Safari history search [%](!hsh oracle template repo)', 'oracle/template-repo'],
     # iTunes
     ['* iTunes album search [Inside Voices / Outside Voices](!ialb + k.flay)', '[Inside Voices / Outside Voices](https://music.apple.com/us/album'],
     ['* iTunes Artist search: [BRMC](!iart "Black Rebel Motorcycle Club")', 'https://music.apple.com/us/artist/black-rebel-motorcycle-club/624658?uo=4&at=10l4tL&ct=searchlink'],
