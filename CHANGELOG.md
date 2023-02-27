@@ -1,10 +1,12 @@
 ### 2.3.48
 
-2023-02-27 11:24
+2023-02-27 11:26
 
 #### IMPROVED
 
 - Refactoring and code cleanup
+- Remove calls to gather as certain titles weren't being retrieved properly
+- `!yt <ID>` will return a valid watch url
 
 #### FIXED
 
