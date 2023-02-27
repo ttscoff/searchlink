@@ -1,6 +1,14 @@
 ### 2.3.48
 
-2023-01-31 10:37
+2023-02-27 11:24
+
+#### IMPROVED
+
+- Refactoring and code cleanup
+
+#### FIXED
+
+- Errant dash in version check
 
 ### 2.3.47
 

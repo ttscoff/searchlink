@@ -105,37 +105,33 @@ module SL
       def get_title(url)
         title = nil
 
-        gather = false
-        ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
-          if File.exist?(File.join(root, 'gather')) && File.executable?(File.join(root, 'gather'))
-            gather = File.join(root, 'gather')
-            break
-          end
-        end
+        ## Gather proving too inexact
+        # gather = false
+        # ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
+        #   if File.exist?(File.join(root, 'gather')) && File.executable?(File.join(root, 'gather'))
+        #     gather = File.join(root, 'gather')
+        #     break
+        #   end
+        # end
 
-        if gather
-          cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
-          title = SL::Util.exec_with_timeout(cmd, 15)
-          if title
-            title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
-            title.remove_seo!(url) if SL.config['remove_seo']
-            return title.remove_protocol
-          else
-            SL.add_error('Error retrieving title', "Gather timed out on #{url}")
-            SL.notify('Error retrieving title', 'Gather timed out')
-          end
-        end
+        # if gather
+        #   cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
+        #   title = SL::Util.exec_with_timeout(cmd, 15)
+        #   if title
+        #     title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+        #     title.remove_seo!(url) if SL.config['remove_seo']
+        #     return title.remove_protocol
+        #   else
+        #     SL.add_error('Error retrieving title', "Gather timed out on #{url}")
+        #     SL.notify('Error retrieving title', 'Gather timed out')
+        #   end
+        # end
 
         begin
-          uri = URI.parse(url)
-          res = Net::HTTP.get_response(uri)
+          source = `curl -SsL #{url}`.strip
+          title = source && !source.empty? ? source.match(%r{<title>(.*)</title>}im) : nil
 
-          if res.code.to_i == 200
-            source = res.body
-            title = source ? source.match(%r{<title>(.*)</title>}im) : nil
-
-            title = title.nil? ? nil : title[1].strip
-          end
+          title = title.nil? ? nil : title[1].strip
 
           if title.nil? || title =~ /^\s*$/
             SL.add_error('Title not found', "Warning: missing title for #{url.strip}")
@@ -144,7 +140,7 @@ module SL
             title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')
             title.remove_seo!(url) if SL.config['remove_seo']
           end
-
+          title.gsub!(/\|/, '—')
           title.remove_seo!(url.strip) if SL.config['remove_seo']
           title.remove_protocol
         rescue StandardError
