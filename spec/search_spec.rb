@@ -56,7 +56,7 @@ describe 'CLI' do
     ['* A Brave history search [%](!hbh 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Brave bookmark search [%](!hbb backbeat podman)', 'https://podman.backbeatmedia.com'],
     ['* A Chrome bookmark search [%](!hcb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
-    ['* A Chrome history search [%](!hch brett terpstra)', 'https://brettterpstra.com/'],
+    ['* A Chrome history search [%](!hch brettterpstra)', 'https://brettterpstra.com/'],
     ['* An Edge bookmark search [%](!heb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* An Edge history search [%](!heh brett terpstra)', 'https://brettterpstra.com/'],
     ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],

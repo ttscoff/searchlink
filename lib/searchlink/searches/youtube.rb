@@ -1,7 +1,7 @@
 module SL
   # YouTube Search/Linking
   class YouTubeSearch
-    YOUTUBE_RX = %r{(?:youtu\.be/|youtube\.com/watch\?v=)?([a-z0-9_\-]+)$}i.freeze
+    YOUTUBE_RX = %r{(?:youtu\.be/|youtube\.com/watch\?v=)?(?<id>[a-z0-9_\-]+)$}i.freeze
 
     class << self
       def settings
