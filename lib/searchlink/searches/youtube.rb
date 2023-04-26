@@ -23,20 +23,23 @@ module SL
           url, title = SL.ddg("site:youtube.com #{search_terms}", link_text)
         end
 
-        if search_type =~ /e$/ && url =~ YOUTUBE_RX
-          m = Regexp.last_match
-          id = m['id']
-          url = 'embed'
-          title = [
-            %(<iframe width="560" height="315" src="https://www.youtube.com/embed/#{id}"),
-            %(title="YouTube video player" frameborder="0"),
-            %(allow="accelerometer; autoplay; clipboard-write; encrypted-media;),
-            %(gyroscope; picture-in-picture; web-share"),
-            %(allowfullscreen></iframe>)
-          ].join(' ')
-        end
+        url, title = embed_for_url(url) if search_type =~ /e$/
 
         [url, title]
+      end
+
+      def embed_for_url(url)
+        return unless url =~ YOUTUBE_RX
+
+        id = Regexp.last_match('id')
+        title = [
+          %(<iframe width="560" height="315" src="https://www.youtube.com/embed/#{id}"),
+          %(title="YouTube video player" frameborder="0"),
+          %(allow="accelerometer; autoplay; clipboard-write; encrypted-media;),
+          %(gyroscope; picture-in-picture; web-share"),
+          %(allowfullscreen></iframe>)
+        ].join(' ')
+        ['embed', title]
       end
     end
 
