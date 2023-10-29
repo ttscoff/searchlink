@@ -8,6 +8,10 @@ class ::String
     ERB::Util.url_encode(gsub(/%22/, '"'))
   end
 
+  def url_decode
+    CGI.unescape(self)
+  end
+
   ##
   ## Adds ?: to any parentheticals in a regular expression
   ## to avoid match groups

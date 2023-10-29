@@ -35,14 +35,15 @@ module SL
 
         begin
           terms = "%5C#{search_terms.url_encode}"
-          body = `/usr/bin/curl -LisS --compressed 'https://lite.duckduckgo.com/lite/?q=#{terms}' 2>/dev/null`
+          body = `/usr/bin/curl -LisS --compressed 'https://duckduckgo.com/?q=#{terms}' 2>/dev/null`
 
-          locs = body.force_encoding('utf-8').scan(/^location: (.*?)$/)
-          return false if locs.empty?
+          locs = body.force_encoding('utf-8').match(%r{/l/\?uddg=(.*?)'})
 
-          url = locs[-1]
+          return false if locs.nil?
 
-          result = url[0].strip || false
+          url = locs[1].url_decode.sub(/&rut=\w+/, '')
+
+          result = url.strip.url_decode || false
           return false unless result
 
           return false if result =~ /internal-search\.duckduckgo\.com/

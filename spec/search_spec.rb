@@ -26,7 +26,7 @@ describe 'CLI' do
     ['* [%](!@m ttscoff@nojack.ca)', 'https://nojack.ca/@ttscoff'],
     ['* [%](!@t ttscoff)', 'https://twitter.com/ttscoff'],
     # amazon
-    ['* An Amazon search [owc express 4m2](!a)', %r{https://www\.amazon\.com/dp/[A-Z0-9]+/\?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=}],
+    ['* An Amazon search [owc express 4m2](!a)', %r{https://www\.amazon\.com/dp/[A-Z0-9&=]+/\?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=}i],
     # apple music
     ['* A general Apple Music search [%](!am k.flay imagine dragons)', 'https://music.apple.com/us/album/thunder-official-remix/1445014880'],
     ['* An Apple Music podcast search [Overtired](!ampod)', 'https://podcasts.apple.com/us/podcast/overtired/id944540924?uo=4&app=music&at=10l4tL&ct=searchlink'],

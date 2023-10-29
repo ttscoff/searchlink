@@ -1,5 +1,13 @@
 module SL
   class SearchLink
+    # Parse arguments in the input string
+    #
+    # @param      string  [String] the string to parse
+    # @param      opt     [Hash] the options to parse
+    # @option opt [Boolean] :only_meta (false) whether to skip flags
+    # @option opt [Boolean] :no_restore (false) whether to restore previous config
+    # @return     [String] the parsed string
+    #
     def parse_arguments(string, opt={})
       input = string.dup
       return "" if input.nil?
