@@ -13,7 +13,8 @@ module SL
 
       def search(_, search_terms, link_text)
         query = search_terms.gsub(/%22/, '"')
-        res = `mdfind '#{query}' 2>/dev/null|head -n 1`
+        matches = `mdfind '#{query}' 2>/dev/null`.strip.split(/\n/)
+        res = matches.sort_by { |r| File.basename(r).length }.first
         return [false, query, link_text] if res.strip.empty?
 
         title = File.basename(res)

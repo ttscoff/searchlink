@@ -38,7 +38,7 @@ describe 'CLI' do
     # DuckDuckGo/Google
     ['* A DuckDuckGo search [brett terpstra](!ddg ++t)', '[brett terpstra](https://brettterpstra.com/ "BrettTerpstra.com")'],
     ['* A search for specified text: [Marked](!g Marked 2 mac app store).', 'https://apps.apple.com/us/app/marked-2-markdown-preview/id890031187?mt=12'],
-    ['* A simple google search [wikipedia neat neat neat](!g)', 'https://en.wikipedia.org/wiki/Neat_Neat_Neat'],
+    ['* A simple google search [wikipedia <neat neat neat>](!g)', 'https://en.wikipedia.org/wiki/Neat_Neat_Neat'],
     # definition
     ['* This will put the definition of [ambiguous](!def) in the title field of a link to the dictionary entry.', 'https://www.wordnik.com/words/ambiguous'],
     # spotlight
@@ -88,7 +88,7 @@ describe 'CLI' do
     # Twitter embed
     ['[https://twitter.com/hynek/status/1613776397394214913](!te)', 'https://twitter.com/hynek/status/1613776397394214913?ref_src=twsrc%5Etfw'],
     # TMDB
-    ['* A TMDB multi search [%](!tmdb brad pitt)', '[Brad Pitt](https://www.themoviedb.org/person/287'],
+    ['* A TMDB multi search [%](!tmdb brad pitt actor)', '[Brad Pitt](https://www.imdb.com/name/nm0000093'],
     ['* A TMDB TV search [%](!tmdbt legends of tomorrow)', "[DC's Legends of Tomorrow](https://www.themoviedb.org/tv/62643"],
     ['* A TMDB movie search [%](!tmdbm 12 monkeys)', '[Twelve Monkeys](https://www.themoviedb.org/movie/63'],
     # wikipedia
@@ -99,7 +99,7 @@ describe 'CLI' do
     # zero click
     ['* A zero click result [%](!z disambiguation)', 'https://en.wikipedia.org/wiki/Disambiguation_(disambiguation)'],
     # Site specific
-    ['* Site specific search: [Keybindings Part 2](!brettterpstra.com <Keybinding Madness> part 2)', 'https://brettterpstra.com/2011/11/10/the-keys-that-bind-keybinding-madness-part-2/']
+    ['* Site specific search: [Keybindings Part 2](!brettterpstra.com Keybinding Madness part 2)', 'https://brettterpstra.com/2011/11/10/the-keys-that-bind-keybinding-madness-part-2/']
   ]
 
   searches.each.with_index do |search, i|
