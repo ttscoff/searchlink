@@ -2,9 +2,13 @@
 
 2023-10-30 12:35
 
+- Add browser id header to curl command when fetching title to avoid 502 errors
+
 ### 2.3.50
 
 2023-10-29 17:31
+
+- Fix for recent DuckDuckGo changes
 
 ### 2.3.49
 
