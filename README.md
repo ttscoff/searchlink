@@ -74,6 +74,14 @@ There will likely be updates to this as I solve more problems, so keep an eye on
 [Download SearchLink <!--VER-->2.3.51<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
 <!--END GITHUB-->
 
+### Plugins
+
+[plugins wiki]: https://github.com/ttscoff/searchlink/wiki/Plugins
+[Plugins]: https://github.com/ttscoff/searchlink-plugins
+[searches]: https://github.com/ttscoff/searchlink/tree/main/lib/searchlink/searches
+
+All of [SearchLink's searches][searches] are defined using a [plugin architecture][plugins wiki]. You can see more examples and fodder for building your own in the [SearchLink Plugins repository][Plugins].
+
 ### Bonus for LaunchBar users
 
 With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ⌘C will copy it to your clipboard.
