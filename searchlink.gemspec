@@ -20,7 +20,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 2.6.0'
-
   spec.add_development_dependency 'bundler', '~> 2.2'
   spec.add_development_dependency 'cli-test', '~> 1.0'
   # spec.add_development_dependency 'codecov', '~> 0.1'
