@@ -1,8 +1,6 @@
 ### 2.3.53
 
-2023-11-05 16:06
-
-- Add option to use Google JSON search API by providing API key.
+2023-11-05 16:09
 
 ### 2.3.52
 
