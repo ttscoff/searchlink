@@ -2,6 +2,8 @@
 
 2023-11-05 16:06
 
+- Add option to use Google JSON search API by providing API key.
+
 ### 2.3.52
 
 2023-11-01 10:27
