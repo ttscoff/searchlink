@@ -151,6 +151,9 @@ require_relative 'searches/duckduckgo'
 require_relative 'searches/github'
 
 # import
+require_relative 'searches/google'
+
+# import
 require_relative 'searches/history'
 
 # import

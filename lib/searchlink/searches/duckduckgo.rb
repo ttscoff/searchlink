@@ -10,7 +10,7 @@ module SL
       #
       def settings
         {
-          trigger: '(?:g|ddg|z)',
+          trigger: '(?:ddg|z)',
           searches: [
             ['g', 'DuckDuckGo Search'],
             ['ddg', 'DuckDuckGo Search'],
@@ -32,6 +32,8 @@ module SL
       #
       def search(search_type, search_terms, link_text)
         return zero_click(search_terms, link_text) if search_type =~ /^z$/
+
+        return SL.ddg(search_type, search_terms) if search_type == 'g' && SL::GoogleSearch.test_for_key
 
         begin
           terms = "%5C#{search_terms.url_encode}"
@@ -110,6 +112,25 @@ end
 # SL module methods
 module SL
   class << self
+    # Performs a Google search if API key is available,
+    # otherwise defaults to DuckDuckGo
+    #
+    # @param      search_terms  [String] The search terms
+    # @param      link_text     [String] The link text
+    # @param      timeout       [Integer] The timeout
+    #
+    def google(search_terms, link_text = nil, timeout: SL.config['timeout'])
+      if SL::GoogleSearch.test_for_key
+        s_class = 'google'
+        s_type = 'gg'
+      else
+        s_class = 'duckduckgo'
+        s_type = 'g'
+      end
+      search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
+      SL::Util.search_with_timeout(search, timeout)
+    end
+
     # Performs a DuckDuckGo search with the given search
     # terms and link text. If link text is not provided, the
     # first result will be returned. The search will timeout
@@ -124,7 +145,14 @@ module SL
     # @return     [SL::Searches::Result] The search result
     #
     def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'])
-      search = proc { SL::Searches.plugins[:search]['duckduckgo'][:class].search('ddg', search_terms, link_text) }
+      if SL::GoogleSearch.test_for_key
+        s_class = 'google'
+        s_type = 'gg'
+      else
+        s_class = 'duckduckgo'
+        s_type = 'g'
+      end
+      search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
       SL::Util.search_with_timeout(search, timeout)
     end
   end

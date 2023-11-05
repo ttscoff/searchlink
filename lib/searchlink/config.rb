@@ -141,6 +141,8 @@ module SL
           # Generate an access token at https://app.bitly.com/settings/api/
           bitly_access_token: ''
           bitly_domain: 'bit.ly'
+          # Custom Google API key to use Google search (free for 100 queries/day)
+          google_api_key: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         ENDCONFIG
 
@@ -209,6 +211,7 @@ module SL
       # use notification center to show progress
       config['notifications'] ||= false
       config['pinboard_api_key'] ||= false
+      config['google_api_key'] ||= false
 
       SL.line_num = nil
       SL.match_column = nil
