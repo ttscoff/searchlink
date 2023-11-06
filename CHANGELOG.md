@@ -1,3 +1,12 @@
+### 2.3.56
+
+2023-11-06 12:44
+
+#### FIXED
+
+- Unable to retrieve app titles from Mac App Store and iTunes
+- Parsing of title tags
+
 ### 2.3.55
 
 2023-11-06 11:26
