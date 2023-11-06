@@ -19,7 +19,7 @@ class ::String
   ## @return     [String] modified regular expression
   ##
   def normalize_trigger
-    gsub(/\((?!\?:)/, '(?:').downcase
+    gsub(/\((?!\?:)/, '(?:').gsub(/(^(\^|\\A)|(\$|\\Z)$)/, '').downcase
   end
 
   ##
