@@ -10,7 +10,7 @@ module SL
       #
       def settings
         {
-          trigger: '(?:ddg|z)',
+          trigger: '(?:g|ddg|z)',
           searches: [
             ['g', 'DuckDuckGo Search'],
             ['ddg', 'DuckDuckGo Search'],
@@ -33,11 +33,11 @@ module SL
       def search(search_type, search_terms, link_text)
         return zero_click(search_terms, link_text) if search_type =~ /^z$/
 
-        return SL.ddg(search_type, search_terms) if search_type == 'g' && SL::GoogleSearch.test_for_key
+        # return SL.ddg(search_terms, link_text) if search_type == 'g' && SL::GoogleSearch.test_for_key
 
         begin
           terms = "%5C#{search_terms.url_encode}"
-          body = `/usr/bin/curl -LisS --compressed 'https://duckduckgo.com/?q=#{terms}' 2>/dev/null`
+          body = `curl -LsS --compressed 'https://duckduckgo.com/?q=#{terms}' 2>/dev/null`
 
           locs = body.force_encoding('utf-8').match(%r{/l/\?uddg=(.*?)'})
 
@@ -144,8 +144,8 @@ module SL
     #                           the search in seconds
     # @return     [SL::Searches::Result] The search result
     #
-    def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'])
-      if SL::GoogleSearch.test_for_key
+    def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'], google: true)
+      if google && SL::GoogleSearch.test_for_key
         s_class = 'google'
         s_type = 'gg'
       else
