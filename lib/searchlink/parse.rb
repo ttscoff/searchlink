@@ -596,7 +596,7 @@ module SL
                     end
                   end
                 else
-                  search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                  type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
                   terms = "site:#{v} #{terms}"
                 end
 
