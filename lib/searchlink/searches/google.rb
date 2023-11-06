@@ -34,9 +34,15 @@ module SL
         body = `curl -SsL '#{url}'`
         json = JSON.parse(body)
 
-        return SL.ddg(terms, link_text, google: false) if json['error']['code'].to_i == 429
+        if json['error']['code'].to_i == 429
+          SL.notify('api limit', 'Google API limit reached, defaulting to DuckDuckGo')
+          return SL.ddg(terms, link_text, google: false)
+        end
 
-        return SL.ddg(terms, link_text, google: false) unless json['queries']['request'][0]['totalResults'].to_i.positive?
+        unless json['queries']['request'][0]['totalResults'].to_i.positive?
+          SL.notify('no results', 'Google returned no results, defaulting to DuckDuckGo')
+          return SL.ddg(terms, link_text, google: false)
+        end
 
         result = json['items'][0]
         return false if result.nil?

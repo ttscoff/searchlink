@@ -99,7 +99,9 @@ describe 'CLI' do
     # zero click
     ['* A zero click result [%](!z disambiguation)', 'https://en.wikipedia.org/wiki/Disambiguation_(disambiguation)'],
     # Site specific
-    ['* Site specific search: [Keybindings](!brettterpstra.com Keybinding madness)', 'https://brettterpstra.com/2011/08/13/keybinding-madness/']
+    ['* Site specific search: [Keybindings](!brettterpstra.com Keybinding madness)', 'https://brettterpstra.com/2011/08/13/keybinding-madness/'],
+    # DuckDuckGo
+    ['* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)', 'the-keys-that-bind-keybinding-madness-part-2/']
   ]
 
   searches.each.with_index do |search, i|
