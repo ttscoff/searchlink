@@ -1,3 +1,11 @@
+### 2.3.54
+
+2023-11-06 09:55
+
+#### FIXED
+
+- Custom searches were returning a list of plugins instead of URL
+
 ### 2.3.53
 
 2023-11-05 16:09
