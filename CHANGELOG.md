@@ -1,6 +1,11 @@
 ### 2.3.55
 
-2023-11-06 11:24
+2023-11-06 11:26
+
+#### FIXED
+
+- !g search not falling back to DuckDuckGo
+- DuckDuckGo fallback infinite loop and timeout
 
 ### 2.3.54
 
