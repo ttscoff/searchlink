@@ -58,7 +58,7 @@ class ::String
                   when 'v'
                     "--#{bool}validate_links "
                   when 's'
-                    "--#{bool}remove_seo"
+                    "--#{bool}remove_seo "
                   else
                     ''
                   end

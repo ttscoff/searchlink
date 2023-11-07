@@ -235,7 +235,7 @@ module SL
             # Handle [](URL) and [%](URL), filling in title
             elsif (link_text == '' || link_text == '%') && SL::URL.url?(link_info)
               url = link_info
-              title = SL::URL.get_title(link_info)
+              title = SL::URL.title(link_info)
               link_text = title
 
               if ref_title
@@ -392,11 +392,10 @@ module SL
                 if (!url)
                   search_count += 1
                   url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
-
                 end
 
                 if url
-                  title = SL::URL.get_title(url) if SL.titleize && title == ''
+                  title = SL::URL.title(url) if SL.titleize && title == ''
 
                   link_text = title if link_text == '' && title
                   force_title = search_type =~ /def/ ? true : false
@@ -434,7 +433,7 @@ module SL
                     res
                   end
                 else
-                  SL.add_error('No results', "#{search_terms} (#{match_string})")
+                   SL.add_error('No results', "#{search_terms} (#{match_string})")
                   counter_errors += 1
                   match
                 end
@@ -611,6 +610,7 @@ module SL
             end
             search_count ||= 0
             search_count += 1
+
             url, title, link_text = do_search(type, terms, link_text, search_count)
           else
             SL.add_error("Invalid search#{SL::Searches.did_you_mean(type)}", input)

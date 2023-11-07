@@ -39,7 +39,7 @@ module SL
         ]
         data = JSON.parse(`#{cmd.join(' ')}`.strip)
         link = data['link']
-        title ||= SL::URL.get_title(long_url)
+        title ||= SL::URL.title(long_url)
         [link, title]
       end
     end

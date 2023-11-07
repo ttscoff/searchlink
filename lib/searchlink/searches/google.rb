@@ -50,6 +50,7 @@ module SL
         output_url = result['link']
         output_title = result['title']
         output_title.remove_seo!(output_url) if SL.config['remove_seo']
+
         [output_url, output_title, link_text]
       rescue StandardError
         SL.ddg(search_terms, link_text, google: false)

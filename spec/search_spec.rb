@@ -50,7 +50,7 @@ describe 'CLI' do
     ['* A gist embed with user/id [%](!giste ttscoff/9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     ['* A gist embed with just id [%](!giste 9064738)', 'https://gist.github.com/ttscoff/9064738.js'],
     # history
-    ['* A general history and bookmark search [%](!h brett terpstra project searchlink)', '/projects/searchlink/'],
+    ['* A general history and bookmark search [%](!h brett terpstra forum searchlink)', 'BrettTerpstra.com Forum'],
     ['* An Arc history search [%](!hah brett terpstra)', 'https://brettterpstra.com/'],
     ['* An Arc bookmark search [%](!hab backbeat podman)', 'https://podman.backbeatmedia.com'],
     ['* A Brave history search [%](!hbh 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],

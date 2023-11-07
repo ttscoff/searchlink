@@ -54,7 +54,7 @@ module SL
           output_url = result
 
           output_title = if SL.config['include_titles'] || SL.titleize
-                           SL::URL.get_title(output_url) || ''
+                           SL::URL.title(output_url) || ''
                          else
                            ''
                          end
@@ -152,6 +152,7 @@ module SL
         s_class = 'duckduckgo'
         s_type = 'g'
       end
+
       search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
       SL::Util.search_with_timeout(search, timeout)
     end

@@ -34,17 +34,14 @@ module SL
     #
     # @return false if no new version, or semantic version of latest release
     def new_version?
-      cmd = [
-        'curl -SsL -H "Accept: application/vnd.github+json"',
-        '-H "X-GitHub-Api-Version: 2022-11-28"'
+      headers = [
+        'Accept: application/vnd.github+json',
+        'X-GitHub-Api-Version: 2022-11-28'
       ]
-      cmd.push(%(-H "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}")) if defined? Secrets::GH_AUTH_TOKEN
+      headers.push(%(Authorization: Bearer #{Secrets::GH_AUTH_TOKEN})) if defined? Secrets::GH_AUTH_TOKEN
 
-      cmd.push('https://api.github.com/repos/ttscoff/searchlink/releases/latest')
-      res = `#{cmd.join(' ')}`.strip
-
-      res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
-      result = JSON.parse(res)
+      url = 'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
+      result = SL::Util.curlJSON(url, headers: headers)
 
       if result
         latest_tag = result['tag_name']

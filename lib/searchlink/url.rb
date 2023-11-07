@@ -79,7 +79,7 @@ module SL
           title = if type == :ref_title
                     ref_title_for_url(url)
                   else
-                    get_title(url.to_s) || input.sub(%r{^https?://}, '')
+                    title(url.to_s) || input.sub(%r{^https?://}, '')
                   end
 
           return [url.to_s, title] if url.hostname
@@ -102,7 +102,7 @@ module SL
         ["https://#{sd}amazon.com/#{t}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}", title]
       end
 
-      def get_title(url)
+      def title(url)
         title = nil
 
         ## Gather proving too inexact
@@ -128,12 +128,9 @@ module SL
         # end
 
         begin
-          source = `curl -SsL -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" '#{url}' 2>/dev/null`.strip
-          source = `curl -SsL '#{url}' 2>/dev/null`.strip if source.nil? || source.empty?
+          res = SL::Util.curlHTML(url)
 
-          title = source && !source.empty? ? source.match(%r{<title>(.*)</title>}i) : nil
-
-          title = title.nil? ? nil : title[1].strip
+          title = res[:meta]['title'] || nil
 
           if title.nil? || title =~ /^\s*$/
             SL.add_error('Title not found', "Warning: missing title for #{url.strip}")

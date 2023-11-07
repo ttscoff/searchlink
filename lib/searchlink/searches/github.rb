@@ -88,7 +88,7 @@ module SL
               end
 
         if SL::URL.valid_link?(url)
-          title = SL::URL.get_title(url) if url && title.nil?
+          title = SL::URL.title(url) if url && title.nil?
 
           [url, title, link_text]
         else
@@ -187,21 +187,21 @@ module SL
           m = Regexp.last_match
           res = `curl -SsLI 'https://gist.github.com/#{m['id']}'`.strip
           url = res.match(/^location: (.*?)$/)[1].strip
-          title = SL::URL.get_title(url)
+          title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']
         # If a user an id (an o) are given, convert to a link
         when %r{^(?<u>\w+)/(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = "https://gist.github.com/#{m['u']}/#{m['id']}"
-          title = SL::URL.get_title(url)
+          title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']
         # if a full gist URL is given, simply clean it up
         when %r{(?<url>https://gist.github.com/(?:(?<user>\w+)/)?(?<id>[a-z0-9]{32}|[0-9]{6,10}))(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = m['url']
-          title = SL::URL.get_title(url)
+          title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']
         # Otherwise do a search of gist.github.com for the keywords
