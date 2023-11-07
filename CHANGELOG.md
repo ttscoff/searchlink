@@ -1,3 +1,17 @@
+### 2.3.57
+
+2023-11-07 17:37
+
+#### IMPROVED
+
+- Automatically trim ^ and $ from start/end of trigger definitions to avoid conflicts with custom plugins
+- Rename URL.get_title to URL.title
+- Add Util.curlHTML and Util.curlJSON methods
+
+#### FIXED
+
+- Lyrics embed in example plugin
+
 ### 2.3.56
 
 2023-11-06 12:45
