@@ -24,13 +24,3 @@ RSpec.configure do |c|
   # end
 end
 
-# def save_buildnote
-#   note = <<~EONOTE
-
-#   EONOTE
-#   File.open('builda.md', 'w') { |f| f.puts note }
-# end
-
-# def delete_buildnote
-#   FileUtils.rm('builda.md')
-# end

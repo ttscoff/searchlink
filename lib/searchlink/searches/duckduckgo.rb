@@ -40,6 +40,7 @@ module SL
           body = `curl -LsS --compressed 'https://duckduckgo.com/?q=#{terms}' 2>/dev/null`
 
           locs = body.force_encoding('utf-8').match(%r{/l/\?uddg=(.*?)'})
+          locs = body.force_encoding('utf-8').match(%r{url=(.*?)'}) if locs.nil?
 
           return false if locs.nil?
 

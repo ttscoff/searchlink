@@ -128,9 +128,9 @@ module SL
         # end
 
         begin
-          res = SL::Util.curlHTML(url)
+          page = HTMLCurl.new(url)
 
-          title = res[:meta]['title'] || nil
+          title = page.title || nil
 
           if title.nil? || title =~ /^\s*$/
             SL.add_error('Title not found', "Warning: missing title for #{url.strip}")

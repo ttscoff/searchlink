@@ -19,6 +19,12 @@ require 'tokens' if File.exist?('lib/tokens.rb')
 # import
 require 'searchlink/util'
 
+#import
+require 'searchlink/htmlcurl'
+
+#import
+require 'searchlink/jsoncurl'
+
 # import
 require 'searchlink/semver'
 
