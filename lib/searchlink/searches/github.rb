@@ -30,37 +30,32 @@ module SL
       end
 
       def github_search_curl(endpoint, query)
-        auth = Secrets::GH_AUTH_TOKEN ? "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}" : ''
-
-        headers = [
-          'Accept: application/vnd.github+json',
-          'X-GitHub-Api-Version: 2022-11-28',
-          auth
-        ]
+        headers = {
+          'Accept' => 'application/vnd.github+json',
+          'X-GitHub-Api-Version' => '2022-11-28',
+        }
+        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
+        res = JSONCurl.new(url, headers: headers)
 
-        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}") }.join(' ')} #{url}`)
-
-        if res.key?('total_count') && res['total_count'].positive?
-          res['items'][0]
+        if res.json.key?('total_count') && res.json['total_count'].positive?
+          res.json['items'][0]
         else
           false
         end
       end
 
       def user_gists(user, search_terms, page = 1)
-        auth = Secrets::GH_AUTH_TOKEN ? "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}" : ''
-
-        headers = [
-          'Accept: application/vnd.github+json',
-          'X-GitHub-Api-Version: 2022-11-28',
-          auth
-        ]
+        headers = {
+          'Accept' => 'application/vnd.github+json',
+          'X-GitHub-Api-Version' => '2022-11-28'
+        }
+        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/users/#{user}/gists?per_page=100&page=#{page}"
 
-        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}") }.join(' ')} '#{url}'`)
+        res = JSONCurl.new(url, headers: headers).json
 
         best = nil
         best = filter_gists(res, search_terms) if res
@@ -185,8 +180,8 @@ module SL
         # If an id (and optional file) are given, expand it to include username an generate link
         when %r{^(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
-          res = `curl -SsLI 'https://gist.github.com/#{m['id']}'`.strip
-          url = res.match(/^location: (.*?)$/)[1].strip
+          res = HTMLCurl("https://gist.github.com/#{m['id']}", headers_only: true)
+          url = res.headers['location']
           title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']

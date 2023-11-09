@@ -63,9 +63,9 @@ module SL
       def get_lyrics(url)
         if SL::URL.valid_link?(url)
           # You can use Ruby's net/http methods for retrieving pages, but
-          # `curl -SsL` is faster and easier. SL::Util.curlHTML returns a
-          # hash of properties, including :body
-          body = SL::Util.curlHTML(url)[:body]
+          # `curl -SsL` is faster and easier. HTMLCurl.new(url) returns a
+          # new object containing :body
+          body = HTMLCurl.new(url).body
 
           matches = body.scan(%r{class="Lyrics__Container-.*?>(.*?)</div><div class="LyricsFooter})
 

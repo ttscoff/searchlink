@@ -72,11 +72,9 @@ module SL
       # entity => optional: artist, song, album, podcast
       # returns {:type=>,:id=>,:url=>,:title}
       def applemusic(terms, media = 'music', entity = '')
-        url = URI.parse("http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&media=#{media}&entity=#{entity}")
-        res = Net::HTTP.get_response(url).body
-        res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
-        res.gsub!(/(?mi)[\x00-\x08\x0B-\x0C\x0E-\x1F]/, '')
-        json = JSON.parse(res)
+        url = "http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&media=#{media}&entity=#{entity}"
+        page = JSONCurl.new(url, compressed: true)
+        json = page.json
         return false unless json['resultCount']&.positive?
 
         output = process_result(json['results'][0])

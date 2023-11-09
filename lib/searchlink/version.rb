@@ -34,14 +34,15 @@ module SL
     #
     # @return false if no new version, or semantic version of latest release
     def new_version?
-      headers = [
-        'Accept: application/vnd.github+json',
-        'X-GitHub-Api-Version: 2022-11-28'
-      ]
-      headers.push(%(Authorization: Bearer #{Secrets::GH_AUTH_TOKEN})) if defined? Secrets::GH_AUTH_TOKEN
+      headers = {
+        'Accept' => 'application/vnd.github+json',
+        'X-GitHub-Api-Version' => '2022-11-28'
+      }
+      headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
       url = 'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
-      result = SL::Util.curlJSON(url, headers: headers)
+      page = JSONCurl.new(url, headers: headers)
+      result = page.json
 
       if result
         latest_tag = result['tag_name']

@@ -12,7 +12,7 @@ module SL
         {
           trigger: '(?:g|ddg|z)',
           searches: [
-            ['g', 'DuckDuckGo Search'],
+            ['g', 'Google/DuckDuckGo Search'],
             ['ddg', 'DuckDuckGo Search'],
             ['z', 'DDG Zero Click Search']
           ]
@@ -37,10 +37,11 @@ module SL
 
         begin
           terms = "%5C#{search_terms.url_encode}"
-          body = `curl -LsS --compressed 'https://duckduckgo.com/?q=#{terms}' 2>/dev/null`
+          page = HTMLCurl.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
 
-          locs = body.force_encoding('utf-8').match(%r{/l/\?uddg=(.*?)'})
-          locs = body.force_encoding('utf-8').match(%r{url=(.*?)'}) if locs.nil?
+          locs = page.meta['refresh'].match(%r{/l/\?uddg=(.*?)$})
+          locs = page.body.match(%r{/l/\?uddg=(.*?)'}) if locs.nil?
+          locs = page.body.match(/url=(.*?)'/) if locs.nil?
 
           return false if locs.nil?
 
@@ -80,12 +81,9 @@ module SL
       def zero_click(search_terms, link_text, disambiguate: false)
         search_terms.gsub!(/%22/, '"')
         d = disambiguate ? '0' : '1'
-        url = URI.parse("http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}")
-        res = Net::HTTP.get_response(url).body
-        res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
-
-        result = JSON.parse(res)
-        return search('ddg', terms, link_text) unless result
+        url = "http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}"
+        result = JSONCurl.new(url).json
+        return SL.ddg(terms, link_text) unless result
 
         wiki_link = result['AbstractURL'] || result['Redirect']
         title = result['Heading'] || false
@@ -93,7 +91,7 @@ module SL
         if !wiki_link.empty? && !title.empty?
           [wiki_link, title, link_text]
         elsif disambiguate
-          search('ddg', search_terms, link_text)
+          SL.ddg(search_terms, link_text)
         else
           zero_click(search_terms, link_text, disambiguate: true)
         end
