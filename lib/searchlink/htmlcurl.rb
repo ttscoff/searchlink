@@ -131,6 +131,11 @@ class HTMLCurl
     flatten_tags(tags).dup.delete_if { |t| !tag.include?(t[:tag].downcase) }
   end
 
+  ##
+  ## Get all images from the page
+  ##
+  ## @return     [Array] Array of images, both from picture sources and img tags
+  ##
   def images
     output = []
     images = tags(%w[img source])
@@ -202,6 +207,11 @@ class HTMLCurl
 
   private
 
+  ##
+  ## Flatten the array of tags
+  ##
+  ## @param      tags  [Array] Document tags
+  ##
   def flatten_tags(tags)
     flattened = []
 
@@ -213,6 +223,11 @@ class HTMLCurl
     flattened
   end
 
+  ##
+  ## Return an array of all tags in the content
+  ##
+  ## @param      content  [String] The content to parse
+  ##
   def content_tags(content)
     return nil if content.nil?
 
@@ -299,10 +314,8 @@ class HTMLCurl
   ##
   ## Get all links in the body of the page
   ##
-  ## @param      body  [String] The body
-  ##
-  ## @return     [Array] array of links with href, title, rel,
-  ##             text and class
+  ## @return     [Array] array of links with href, title,
+  ##             rel, text and class
   ##
   def content_links
     links = []
@@ -331,8 +344,6 @@ class HTMLCurl
 
   ##
   ## Get all img tags in the body of the page
-  ##
-  ## @param      body  [String] The body
   ##
   ## @return     [Array] array of images with src and all attributes
   ##
@@ -405,6 +416,12 @@ class HTMLCurl
     end
   end
 
+  ##
+  ## Reencode the content (borrowed from Nokogiri)
+  ##
+  ## @param      body          [String] The body
+  ## @param      content_type  [String] Force content type
+  ##
   def reencode(body, content_type = nil)
     if body.encoding == Encoding::ASCII_8BIT
       encoding = nil

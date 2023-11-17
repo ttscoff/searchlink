@@ -180,7 +180,7 @@ module SL
         # If an id (and optional file) are given, expand it to include username an generate link
         when %r{^(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
-          res = HTMLCurl("https://gist.github.com/#{m['id']}", headers_only: true)
+          res = HTMLCurl.new("https://gist.github.com/#{m['id']}", headers_only: true)
           url = res.headers['location']
           title = SL::URL.title(url)
 

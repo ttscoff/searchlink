@@ -32,7 +32,7 @@ describe 'CLI' do
     ['* An Apple Music podcast search [Overtired](!ampod)', 'https://podcasts.apple.com/us/podcast/overtired/id944540924?uo=4&app=music&at=10l4tL&ct=searchlink'],
     ['* An Apple Music artist search [%](!amart taylor swift)', 'https://music.apple.com/us/artist/taylor-swift'],
     ['* An Apple Music album search [%](!amalb k.flay inside voices outside voices)', 'https://music.apple.com/us/album/inside-voices-outside-voices'],
-    ['* An Apple Music song search [%](!amsong k.flay the muck)', 'https://music.apple.com/us/album/the-muck/1604651969'],
+    ['* An Apple Music song search [%](!amsong k.flay the muck)', 'https://music.apple.com/us/album/the-muck/1606694205'],
     # bitly
     ['* A [shortened link](!bl https://brettterpstra.com)', 'https://bit.ly/3uEzRKE'],
     # DuckDuckGo/Google
@@ -56,7 +56,7 @@ describe 'CLI' do
     ['* A Brave history search [%](!hbh 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Brave bookmark search [%](!hbb backbeat podman)', 'https://podman.backbeatmedia.com'],
     ['* A Chrome bookmark search [%](!hcb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
-    ['* A Chrome history search [%](!hch brettterpstra)', 'https?://brettterpstra.com/'],
+    ['* A Chrome history search [%](!hch brettterpstra)', %r{https?://brettterpstra.com/}],
     ['* An Edge bookmark search [%](!heb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* An Edge history search [%](!heh brett terpstra)', 'https://brettterpstra.com/'],
     ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
