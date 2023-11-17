@@ -73,11 +73,11 @@ module SL
       # returns {:type=>,:id=>,:url=>,:title}
       def applemusic(terms, media = 'music', entity = '')
         url = "http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&media=#{media}&entity=#{entity}"
-        page = JSONCurl.new(url, compressed: true)
+        page = JSONCurl.new(url, compressed: true, symbolize_names: true)
         json = page.json
-        return false unless json['resultCount']&.positive?
+        return false unless json[:resultCount]&.positive?
 
-        output = process_result(json['results'][0])
+        output = process_result(json[:results][0])
 
         return false if output.empty?
 
@@ -88,30 +88,30 @@ module SL
         output = {}
         aff = SL.config['itunes_affiliate']
 
-        case result['wrapperType']
+        case result[:wrapperType]
         when 'track'
-          if result['kind'] == 'podcast'
+          if result[:kind] == 'podcast'
             output[:type] = 'podcast'
-            output[:id] = result['collectionId']
-            output[:url] = result['collectionViewUrl'].to_am + aff
-            output[:title] = result['collectionName']
+            output[:id] = result[:collectionId]
+            output[:url] = result[:collectionViewUrl].to_am + aff
+            output[:title] = result[:collectionName]
           else
             output[:type] = 'song'
-            output[:album] = result['collectionId']
-            output[:id] = result['trackId']
-            output[:url] = result['trackViewUrl'].to_am + aff
-            output[:title] = "#{result['trackName']} by #{result['artistName']}"
+            output[:album] = result[:collectionId]
+            output[:id] = result[:trackId]
+            output[:url] = result[:trackViewUrl].to_am + aff
+            output[:title] = "#{result[:trackName]} by #{result[:artistName]}"
           end
         when 'collection'
           output[:type] = 'album'
-          output[:id] = result['collectionId']
-          output[:url] = result['collectionViewUrl'].to_am + aff
-          output[:title] = "#{result['collectionName']} by #{result['artistName']}"
+          output[:id] = result[:collectionId]
+          output[:url] = result[:collectionViewUrl].to_am + aff
+          output[:title] = "#{result[:collectionName]} by #{result[:artistName]}"
         when 'artist'
           output[:type] = 'artist'
-          output[:id] = result['artistId']
-          output[:url] = result['artistLinkUrl'].to_am + aff
-          output[:title] = result['artistName']
+          output[:id] = result[:artistId]
+          output[:url] = result[:artistLinkUrl].to_am + aff
+          output[:title] = result[:artistName]
         end
 
         output

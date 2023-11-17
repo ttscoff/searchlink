@@ -10,11 +10,12 @@ module SL
       #
       def settings
         {
-          trigger: '(?:g|ddg|z)',
+          trigger: '(?:g|ddg|z|ddgimg)',
           searches: [
             ['g', 'Google/DuckDuckGo Search'],
             ['ddg', 'DuckDuckGo Search'],
-            ['z', 'DDG Zero Click Search']
+            ['z', 'DDG Zero Click Search'],
+            ['ddgimg', 'Return the first image from the destination page']
           ]
         }
       end
@@ -61,6 +62,8 @@ module SL
                            ''
                          end
 
+          output_url = SL.first_image(output_url) if search_type =~ /img$/
+
           [output_url, output_title, link_text]
         end
       end
@@ -82,11 +85,11 @@ module SL
         search_terms.gsub!(/%22/, '"')
         d = disambiguate ? '0' : '1'
         url = "http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}"
-        result = JSONCurl.new(url).json
+        result = JSONCurl.new(url, symbolize_names: true).json
         return SL.ddg(terms, link_text) unless result
 
-        wiki_link = result['AbstractURL'] || result['Redirect']
-        title = result['Heading'] || false
+        wiki_link = result[:AbstractURL] || result[:Redirect]
+        title = result[:Heading] || false
 
         if !wiki_link.empty? && !title.empty?
           [wiki_link, title, link_text]
@@ -118,13 +121,13 @@ module SL
     # @param      link_text     [String] The link text
     # @param      timeout       [Integer] The timeout
     #
-    def google(search_terms, link_text = nil, timeout: SL.config['timeout'])
+    def google(search_terms, link_text = nil, timeout: SL.config['timeout'], image: false)
       if SL::GoogleSearch.test_for_key
         s_class = 'google'
-        s_type = 'gg'
+        s_type = image ? 'img' : 'gg'
       else
         s_class = 'duckduckgo'
-        s_type = 'g'
+        s_type = image ? 'ddgimg' : 'g'
       end
       search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
       SL::Util.search_with_timeout(search, timeout)
@@ -143,17 +146,22 @@ module SL
     #                           the search in seconds
     # @return     [SL::Searches::Result] The search result
     #
-    def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'], google: true)
+    def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'], google: true, image: false)
       if google && SL::GoogleSearch.test_for_key
         s_class = 'google'
-        s_type = 'gg'
+        s_type = image ? 'img' : 'gg'
       else
         s_class = 'duckduckgo'
-        s_type = 'g'
+        s_type = image ? 'ddgimg' : 'g'
       end
 
       search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
       SL::Util.search_with_timeout(search, timeout)
+    end
+
+    def first_image(url)
+      images = HTMLCurl.new(url).images
+      images.filter { |img| img[:type] == 'img' }.first[:src]
     end
   end
 end

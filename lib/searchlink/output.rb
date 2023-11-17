@@ -103,7 +103,8 @@ module SL
       when :ref_link
         %([#{text}][#{url}])
       when :inline
-        %([#{text}](#{url}#{title}))
+        image = url =~ /\.(gif|jpe?g|png|webp)$/ ? '!' : ''
+        %(#{image}[#{text}](#{url}#{title}))
       end
     end
 

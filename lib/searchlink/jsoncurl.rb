@@ -4,23 +4,58 @@
 class JSONCurl
   attr_reader :url, :code, :json, :headers
 
-  def initialize(url, headers: nil, compressed: false)
-    page = curl_json(url, headers: headers, compressed: compressed)
+  ##
+  ## Create a new JSONCurl page object
+  ##
+  ## @param      url         [String] The url to curl
+  ## @param      headers     [Hash] The headers to send
+  ## @param      compressed  [Boolean] Expect compressed results
+  ##
+  ## @return     [JSONCurl] JSONCurl object with url, code, parsed json, and response headers
+  ##
+  def initialize(url, headers: nil, compressed: false, symbolize_names: false)
+    @curl = TTY::Which.which('curl')
+    page = curl_json(url, headers: headers, compressed: compressed, symbolize_names: symbolize_names)
     @url = page[:url]
     @code = page[:code]
     @json = page[:json]
     @headers = page[:headers]
   end
 
-  def curl_json(url, headers: nil, compressed: false)
+  def path(path, json = @json)
+    parts = path.split(/./)
+    target = json
+    parts.each do |part|
+      if part =~ /(?<key>[^\[]+)\[(?<int>\d+)\]/
+        target = target[key][int.to_i]
+      else
+        target = target[part]
+      end
+    end
+
+    target
+  end
+
+  private
+
+  ##
+  ## Curl the JSON contents
+  ##
+  ## @param      url         [String] The url
+  ## @param      headers     [Hash] The headers to send
+  ## @param      compressed  [Boolean] Expect compressed results
+  ##
+  ## @return     [Hash] hash of url, code, headers, and parsed json
+  ##
+  def curl_json(url, headers: nil, compressed: false, symbolize_names: false)
     flags = 'SsLi'
     agent = ['Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us)',
              'AppleWebKit/533.17.9 (KHTML, like Gecko)',
              'Version/5.0.2 Mobile/8J2 Safari/6533.18.5'].join(' ')
     headers = headers.nil? ? '' : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(' ')
     compress = compressed ? '--compressed' : ''
-    source = `curl -#{flags} #{compress} #{headers} '#{url}' 2>/dev/null`
-    source = `curl -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null` if source.nil? || source.empty?
+    source = `#{@curl} -#{flags} #{compress} #{headers} '#{url}' 2>/dev/null`
+    source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null` if source.nil? || source.empty?
 
     return false if source.nil? || source.empty?
 
@@ -44,7 +79,7 @@ class JSONCurl
 
     json.gsub!(/[\u{1F600}-\u{1F6FF}]/, '')
 
-    { url: url, code: code, headers: headers, json: JSON.parse(json) }
+    { url: url, code: code, headers: headers, json: JSON.parse(json, symbolize_names: symbolize_names) }
   rescue StandardError => e
     warn e
     warn e.backtrace

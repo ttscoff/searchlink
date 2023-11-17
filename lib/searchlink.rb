@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
 require 'net/https'
@@ -19,10 +21,10 @@ require 'tokens' if File.exist?('lib/tokens.rb')
 # import
 require 'searchlink/util'
 
-#import
+# import
 require 'searchlink/htmlcurl'
 
-#import
+# import
 require 'searchlink/jsoncurl'
 
 # import
@@ -60,5 +62,8 @@ require 'searchlink/parse'
 
 # import
 require 'searchlink/output'
+
+# import
+require 'searchlink/which'
 
 module Secrets; end

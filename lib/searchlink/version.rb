@@ -68,7 +68,8 @@ module SL
         folder = File.expand_path('~/Downloads')
         services = File.expand_path('~/Library/Services')
         dl = File.join(folder, 'SearchLink.zip')
-        `curl -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
+        curl = TTY::Which.which('curl')
+        `#{curl} -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
         Dir.chdir(folder)
         `unzip -qo #{dl} -d #{folder}`
         FileUtils.rm(dl)

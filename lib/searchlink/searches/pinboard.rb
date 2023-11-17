@@ -13,7 +13,8 @@ module SL
       end
 
       def pinboard_bookmarks
-        bookmarks = `/usr/bin/curl -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{SL.config['pinboard_api_key']}&format=json"`
+        curl = TTY::Which.which('curl')
+        bookmarks = `#{curl} -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{SL.config['pinboard_api_key']}&format=json"`
         bookmarks = bookmarks.force_encoding('utf-8')
         bookmarks.gsub!(/[^[:ascii:]]/) do |non_ascii|
           non_ascii.force_encoding('utf-8')
@@ -62,7 +63,8 @@ module SL
             cache = pinboard_bookmarks
             save_pinboard_cache(cache)
           end
-          updated = JSON.parse(`/usr/bin/curl -sSL 'https://api.pinboard.in/v1/posts/update?auth_token=#{SL.config['pinboard_api_key']}&format=json'`)
+          curl = TTY::Which.which('curl')
+          updated = JSON.parse(`#{curl} -SsL 'https://api.pinboard.in/v1/posts/update?auth_token=#{SL.config['pinboard_api_key']}&format=json'`)
           last_bookmark = Time.parse(updated['update_time'])
           if cache&.key?('update_time')
             last_update = cache['update_time']

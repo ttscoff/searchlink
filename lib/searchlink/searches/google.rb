@@ -6,9 +6,10 @@ module SL
 
       def settings
         {
-          trigger: 'g(oo)?g(le?)?',
+          trigger: '(g(oo)?g(le?)?|img)',
           searches: [
-            ['gg', 'Google Search']
+            ['gg', 'Google Search'],
+            ['img', 'First image from result']
           ]
         }
       end
@@ -25,6 +26,8 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
+        image = search_type =~ /img$/ ? true : false
+
         unless test_for_key
           SL.add_error('api key', 'Missing Google API Key')
           return false
@@ -35,12 +38,12 @@ module SL
 
         if json['error'] && json['error']['code'].to_i == 429
           SL.notify('api limit', 'Google API limit reached, defaulting to DuckDuckGo')
-          return SL.ddg(terms, link_text, google: false)
+          return SL.ddg(terms, link_text, google: false, image: image)
         end
 
         unless json['queries']['request'][0]['totalResults'].to_i.positive?
           SL.notify('no results', 'Google returned no results, defaulting to DuckDuckGo')
-          return SL.ddg(terms, link_text, google: false)
+          return SL.ddg(terms, link_text, google: false, image: image)
         end
 
         result = json['items'][0]
@@ -50,9 +53,12 @@ module SL
         output_title = result['title']
         output_title.remove_seo!(output_url) if SL.config['remove_seo']
 
+        output_url = SL.first_image if search_type =~ /img$/
+
         [output_url, output_title, link_text]
       rescue StandardError
-        SL.ddg(search_terms, link_text, google: false)
+        SL.notify('Google error', 'Error fetching Google results, switching to DuckDuckGo')
+        SL.ddg(search_terms, link_text, google: false, image: image)
       end
     end
 

@@ -424,6 +424,7 @@ class ::String
   ##
   def to_rx_array(separator: ' ', start_word: true)
     bound = start_word ? '\b' : ''
-    split(/#{separator}/).map { |arg| /#{bound}#{Regexp.escape(arg.gsub(/[^a-z0-9]/i, ''))}/i }
+    str = gsub(/(#{separator})+/, separator)
+    str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, '.?')}/i }
   end
 end

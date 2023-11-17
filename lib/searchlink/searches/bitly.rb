@@ -32,8 +32,9 @@ module SL
 
         domain = SL.config.key?('bitly_domain') ? SL.config['bitly_domain'] : 'bit.ly'
         long_url = url.dup
+        curl = TTY::Which.which('curl')
         cmd = [
-          %(curl -SsL -H 'Authorization: Bearer #{SL.config['bitly_access_token']}'),
+          %(#{curl} -SsL -H 'Authorization: Bearer #{SL.config['bitly_access_token']}'),
           %(-H 'Content-Type: application/json'),
           '-X POST', %(-d '{ "long_url": "#{url}", "domain": "#{domain}" }'), 'https://api-ssl.bitly.com/v4/shorten'
         ]
