@@ -1,6 +1,26 @@
 ### 2.3.58
 
-2023-11-08 09:59
+2023-12-13 14:01
+
+#### NEW
+
+- !img search to return the first image on the located page as a Markdown image tag
+
+#### IMPROVED
+
+- Abstract all curl commands to classes
+- New classes HTMLCurl and JSONCurl to handle using curl for getting web page contents, will help plugin developers handle all of the edge cases when using curl
+- "Which" class to locate the exact binary for curl operations
+- Update all searches to use new Curl classes
+- Option to symbolize names when curling JSON
+- Use a hash for headers on curl calls instead of an array of strings
+- Docs update, fix tests
+- Curl library improvements
+- Update tests
+
+#### FIXED
+
+- GitHub gist embed failure
 
 ### 2.3.57
 
