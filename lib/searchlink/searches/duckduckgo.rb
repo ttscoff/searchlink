@@ -38,7 +38,7 @@ module SL
 
         begin
           terms = "%5C#{search_terms.url_encode}"
-          page = HTMLCurl.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
+          page = Curl::Html.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
 
           locs = page.meta['refresh'].match(%r{/l/\?uddg=(.*?)$})
           locs = page.body.match(%r{/l/\?uddg=(.*?)'}) if locs.nil?
@@ -85,7 +85,7 @@ module SL
         search_terms.gsub!(/%22/, '"')
         d = disambiguate ? '0' : '1'
         url = "http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}"
-        result = JSONCurl.new(url, symbolize_names: true).json
+        result = Curl::Json.new(url, symbolize_names: true).json
         return SL.ddg(terms, link_text) unless result
 
         wiki_link = result[:AbstractURL] || result[:Redirect]
@@ -160,7 +160,7 @@ module SL
     end
 
     def first_image(url)
-      images = HTMLCurl.new(url).images
+      images = Curl::Html.new(url).images
       images.filter { |img| img[:type] == 'img' }.first[:src]
     end
   end

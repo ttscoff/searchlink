@@ -41,7 +41,7 @@ module SL
       headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
       url = 'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
-      page = JSONCurl.new(url, headers: headers)
+      page = Curl::Json.new(url, headers: headers)
       result = page.json
 
       if result

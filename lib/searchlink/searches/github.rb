@@ -37,7 +37,7 @@ module SL
         headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
-        res = JSONCurl.new(url, headers: headers)
+        res = Curl::Json.new(url, headers: headers)
 
         if res.json.key?('total_count') && res.json['total_count'].positive?
           res.json['items'][0]
@@ -55,7 +55,7 @@ module SL
 
         url = "https://api.github.com/users/#{user}/gists?per_page=100&page=#{page}"
 
-        res = JSONCurl.new(url, headers: headers).json
+        res = Curl::Json.new(url, headers: headers).json
 
         best = nil
         best = filter_gists(res, search_terms) if res
@@ -180,7 +180,7 @@ module SL
         # If an id (and optional file) are given, expand it to include username an generate link
         when %r{^(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
-          res = HTMLCurl.new("https://gist.github.com/#{m['id']}", headers_only: true)
+          res = Curl::Html.new("https://gist.github.com/#{m['id']}", headers_only: true)
           url = res.headers['location']
           title = SL::URL.title(url)
 

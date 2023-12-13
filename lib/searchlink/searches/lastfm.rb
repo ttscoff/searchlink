@@ -15,7 +15,7 @@ module SL
         type = search_type =~ /art$/ ? 'artist' : 'track'
 
         url = "http://ws.audioscrobbler.com/2.0/?method=#{type}.search&#{type}=#{search_terms.url_encode}&api_key=2f3407ec29601f97ca8a18ff580477de&format=json"
-        json = JSONCurl.new(url).json
+        json = Curl::Json.new(url).json
         return false unless json['results']
 
         begin

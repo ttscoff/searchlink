@@ -96,7 +96,7 @@ module SL
 
         m = Regexp.last_match
         sd = m['subdomain']
-        title = m['title']
+        title = m['title'].gsub(/-/, ' ')
         t = m['type']
         id = m['id']
         ["https://#{sd}amazon.com/#{t}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}", title]
@@ -128,7 +128,7 @@ module SL
         # end
 
         begin
-          page = HTMLCurl.new(url)
+          page = Curl::Html.new(url)
 
           title = page.title || nil
 

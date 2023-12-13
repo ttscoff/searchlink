@@ -56,7 +56,7 @@ describe 'CLI' do
     ['* A Brave history search [%](!hbh 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* A Brave bookmark search [%](!hbb backbeat podman)', 'https://podman.backbeatmedia.com'],
     ['* A Chrome bookmark search [%](!hcb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
-    ['* A Chrome history search [%](!hch brettterpstra)', %r{https?://brettterpstra.com/}],
+    ['* A Chrome history search [%](!hch boss begleri)', 'https://www.aroundsquare.com/collections/begleri/products/micro-boss-begleri-exotics'],
     ['* An Edge bookmark search [%](!heb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
     ['* An Edge history search [%](!heh brett terpstra)', 'https://brettterpstra.com/'],
     ['* A Firefox bookmark search [%](!hfb 2022 hardware)', 'https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware'],
@@ -99,7 +99,7 @@ describe 'CLI' do
     # zero click
     ['* A zero click result [%](!z disambiguation)', 'https://en.wikipedia.org/wiki/Disambiguation_(disambiguation)'],
     # Site specific
-    ['* Site specific search: [Keybindings](!brettterpstra.com Keybinding madness)', 'https://brettterpstra.com/2011/08/13/keybinding-madness/'],
+    ['* Site specific search: [Keybindings](!brettterpstra.com <Keybinding madness part 2>)', 'https://brettterpstra.com/2011/08/13/keybinding-madness/'],
     # DuckDuckGo
     ['* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)', 'the-keys-that-bind-keybinding-madness-part-2/']
   ]

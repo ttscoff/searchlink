@@ -49,7 +49,7 @@ module SL
         url = "http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1"
 
         begin
-          page = JSONCurl.new(url, compressed: true)
+          page = Curl::Json.new(url, compressed: true)
           json = page.json
         rescue StandardError => e
           SL.add_error('Invalid response', "Search for #{terms}: (#{e})")

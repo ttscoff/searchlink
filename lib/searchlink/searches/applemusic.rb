@@ -73,7 +73,7 @@ module SL
       # returns {:type=>,:id=>,:url=>,:title}
       def applemusic(terms, media = 'music', entity = '')
         url = "http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&media=#{media}&entity=#{entity}"
-        page = JSONCurl.new(url, compressed: true, symbolize_names: true)
+        page = Curl::Json.new(url, compressed: true, symbolize_names: true)
         json = page.json
         return false unless json[:resultCount]&.positive?
 
