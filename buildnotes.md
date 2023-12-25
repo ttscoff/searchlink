@@ -72,6 +72,10 @@ if status.to_i == 0
 	`git pull`
 end
 
+# Push a gem
+`rake clobber package`
+`gem push pkg/searchlink-#{version}.gem`
+
 new_ver = `rake bump[patch]`
 puts `git commit -a -m "Version bump #{new_ver}"`
 ```

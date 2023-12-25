@@ -1,5 +1,15 @@
 # String helpers
 class ::String
+  # Scrub invalid characters from string
+  def scrub
+    encode('utf-16', invalid: :replace).encode('utf-8')
+  end
+
+  # @see #scrub
+  def scrub!
+    replace scrub
+  end
+
   # URL Encode string
   #
   # @return     [String] url encoded string
