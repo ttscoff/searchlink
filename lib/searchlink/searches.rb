@@ -24,9 +24,9 @@ module SL
       def description_for_search(search_type)
         description = "#{search_type} search"
         plugins[:search].each do |_, plugin|
-          s = plugin[:searches].select { |s| s[0] == search_type }
-          unless s.empty?
-            description = s[0][1]
+          search = plugin[:searches].select { |s| s[0].is_a?(Array) ? s[0].include?(search_type) : s[0] == search_type }
+          unless search.empty?
+            description = search[0][1]
             break
           end
         end
@@ -42,11 +42,14 @@ module SL
         searches = plugins[:search]
                    .flat_map { |_, plugin| plugin[:searches] }
                    .reject { |s| s[1].nil? }
-                   .sort_by { |s| s[0] }
+                   .sort_by { |s| s[0].is_a?(Array) ? s[0][0] : s[0] }
         out = ['<table id="searches">',
                '<thead><td>Shortcut</td><td>Search Type</td></thead>',
                '<tbody>']
-        searches.each { |s| out << "<tr><td><code>!#{s[0]}</code></td><td>#{s[1]}</td></tr>" }
+
+        searches.each do |s|
+          out << "<tr><td><code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}</code></td><td>#{s[1]}</td></tr>"
+        end
         out.concat(['</tbody>', '</table>']).join("\n")
       end
 
@@ -58,9 +61,11 @@ module SL
       def available_searches
         searches = []
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
-        out = ''
-        searches.each { |s| out += "!#{s[0]}#{s[0].spacer}#{s[1]}\n" }
-        out
+        out = []
+        searches.each do |s|
+          out += "!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}#{s[0].spacer}#{s[1]}"
+        end
+        out.join("\n")
       end
 
       def best_search_match(term)
