@@ -17,10 +17,19 @@ module SL
   class SearchLink
     # Values found in ~/.searchlink will override defaults in
     # this script
+    def config_file
+      old_style = File.expand_path('~/.searchlink')
+      new_style = File.expand_path('~/.config/searchlink/config.yaml')
+      if File.exist?(old_style)
+        return old_style
+      else
+        return new_style
+      end
+    end
 
     def initialize(opt = {})
       SL.printout = opt[:echo] || false
-      unless File.exist? File.expand_path('~/.searchlink')
+      unless File.exist? config_file
         default_config = <<~ENDCONFIG
           # set to true to have an HTML comment included detailing any errors
           # Can be disabled per search with `--d`, or enabled with `++d`.
@@ -146,12 +155,12 @@ module SL
 
         ENDCONFIG
 
-        File.open(File.expand_path('~/.searchlink'), 'w') do |f|
+        File.open(config_file, 'w') do |f|
           f.puts default_config
         end
       end
 
-      config = YAML.load_file(File.expand_path('~/.searchlink'))
+      config = YAML.load_file(config_file)
 
       # set to true to have an HTML comment inserted showing any errors
       config['debug'] ||= false

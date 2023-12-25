@@ -120,6 +120,13 @@ module SL
         Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
           require plugin
         end
+
+        plugins_folder = File.expand_path('~/.config/searchlink/plugins')
+        return unless File.directory?(plugins_folder)
+
+        Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
+          require plugin
+        end
       end
 
       def do_search(search_type, search_terms, link_text, timeout: SL.config['timeout'])
