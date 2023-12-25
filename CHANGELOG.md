@@ -1,3 +1,14 @@
+### 2.3.61
+
+2023-12-25 16:49
+
+#### IMPROVED
+
+- Plugins can use an array of possible search shortcut matches which will be displayed in help and used for matching search descriptions in notifications, so you can specify %w[weather, wea] and both will provide a description
+- Move config file to ~/.config/searchlink/config.yaml. Old location still recognized for backward compatibility
+- Move plugin location to ~/.config/searchlink/plugins. Old location still recognized for backward compatibility
+- Move cache storage to ~/.config/searchlink
+
 ### 2.3.60
 
 2023-12-25 16:09
