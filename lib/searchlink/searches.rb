@@ -115,14 +115,17 @@ module SL
 
       def load_custom
         plugins_folder = File.expand_path('~/.local/searchlink/plugins')
+        new_plugins_folder = File.expand_path('~/.config/searchlink/plugins')
 
-        Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
-          require plugin
+        if File.directory?(plugins_folder) && !File.directory?(new_plugins_folder)
+          Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
+            require plugin
+          end
         end
 
-        plugins_folder = File.expand_path('~/.config/searchlink/plugins')
+        return unless File.directory?(new_plugins_folder)
 
-        Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
+        Dir.glob(File.join(new_plugins_folder, '**/*.rb')).sort.each do |plugin|
           require plugin
         end
       end

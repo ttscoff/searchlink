@@ -20,10 +20,11 @@ module SL
     def config_file
       old_style = File.expand_path('~/.searchlink')
       new_style = File.expand_path('~/.config/searchlink/config.yaml')
-      if File.exist?(old_style)
-        return old_style
+      if File.exist?(old_style) && !File.exist?(new_style)
+        old_style
       else
-        return new_style
+        FileUtils.mkdir_p(File.dirname(new_style))
+        new_style
       end
     end
 
