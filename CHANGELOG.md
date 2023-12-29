@@ -1,3 +1,20 @@
+### 2.3.63
+
+2023-12-29 12:05
+
+#### NEW
+
+- Lyrics embed can use !lyricjs to embed Genius.com lyrics with annotations
+
+#### IMPROVED
+
+- #scrub method removes non-breaking spaces
+
+#### FIXED
+
+- Array type search definitions throwing error
+- API path missing /songs in lyrics.rb
+
 ### 2.3.62
 
 2023-12-25 17:02
