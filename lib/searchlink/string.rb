@@ -2,7 +2,7 @@
 class ::String
   # Scrub invalid characters from string
   def scrub
-    encode('utf-16', invalid: :replace).encode('utf-8')
+    encode('utf-16', invalid: :replace).encode('utf-8').gsub(/\u00A0/, ' ')
   end
 
   # @see #scrub

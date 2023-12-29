@@ -72,7 +72,7 @@ module SL
       def js_embed(url)
         if SL::URL.valid_link?(url)
           body = Curl::Html.new(url).body
-          api_path = body.match(%r{\\"apiPath\\":\\"/songs/(.*?)\\"})[1]
+          api_path = body.match(%r{\\"apiPath\\":\\"(/songs/.*?)\\"})[1]
           id = api_path.sub(/.*?(\d+)$/, '\1')
           title = body.match(/_sf_async_config.title = '(.*?) \| Genius Lyrics'/)[1]
 
