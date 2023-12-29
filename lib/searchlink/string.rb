@@ -476,4 +476,12 @@ class ::String
     str = gsub(/(#{separator})+/, separator)
     str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, '.?')}/i }
   end
+
+  ##
+  ## Indent each line of string with 4 spaces
+  ##
+  ## @return [String] indented string
+  def code_indent
+    split(/\n/).map { |l| "    #{l}" }.join("\n")
+  end
 end

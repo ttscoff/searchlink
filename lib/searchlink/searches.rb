@@ -70,7 +70,7 @@ module SL
 
       def best_search_match(term)
         searches = all_possible_searches.dup
-        searches.select { |s| s.matches_score(term, separator: '', start_word: false) > 8 }
+        searches.flatten.select { |s| s.matches_score(term, separator: '', start_word: false) > 8 }
       end
 
       def all_possible_searches

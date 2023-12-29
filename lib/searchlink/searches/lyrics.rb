@@ -9,14 +9,15 @@ module SL
           # `trigger` is A regular expression that will trigger this plugin
           # when used with a bang. The one below will trigger on !lyrics or
           # !lyricse.
-          trigger: 'lyrics?e?',
+          trigger: 'lyrics?(e|e?js)?',
           # Every search that the plugin should execute should be individually
           # listed and described in the searches array. This is used for
           # completion and help generation. Do not include the bang (!) in the
           # search keyword.
           searches: [
             ['lyric', 'Song Lyrics Search'],
-            ['lyrice', 'Song Lyrics Embed']
+            ['lyrice', 'Song Lyrics Embed'],
+            ['lyricjs', 'Song Lyrics JS Embed']
           ]
         }
       end
@@ -45,6 +46,15 @@ module SL
             SL.add_error('No lyrics found', "Song lyrics for #{search_terms} not found")
             false
           end
+        when /js$/
+          url, title = SL.ddg("site:genius.com #{search_terms}", link_text)
+          if url
+            title = js_embed(url)
+            title ? ['embed', title, link_text] : false
+          else
+            SL.add_error('No lyrics found', "Song lyrics for #{search_terms} not found")
+            false
+          end
         else
           # You can perform a DuckDuckGo search using SL#ddg, passing the
           # search terms and link_text. It will return url, title, and
@@ -59,6 +69,24 @@ module SL
         end
       end
 
+      def js_embed(url)
+        if SL::URL.valid_link?(url)
+          body = Curl::Html.new(url).body
+          api_path = body.match(%r{\\"apiPath\\":\\"/songs/(.*?)\\"})[1]
+          id = api_path.sub(/.*?(\d+)$/, '\1')
+          title = body.match(/_sf_async_config.title = '(.*?) \| Genius Lyrics'/)[1]
+
+          <<~EOEMBED
+            <div id='rg_embed_link_#{id}' class='rg_embed_link' data-song-id='#{id}'>
+            Read <a href='#{url}'>#{title}</a> on Genius
+            </div>
+            <script crossorigin src='//genius.com#{api_path}/embed.js'></script>
+          EOEMBED
+        else
+          false
+        end
+      end
+
       # Any additional helper methods can be defined after #search
       def get_lyrics(url)
         if SL::URL.valid_link?(url)
@@ -66,13 +94,14 @@ module SL
           # `curl -SsL` is faster and easier. Curl::Html.new(url) returns a
           # new object containing :body
           body = Curl::Html.new(url).body
-
+          title = body.match(/_sf_async_config.title = '(.*?) \| Genius Lyrics'/)[1].gsub(/\\/, '').sub(/ Lyrics$/, '')
           matches = body.scan(%r{class="Lyrics__Container-.*?>(.*?)</div><div class="LyricsFooter})
 
           lyrics = matches.join("\n")
 
           if lyrics
-            "```\n#{CGI.unescape(lyrics).gsub(%r{<br/?>}, "  \n").gsub(%r{</?.*?>}, '').gsub(/&#x27;/, "'")}\n```"
+            lyrics = CGI.unescape(lyrics).gsub(%r{<br/?>}, "  \n").gsub(%r{</?.*?>}, '').gsub(/&#x27;/, "'")
+            "#{title}\n\n#{lyrics.code_indent}\n"
           else
             false
           end
