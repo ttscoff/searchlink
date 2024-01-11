@@ -1,6 +1,10 @@
 ### 2.3.64
 
-2024-01-11 09:20
+2024-01-11 09:22
+
+#### IMPROVED
+
+- Update the tokens for GH access from Services version
 
 ### 2.3.63
 
