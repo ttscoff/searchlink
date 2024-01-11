@@ -107,6 +107,7 @@ module Curl
     ## @param      tag     The tag
     ## @param      source  [Boolean] Return full tag instead of contents
     ##
+    ## @return [Array] array of tag matches/contents
     def extract_tag_contents(tag, source: false)
       return @body.scan(%r{<#{tag}.*?>(?:.*?</#{tag}>)?}) if source
 
@@ -452,13 +453,11 @@ module Curl
         end
 
         # look for a charset in a content-encoding header
-        if content_type
-          encoding ||= content_type[/charset=["']?(.*?)($|["';\s])/i, 1]
-        end
+        encoding ||= content_type[/charset=["']?(.*?)($|["';\s])/i, 1] if content_type
 
         # look for a charset in a meta tag in the first 1024 bytes
         unless encoding
-          data = body[0..1023].gsub(/<!--.*?(-->|\Z)/m, "")
+          data = body[0..1023].gsub(/<!--.*?(-->|\Z)/m, '')
           data.scan(/<meta.*?>/im).each do |meta|
             encoding ||= meta[/charset=["']?([^>]*?)($|["'\s>])/im, 1]
           end

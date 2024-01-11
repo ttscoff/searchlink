@@ -5,7 +5,7 @@ end
 module SL
   class << self
     def version_check
-      cachefile = File.expand_path('~/.searchlink_update_check')
+      cachefile = File.expand_path('~/.config/cache/update.txt')
       if File.exist?(cachefile)
         last_check, latest_tag = IO.read(cachefile).strip.split(/\|/)
         last_time = Time.parse(last_check)
@@ -22,12 +22,12 @@ module SL
       latest_tag ||= SL::VERSION
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
-      
+
       File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}") }
 
-      return "SearchLink v#{current.to_s}, #{latest.to_s} available. Run 'update' to download." if latest_tag && current.older_than(latest)
+      return "SearchLink v#{current}, #{latest} available. Run 'update' to download." if latest_tag && current.older_than(latest)
 
-      "SearchLink v#{current.to_s}"
+      "SearchLink v#{current}"
     end
 
     # Check for a newer version than local copy using GitHub release tag
@@ -63,6 +63,11 @@ module SL
     end
 
     def update_searchlink
+      if %x{uname}.strip !~ /Darwin/
+        add_output('Auto updating only available on macOS')
+        return
+      end
+
       new_version = SL.new_version?
       if new_version
         folder = File.expand_path('~/Downloads')
