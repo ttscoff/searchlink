@@ -5,7 +5,7 @@ end
 module SL
   class << self
     def version_check
-      cachefile = File.expand_path('~/.config/cache/update.txt')
+      cachefile = File.expand_path('~/.config/searchlink/cache/update.txt')
       if File.exist?(cachefile)
         last_check, latest_tag = IO.read(cachefile).strip.split(/\|/)
         last_time = Time.parse(last_check)
