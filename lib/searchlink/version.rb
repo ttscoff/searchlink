@@ -6,6 +6,9 @@ module SL
   class << self
     def version_check
       cachefile = File.expand_path('~/.config/searchlink/cache/update.txt')
+
+      FileUtils.mkdir_p(File.dirname(cachefile)) unless File.directory?(File.dirname(cachefile))
+
       if File.exist?(cachefile)
         last_check, latest_tag = IO.read(cachefile).strip.split(/\|/)
         last_time = Time.parse(last_check)
@@ -23,9 +26,11 @@ module SL
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
 
-      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest.to_s}") }
+      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest}") }
 
-      return "SearchLink v#{current}, #{latest} available. Run 'update' to download." if latest_tag && current.older_than(latest)
+      if latest_tag && current.older_than(latest)
+        return "SearchLink v#{current}, #{latest} available. Run 'update' to download."
+      end
 
       "SearchLink v#{current}"
     end

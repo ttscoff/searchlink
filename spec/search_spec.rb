@@ -72,7 +72,7 @@ describe 'CLI' do
     ['* A Last.fm track search [neat neat neat](!lsong "The Damned Neat Neat Neat") (with specified search terms)', 'https://www.last.fm/music/The+Damned/_/Neat+Neat+Neat'],
     # Mac App Store
     ['* Mac app store search: [Marked on the MAS](!mas "Marked 2")', 'https://apps.apple.com/us/app/marked-2-markdown-preview/id890031187?mt=12&uo=4&at=10l4tL&ct=searchlink'],
-    ['* This search: [](!mas "Omnifocus 3" accomplish more) will have its link text filled in', '[Omnifocus 3](https://apps.apple.com/us/app/omnifocus-3'],
+    ['* This search: [](!mas "Omnifocus 4" accomplish more) will have its link text filled in', '[Omnifocus 4](https://apps.apple.com/us/app/omnifocus-4'],
     ['* Mac App Store search [Marked direct](!masd "Marked") with direct dev site link.', 'http://marked2app.com'],
     # iTunes App Store
     ['* iTunes app search: [Grindstone](!itu)', 'https://apps.apple.com/us/app/grindstone/id1357426636?uo=4&at=10l4tL&ct=searchlink'],
@@ -99,9 +99,11 @@ describe 'CLI' do
     # zero click
     ['* A zero click result [%](!z disambiguation)', 'https://en.wikipedia.org/wiki/Disambiguation_(disambiguation)'],
     # Site specific
-    ['* Site specific search: [Keybindings](!brettterpstra.com <Keybinding madness part 2>)', 'https://brettterpstra.com/2011/08/13/keybinding-madness/'],
+    ['* Site specific search: [Keybindings](!brettterpstra.com <Keybinding madness part 2>)',
+     'https://brettterpstra.com/2011/11/10/the-keys-that-bind-keybinding-madness-part-2/'],
     # DuckDuckGo
-    ['* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)', 'the-keys-that-bind-keybinding-madness-part-2/']
+    ['* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)',
+     'the-keys-that-bind-keybinding-madness-part-2/']
   ]
 
   searches.each.with_index do |search, i|

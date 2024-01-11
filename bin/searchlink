@@ -46,8 +46,7 @@ if !ARGV.empty?
 
   files.each do |file|
     if File.exist?(file) && `file -b "#{file}"|grep -c text`.to_i.positive?
-      input = RUBY_VERSION.to_f > 1.9 ? IO.read(file).force_encoding('utf-8') : IO.read(file)
-      input.scrub!
+      input = IO.read(file).scrubup
 
       backup_file = "#{file}.bak"
       backup_file = "#{file}.bak 1" if File.exist?(backup_file)
@@ -72,8 +71,7 @@ if !ARGV.empty?
     end
   end
 else
-  input = RUBY_VERSION.to_f > 1.9 ? $stdin.read.force_encoding('utf-8').encode : $stdin.read
-  input.scrub!
+  input = $stdin.read.scrubup
   sl.parse(input)
   output = SL.output&.join('')
 
