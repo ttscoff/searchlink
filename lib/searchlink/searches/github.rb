@@ -24,6 +24,8 @@ module SL
           url, title, link_text = github(search_terms, link_text)
         end
 
+        return SL.ddg("site:github.com #{search_terms}", link_text) unless url
+
         link_text = title if link_text == '' || link_text == search_terms
 
         [url, title, link_text]
@@ -32,9 +34,9 @@ module SL
       def github_search_curl(endpoint, query)
         headers = {
           'Accept' => 'application/vnd.github+json',
-          'X-GitHub-Api-Version' => '2022-11-28',
+          'X-GitHub-Api-Version' => '2022-11-28'
         }
-        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if Secrets::GH_AUTH_TOKEN
+        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
         res = Curl::Json.new(url, headers: headers)
@@ -51,7 +53,7 @@ module SL
           'Accept' => 'application/vnd.github+json',
           'X-GitHub-Api-Version' => '2022-11-28'
         }
-        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if Secrets::GH_AUTH_TOKEN
+        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/users/#{user}/gists?per_page=100&page=#{page}"
 
@@ -113,14 +115,18 @@ module SL
       end
 
       def search_github(search_terms, link_text)
-        search_terms.gsub!(%r{(\S+)/(\S+)}, 'user:\1 \2')
-        search_terms.gsub!(/\bu\w*:(\w+)/, 'user:\1')
-        search_terms.gsub!(/\bl\w*:(\w+)/, 'language:\1')
-        search_terms.gsub!(/\bin?:r\w*/, 'in:readme')
-        search_terms.gsub!(/\bin?:t\w*/, 'in:topics')
-        search_terms.gsub!(/\bin?:d\w*/, 'in:description')
-        search_terms.gsub!(/\bin?:(t(itle)?|n(ame)?)/, 'in:name')
-        search_terms.gsub!(/\br:/, 'repo:')
+        replacements = [
+          [%r{(\S+)/(\S+)}, 'user:\1 \2'],
+          [/\bu\w*:(\w+)/, 'user:\1'],
+          [/\bl\w*:(\w+)/, 'language:\1'],
+          [/\bin?:r\w*/, 'in:readme'],
+          [/\bin?:t\w*/, 'in:topics'],
+          [/\bin?:d\w*/, 'in:description'],
+          [/\bin?:(t(itle)?|n(ame)?)/, 'in:name'],
+          [/\br:/, 'repo:']
+        ]
+
+        replacements.each { |r| search_terms.gsub!(r[0], r[1]) }
 
         search_terms += ' in:title' unless search_terms =~ /(in|user|repo):/
 

@@ -1,3 +1,13 @@
+### 2.3.65
+
+2024-01-16 12:39
+
+#### FIXED
+
+- Cache path missing element
+- Update search spec test for recent results
+- Rename #scrub method to #scrubup to avoid conflicts
+
 ### 2.3.64
 
 2024-01-11 09:22
