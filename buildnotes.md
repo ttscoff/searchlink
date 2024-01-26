@@ -1,5 +1,6 @@
 template: markdown,git,project
 project: searchlink
+readme: src/_README.md
 download_title: SearchLink
 download_url: https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip
 

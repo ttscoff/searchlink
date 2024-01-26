@@ -1,11 +1,15 @@
+# SearchLink
 
+A macOS Service for Markdown writers that allows you to add hyperlinks while writing without switching to your browser.
+
+<!--README-->
 ### Introduction
 
+<!--JEKYLL{% img alignright /uploads/2023/01/searchlink-text-short-400.jpg 400 142 "searchlink-text-short-400.jpg" %}-->
 
-
-
+<!--GITHUB-->
 ![](images/searchlink-text-short-400.jpg)
-
+<!--END GITHUB-->
 
 SearchLink is a System Service (Quick Action) for macOS which searches multiple web sources and automatically generates Markdown links for text. It allows you to write without leaving your editor to run web searches for the items you want to link to. It's great for blogging, and excellent for creating podcast show notes, among other things.
 
@@ -19,9 +23,25 @@ This has replaced the "Auto-link web search" service in the [Markdown Service To
 
 Here's a video tutorial from Aaron Dowd ([@thepodcastdude](https://twitter.com/thepodcastdude)):
 
+<!--JEKYLL
+{% youtube QD-u6JP83us 853 480 %}
 
+And here some tutorial posts:
 
+{% series_list SearchLink Tips %}
 
+Including a couple of videos:
+
+Accurate searches for better results:
+
+{% youtube PBIfZh60jOY %}
+
+Browser history, bookmarks, and Pinboard search:
+
+{% youtube miMYFVUtg-Y %}
+-->
+
+<!--GITHUB-->
 [![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
 
 Also see:
@@ -33,30 +53,30 @@ Accurate searches for better results:
 Browser history, bookmarks, and Pinboard search:
 
 [![Browser history, bookmarks, and Pinboard search](http://img.youtube.com/vi/miMYFVUtg-Y/0.jpg)](https://youtu.be/miMYFVUtg-Y)
-
+<!--END GITHUB-->
 
 ### Documentation
 
-
+<!--GITHUB-->
 The documentation has [moved to the wiki](https://github.com/ttscoff/searchlink/wiki).
-
-
+<!--END GITHUB-->
+<!--JEKYLL[Go to the Docs Wiki](https://github.com/ttscoff/searchlink/wiki){:.btn}-->
 
 ### Download
 
 There will likely be updates to this as I solve more problems, so keep an eye on this page for new versions. The current source code is [available on GitHub](https://github.com/ttscoff/searchlink).
 
-
+<!--JEKYLL{% download 70 %}-->
 
 SearchLink can also be installed via Homebrew, thanks to [@TomBen](https://github.com/TomBener):
 
 	brew tap tombener/tap && brew install --cask searchlink
 
+<!--JEKYLL[Latest release on GitHub](https://github.com/ttscoff/searchlink/releases/latest/){:.btn.btn--alt}-->
 
-
-
-[Download SearchLink 2.3.65](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
-
+<!--GITHUB-->
+[Download SearchLink <!--VER-->2.3.65<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
+<!--END GITHUB-->
 
 If you're interested in installing SearchLink as a command line tool, [see the wiki](https://github.com/ttscoff/searchlink/wiki/Using-From-The-Command-Line).
 
@@ -70,12 +90,13 @@ All of [SearchLink's searches][searches] are defined using a [plugin architectur
 
 ### Bonus for LaunchBar users
 
-With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ???C will copy it to your clipboard.
+With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ⌘C will copy it to your clipboard.
 
 Note that you don't need the normal "!!" at the end of the search string to specify that SearchLink should just return the URL, that's included in the script.
 
-
-
+<!--JEKYLL{% gist 9067625 %}-->
+<!--GITHUB-->
 [View the Script](https://gist.github.com/ttscoff/9067625)
+<!--END GITHUB-->
 
-
+<!--END README-->
