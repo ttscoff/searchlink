@@ -1,6 +1,170 @@
+### 2.3.65
+
+2024-01-16 12:40
+
+#### FIXED
+
+- Cache path missing element
+- Update search spec test for recent results
+- Rename #scrub method to #scrubup to avoid conflicts
+
+### 2.3.64
+
+2024-01-11 09:22
+
+#### IMPROVED
+
+- Update the tokens for GH access from Services version
+
+### 2.3.63
+
+2023-12-29 12:06
+
+#### NEW
+
+- Lyrics embed can use !lyricjs to embed Genius.com lyrics with annotations
+
+#### IMPROVED
+
+- #scrub method removes non-breaking spaces
+
+#### FIXED
+
+- Array type search definitions throwing error
+- API path missing /songs in lyrics.rb
+
+### 2.3.62
+
+2023-12-25 17:02
+
+### 2.3.61
+
+2023-12-25 16:50
+
+#### IMPROVED
+
+- Plugins can use an array of possible search shortcut matches which will be displayed in help and used for matching search descriptions in notifications, so you can specify %w[weather, wea] and both will provide a description
+- Move config file to ~/.config/searchlink/config.yaml. Old location still recognized for backward compatibility
+- Move plugin location to ~/.config/searchlink/plugins. Old location still recognized for backward compatibility
+- Move cache storage to ~/.config/searchlink
+
+### 2.3.60
+
+2023-12-25 16:09
+
+### 2.3.59
+
+<<<<<<< HEAD
+2023-12-25 16:08
+=======
+2023-12-25 16:05
+>>>>>>> 198f64715f6401cb149815990e8ceaa9348c542f
+
+### 2.3.58
+
+2023-12-13 14:02
+
+#### NEW
+
+- !img search to return the first image on the located page as a Markdown image tag
+
+#### IMPROVED
+
+- Abstract all curl commands to classes
+- New classes HTMLCurl and JSONCurl to handle using curl for getting web page contents, will help plugin developers handle all of the edge cases when using curl
+- "Which" class to locate the exact binary for curl operations
+- Update all searches to use new Curl classes
+- Option to symbolize names when curling JSON
+- Use a hash for headers on curl calls instead of an array of strings
+- Docs update, fix tests
+- Curl library improvements
+- Update tests
+
+#### FIXED
+
+- GitHub gist embed failure
+
+### 2.3.57
+
+2023-11-07 17:37
+
+#### IMPROVED
+
+- Automatically trim ^ and $ from start/end of trigger definitions to avoid conflicts with custom plugins
+- Rename URL.get_title to URL.title
+- Add Util.curlHTML and Util.curlJSON methods
+
+#### FIXED
+
+- Lyrics embed in example plugin
+
+### 2.3.56
+
+2023-11-06 12:45
+
+#### FIXED
+
+- Unable to retrieve app titles from Mac App Store and iTunes
+- Parsing of title tags
+
+### 2.3.55
+
+2023-11-06 11:26
+
+#### FIXED
+
+- !g search not falling back to DuckDuckGo
+- DuckDuckGo fallback infinite loop and timeout
+
+### 2.3.54
+
+2023-11-06 09:55
+
+#### FIXED
+
+- Custom searches were returning a list of plugins instead of URL
+
+### 2.3.53
+
+2023-11-05 16:09
+
+### 2.3.52
+
+2023-11-01 10:27
+
+### 2.3.51
+
+2023-10-30 12:35
+
+- Add browser id header to curl command when fetching title to avoid 502 errors
+
+### 2.3.50
+
+2023-10-29 17:31
+
+- Fix for recent DuckDuckGo changes
+
+### 2.3.49
+
+2023-03-15 06:01
+
+#### FIXED
+
+- YouTube embed error
+
 ### 2.3.48
 
-2023-01-31 10:37
+2023-02-27 11:27
+
+#### IMPROVED
+
+- Refactoring and code cleanup
+- Remove calls to gather as certain titles weren't being retrieved properly
+- `!yt <ID>` will return a valid watch url
+
+#### FIXED
+
+- Errant dash in version check
 
 ### 2.3.47
 

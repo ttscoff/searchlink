@@ -24,9 +24,9 @@ module SL
       def description_for_search(search_type)
         description = "#{search_type} search"
         plugins[:search].each do |_, plugin|
-          s = plugin[:searches].select { |s| s[0] == search_type }
-          unless s.empty?
-            description = s[0][1]
+          search = plugin[:searches].select { |s| s[0].is_a?(Array) ? s[0].include?(search_type) : s[0] == search_type }
+          unless search.empty?
+            description = search[0][1]
             break
           end
         end
@@ -42,11 +42,14 @@ module SL
         searches = plugins[:search]
                    .flat_map { |_, plugin| plugin[:searches] }
                    .reject { |s| s[1].nil? }
-                   .sort_by { |s| s[0] }
+                   .sort_by { |s| s[0].is_a?(Array) ? s[0][0] : s[0] }
         out = ['<table id="searches">',
                '<thead><td>Shortcut</td><td>Search Type</td></thead>',
                '<tbody>']
-        searches.each { |s| out << "<tr><td><code>!#{s[0]}</code></td><td>#{s[1]}</td></tr>" }
+
+        searches.each do |s|
+          out << "<tr><td><code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}</code></td><td>#{s[1]}</td></tr>"
+        end
         out.concat(['</tbody>', '</table>']).join("\n")
       end
 
@@ -58,14 +61,16 @@ module SL
       def available_searches
         searches = []
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
-        out = ''
-        searches.each { |s| out += "!#{s[0]}#{s[0].spacer}#{s[1]}\n" }
-        out
+        out = []
+        searches.each do |s|
+          out += "!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}#{s[0].spacer}#{s[1]}"
+        end
+        out.join("\n")
       end
 
       def best_search_match(term)
         searches = all_possible_searches.dup
-        searches.select { |s| s.matches_score(term, separator: '', start_word: false) > 8 }
+        searches.flatten.select { |s| s.matches_score(term, separator: '', start_word: false) > 8 }
       end
 
       def all_possible_searches
@@ -110,16 +115,25 @@ module SL
 
       def load_custom
         plugins_folder = File.expand_path('~/.local/searchlink/plugins')
-        return unless File.directory?(plugins_folder)
+        new_plugins_folder = File.expand_path('~/.config/searchlink/plugins')
 
-        Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
+        if File.directory?(plugins_folder) && !File.directory?(new_plugins_folder)
+          Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
+            require plugin
+          end
+        end
+
+        return unless File.directory?(new_plugins_folder)
+
+        Dir.glob(File.join(new_plugins_folder, '**/*.rb')).sort.each do |plugin|
           require plugin
         end
       end
 
       def do_search(search_type, search_terms, link_text, timeout: SL.config['timeout'])
         plugins[:search].each do |_title, plugin|
-          if search_type =~ /^#{plugin[:trigger]}$/
+          trigger = plugin[:trigger].gsub(/(^\^|\$$)/, '')
+          if search_type =~ /^#{trigger}$/
             search = proc { plugin[:class].search(search_type, search_terms, link_text) }
             return SL::Util.search_with_timeout(search, timeout)
           end
@@ -149,6 +163,9 @@ require_relative 'searches/duckduckgo'
 
 # import
 require_relative 'searches/github'
+
+# import
+require_relative 'searches/google'
 
 # import
 require_relative 'searches/history'

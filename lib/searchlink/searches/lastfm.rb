@@ -14,10 +14,8 @@ module SL
       def search(search_type, search_terms, link_text)
         type = search_type =~ /art$/ ? 'artist' : 'track'
 
-        url = URI.parse("http://ws.audioscrobbler.com/2.0/?method=#{type}.search&#{type}=#{search_terms.url_encode}&api_key=2f3407ec29601f97ca8a18ff580477de&format=json")
-        res = Net::HTTP.get_response(url).body
-        res = res.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
-        json = JSON.parse(res)
+        url = "http://ws.audioscrobbler.com/2.0/?method=#{type}.search&#{type}=#{search_terms.url_encode}&api_key=2f3407ec29601f97ca8a18ff580477de&format=json"
+        json = Curl::Json.new(url).json
         return false unless json['results']
 
         begin

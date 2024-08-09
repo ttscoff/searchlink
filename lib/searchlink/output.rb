@@ -91,7 +91,7 @@ module SL
     #
     def make_link(type, text, url, title: false, force_title: false)
       title = title.gsub(/\P{Print}|\p{Cf}/, '') if title
-      text = title || SL::URL.get_title(url) if SL.titleize && (!text || text.strip.empty?)
+      text = title || SL::URL.title(url) if SL.titleize && (!text || text.strip.empty?)
       text = text ? text.strip : title
       title = title && (SL.config['include_titles'] || force_title) ? %( "#{title.clean}") : ''
 
@@ -103,7 +103,8 @@ module SL
       when :ref_link
         %([#{text}][#{url}])
       when :inline
-        %([#{text}](#{url}#{title}))
+        image = url =~ /\.(gif|jpe?g|png|webp)$/ ? '!' : ''
+        %(#{image}[#{text}](#{url}#{title}))
       end
     end
 

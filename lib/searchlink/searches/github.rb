@@ -24,43 +24,40 @@ module SL
           url, title, link_text = github(search_terms, link_text)
         end
 
+        return SL.ddg("site:github.com #{search_terms}", link_text) unless url
+
         link_text = title if link_text == '' || link_text == search_terms
 
         [url, title, link_text]
       end
 
       def github_search_curl(endpoint, query)
-        auth = Secrets::GH_AUTH_TOKEN ? "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}" : ''
-
-        headers = [
-          'Accept: application/vnd.github+json',
-          'X-GitHub-Api-Version: 2022-11-28',
-          auth
-        ]
+        headers = {
+          'Accept' => 'application/vnd.github+json',
+          'X-GitHub-Api-Version' => '2022-11-28'
+        }
+        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
+        res = Curl::Json.new(url, headers: headers)
 
-        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}") }.join(' ')} #{url}`)
-
-        if res.key?('total_count') && res['total_count'].positive?
-          res['items'][0]
+        if res.json.key?('total_count') && res.json['total_count'].positive?
+          res.json['items'][0]
         else
           false
         end
       end
 
       def user_gists(user, search_terms, page = 1)
-        auth = Secrets::GH_AUTH_TOKEN ? "Authorization: Bearer #{Secrets::GH_AUTH_TOKEN}" : ''
-
-        headers = [
-          'Accept: application/vnd.github+json',
-          'X-GitHub-Api-Version: 2022-11-28',
-          auth
-        ]
+        headers = {
+          'Accept' => 'application/vnd.github+json',
+          'X-GitHub-Api-Version' => '2022-11-28'
+        }
+        headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
         url = "https://api.github.com/users/#{user}/gists?per_page=100&page=#{page}"
 
-        res = JSON.parse(`curl -SsL #{headers.map { |h| %(-H "#{h}") }.join(' ')} '#{url}'`)
+        res = Curl::Json.new(url, headers: headers).json
 
         best = nil
         best = filter_gists(res, search_terms) if res
@@ -88,7 +85,7 @@ module SL
               end
 
         if SL::URL.valid_link?(url)
-          title = SL::URL.get_title(url) if url && title.nil?
+          title = SL::URL.title(url) if url && title.nil?
 
           [url, title, link_text]
         else
@@ -118,14 +115,18 @@ module SL
       end
 
       def search_github(search_terms, link_text)
-        search_terms.gsub!(%r{(\S+)/(\S+)}, 'user:\1 \2')
-        search_terms.gsub!(/\bu\w*:(\w+)/, 'user:\1')
-        search_terms.gsub!(/\bl\w*:(\w+)/, 'language:\1')
-        search_terms.gsub!(/\bin?:r\w*/, 'in:readme')
-        search_terms.gsub!(/\bin?:t\w*/, 'in:topics')
-        search_terms.gsub!(/\bin?:d\w*/, 'in:description')
-        search_terms.gsub!(/\bin?:(t(itle)?|n(ame)?)/, 'in:name')
-        search_terms.gsub!(/\br:/, 'repo:')
+        replacements = [
+          [%r{(\S+)/(\S+)}, 'user:\1 \2'],
+          [/\bu\w*:(\w+)/, 'user:\1'],
+          [/\bl\w*:(\w+)/, 'language:\1'],
+          [/\bin?:r\w*/, 'in:readme'],
+          [/\bin?:t\w*/, 'in:topics'],
+          [/\bin?:d\w*/, 'in:description'],
+          [/\bin?:(t(itle)?|n(ame)?)/, 'in:name'],
+          [/\br:/, 'repo:']
+        ]
+
+        replacements.each { |r| search_terms.gsub!(r[0], r[1]) }
 
         search_terms += ' in:title' unless search_terms =~ /(in|user|repo):/
 
@@ -185,23 +186,23 @@ module SL
         # If an id (and optional file) are given, expand it to include username an generate link
         when %r{^(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
-          res = `curl -SsLI 'https://gist.github.com/#{m['id']}'`.strip
-          url = res.match(/^location: (.*?)$/)[1].strip
-          title = SL::URL.get_title(url)
+          res = Curl::Html.new("https://gist.github.com/#{m['id']}", headers_only: true)
+          url = res.headers['location']
+          title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']
         # If a user an id (an o) are given, convert to a link
         when %r{^(?<u>\w+)/(?<id>[a-z0-9]{32}|[0-9]{6,10})(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = "https://gist.github.com/#{m['u']}/#{m['id']}"
-          title = SL::URL.get_title(url)
+          title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']
         # if a full gist URL is given, simply clean it up
         when %r{(?<url>https://gist.github.com/(?:(?<user>\w+)/)?(?<id>[a-z0-9]{32}|[0-9]{6,10}))(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           url = m['url']
-          title = SL::URL.get_title(url)
+          title = SL::URL.title(url)
 
           url = "#{url}##{m['file']}" if m['file']
         # Otherwise do a search of gist.github.com for the keywords

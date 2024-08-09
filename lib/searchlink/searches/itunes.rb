@@ -46,13 +46,11 @@ module SL
       def search_itunes(entity, terms, dev, aff = nil)
         aff ||= SL.config['itunes_affiliate']
 
-        url = URI.parse("http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1")
-
-        res = Net::HTTP.get_response(url).body
-        res = res.force_encoding('utf-8').encode # if RUBY_VERSION.to_f > 1.9
+        url = "http://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1"
 
         begin
-          json = JSON.parse(res)
+          page = Curl::Json.new(url, compressed: true)
+          json = page.json
         rescue StandardError => e
           SL.add_error('Invalid response', "Search for #{terms}: (#{e})")
           return false

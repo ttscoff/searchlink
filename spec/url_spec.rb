@@ -67,10 +67,10 @@ describe SL::URL do
     end
   end
 
-  describe '#get_title' do
+  describe '#title' do
     context 'when given a valid url' do
       it 'collects the correct title' do
-        expect(url.get_title('https://brettterpstra.com')).to match(/BrettTerpstra.com/)
+        expect(url.title('https://brettterpstra.com')).to match(/BrettTerpstra.com/)
       end
     end
   end

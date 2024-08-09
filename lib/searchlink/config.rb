@@ -17,10 +17,20 @@ module SL
   class SearchLink
     # Values found in ~/.searchlink will override defaults in
     # this script
+    def config_file
+      old_style = File.expand_path('~/.searchlink')
+      new_style = File.expand_path('~/.config/searchlink/config.yaml')
+      if File.exist?(old_style) && !File.exist?(new_style)
+        old_style
+      else
+        FileUtils.mkdir_p(File.dirname(new_style))
+        new_style
+      end
+    end
 
     def initialize(opt = {})
       SL.printout = opt[:echo] || false
-      unless File.exist? File.expand_path('~/.searchlink')
+      unless File.exist? config_file
         default_config = <<~ENDCONFIG
           # set to true to have an HTML comment included detailing any errors
           # Can be disabled per search with `--d`, or enabled with `++d`.
@@ -141,15 +151,17 @@ module SL
           # Generate an access token at https://app.bitly.com/settings/api/
           bitly_access_token: ''
           bitly_domain: 'bit.ly'
+          # Custom Google API key to use Google search (free for 100 queries/day)
+          google_api_key: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         ENDCONFIG
 
-        File.open(File.expand_path('~/.searchlink'), 'w') do |f|
+        File.open(config_file, 'w') do |f|
           f.puts default_config
         end
       end
 
-      config = YAML.load_file(File.expand_path('~/.searchlink'))
+      config = YAML.load_file(config_file)
 
       # set to true to have an HTML comment inserted showing any errors
       config['debug'] ||= false
@@ -209,6 +221,7 @@ module SL
       # use notification center to show progress
       config['notifications'] ||= false
       config['pinboard_api_key'] ||= false
+      config['google_api_key'] ||= false
 
       SL.line_num = nil
       SL.match_column = nil

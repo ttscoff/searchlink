@@ -6,6 +6,26 @@ class ::Array
   # @return [String] Longest string in array
   #
   def longest_element
-    group_by(&:size).max.last[0]
+    longest_elements[0]
+  end
+  # Finds the longest elements and returns an Array
+  #
+  # @return [Array] array of longest elements
+  def longest_elements
+    group_by(&:size).max.last
+  end
+
+  # Finds the shortest element in an array of strings
+  #
+  # @return [String] first element among shortest elements
+  def shortest_element
+    shortest_elements[0]
+  end
+
+  # Finds the shortest elements in an array of strings
+  #
+  # @return [Array] array of shortest elements
+  def shortest_elements
+    group_by(&:size).min.last
   end
 end

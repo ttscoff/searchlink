@@ -1,5 +1,13 @@
 module SL
   class SearchLink
+    # Parse arguments in the input string
+    #
+    # @param      string  [String] the string to parse
+    # @param      opt     [Hash] the options to parse
+    # @option opt [Boolean] :only_meta (false) whether to skip flags
+    # @option opt [Boolean] :no_restore (false) whether to restore previous config
+    # @return     [String] the parsed string
+    #
     def parse_arguments(string, opt={})
       input = string.dup
       return "" if input.nil?
@@ -227,7 +235,7 @@ module SL
             # Handle [](URL) and [%](URL), filling in title
             elsif (link_text == '' || link_text == '%') && SL::URL.url?(link_info)
               url = link_info
-              title = SL::URL.get_title(link_info)
+              title = SL::URL.title(link_info)
               link_text = title
 
               if ref_title
@@ -271,7 +279,7 @@ module SL
               if link_info =~ /^(?:[!\^](\S+))\s*(.*)$/
                 m = Regexp.last_match
 
-                search_type = m[1].nil? ? 'g' : m[1]
+                search_type = m[1].nil? ? (SL::GoogleSearch.test_for_key ? 'gg' : 'g') : m[1]
 
                 search_terms = m[2].gsub(/(^["']|["']$)/, '')
                 search_terms.strip!
@@ -302,7 +310,8 @@ module SL
                   search_type = search_word[1] unless search_word.nil?
                   search_terms = link_text
                 elsif search_word && search_word[1] =~ /^(\S+\.)+\S+$/
-                  search_type = 'g'
+                  search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                  puts SL::GoogleSearch.test_for_key
                   search_terms = "site:#{search_word[1]} #{link_text}"
                 else
                   SL.add_error("Invalid search#{SL::Searches.did_you_mean(search_word[1])}", match)
@@ -310,10 +319,10 @@ module SL
                   search_terms = false
                 end
               elsif link_text && !link_text.empty? && (!link_info || link_info.empty?)
-                search_type = 'g'
+                search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
                 search_terms = link_text
               elsif link_info && !link_info.empty?
-                search_type = 'g'
+                search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
                 search_terms = link_info
               else
                 SL.add_error('Invalid search', match)
@@ -370,7 +379,7 @@ module SL
                       end
                     end
                   else
-                    search_type = 'g'
+                    search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
                     search_terms = "site:#{v} #{search_terms}"
                   end
 
@@ -382,13 +391,11 @@ module SL
                 # warn "Searching #{search_type} for #{search_terms}"
                 if (!url)
                   search_count += 1
-
                   url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
-
                 end
 
                 if url
-                  title = SL::URL.get_title(url) if SL.titleize && title == ''
+                  title = SL::URL.title(url) if SL.titleize && title == ''
 
                   link_text = title if link_text == '' && title
                   force_title = search_type =~ /def/ ? true : false
@@ -426,7 +433,7 @@ module SL
                     res
                   end
                 else
-                  SL.add_error('No results', "#{search_terms} (#{match_string})")
+                   SL.add_error('No results', "#{search_terms} (#{match_string})")
                   counter_errors += 1
                   match
                 end
@@ -588,7 +595,7 @@ module SL
                     end
                   end
                 else
-                  type = 'g'
+                  type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
                   terms = "site:#{v} #{terms}"
                 end
 
@@ -599,7 +606,7 @@ module SL
             # if contains TLD, use site-specific search
             if type =~ /^(\S+\.)+\S+$/
               terms = "site:#{type} #{terms}"
-              type = 'g'
+              type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
             end
             search_count ||= 0
             search_count += 1

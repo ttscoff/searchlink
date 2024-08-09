@@ -78,7 +78,7 @@ module SL
       ## @return     [String] path to new cache file
       ##
       def cache_file_for(filename)
-        cache_folder = File.expand_path('~/.local/share/searchlink/cache')
+        cache_folder = File.expand_path('~/.config/searchlink/cache')
         FileUtils.mkdir_p(cache_folder) unless File.directory?(cache_folder)
         File.join(cache_folder, filename.sub(/(\.cache)?$/, '.cache'))
       end

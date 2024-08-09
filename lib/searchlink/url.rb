@@ -79,7 +79,7 @@ module SL
           title = if type == :ref_title
                     ref_title_for_url(url)
                   else
-                    get_title(url.to_s) || input.sub(%r{^https?://}, '')
+                    title(url.to_s) || input.sub(%r{^https?://}, '')
                   end
 
           return [url.to_s, title] if url.hostname
@@ -96,46 +96,41 @@ module SL
 
         m = Regexp.last_match
         sd = m['subdomain']
-        title = m['title']
+        title = m['title'].gsub(/-/, ' ')
         t = m['type']
         id = m['id']
         ["https://#{sd}amazon.com/#{t}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}", title]
       end
 
-      def get_title(url)
+      def title(url)
         title = nil
 
-        gather = false
-        ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
-          if File.exist?(File.join(root, 'gather')) && File.executable?(File.join(root, 'gather'))
-            gather = File.join(root, 'gather')
-            break
-          end
-        end
+        ## Gather proving too inexact
+        # gather = false
+        # ['/usr/local/bin', '/opt/homebrew/bin'].each do |root|
+        #   if File.exist?(File.join(root, 'gather')) && File.executable?(File.join(root, 'gather'))
+        #     gather = File.join(root, 'gather')
+        #     break
+        #   end
+        # end
 
-        if gather
-          cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
-          title = SL::Util.exec_with_timeout(cmd, 15)
-          if title
-            title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
-            title.remove_seo!(url) if SL.config['remove_seo']
-            return title.remove_protocol
-          else
-            SL.add_error('Error retrieving title', "Gather timed out on #{url}")
-            SL.notify('Error retrieving title', 'Gather timed out')
-          end
-        end
+        # if gather
+        #   cmd = %(#{gather} --title-only '#{url.strip}' --fallback-title 'Unknown')
+        #   title = SL::Util.exec_with_timeout(cmd, 15)
+        #   if title
+        #     title = title.strip.gsub(/\n+/, ' ').gsub(/ +/, ' ')
+        #     title.remove_seo!(url) if SL.config['remove_seo']
+        #     return title.remove_protocol
+        #   else
+        #     SL.add_error('Error retrieving title', "Gather timed out on #{url}")
+        #     SL.notify('Error retrieving title', 'Gather timed out')
+        #   end
+        # end
 
         begin
-          uri = URI.parse(url)
-          res = Net::HTTP.get_response(uri)
+          page = Curl::Html.new(url)
 
-          if res.code.to_i == 200
-            source = res.body
-            title = source ? source.match(%r{<title>(.*)</title>}im) : nil
-
-            title = title.nil? ? nil : title[1].strip
-          end
+          title = page.title || nil
 
           if title.nil? || title =~ /^\s*$/
             SL.add_error('Title not found', "Warning: missing title for #{url.strip}")
@@ -144,7 +139,7 @@ module SL
             title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')
             title.remove_seo!(url) if SL.config['remove_seo']
           end
-
+          title.gsub!(/\|/, '—')
           title.remove_seo!(url.strip) if SL.config['remove_seo']
           title.remove_protocol
         rescue StandardError

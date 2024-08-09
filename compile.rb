@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# String helpers
 class ::String
   def import_markers(base)
     gsub(/^# *import\nrequire(?:_relative)? '(.*?)'\n/) do
@@ -35,4 +36,4 @@ source.sub!(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, 
 
 File.open('searchlink.rb', 'w') { |f| f.puts source }
 
-puts "Compiled searchlink.rb"
+puts 'Compiled searchlink.rb'

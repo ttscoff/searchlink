@@ -12,10 +12,10 @@ module SL
     #
     # Run a search
     #
-    # @param [String] search_type search abbreviation
-    # @param [String] search_terms search terms
-    # @param [String] link_text text of link
-    # @param [Number] search_count Iteration count
+    # @param[String]  search_type   The search type (abbreviation)
+    # @param[String]  search_terms  The search terms
+    # @param[String]  link_text     The link text
+    # @param[Integer] search_count  The current search count
     #
     # @return [Array] [Url, link, text]
     #
@@ -39,7 +39,7 @@ module SL
             return [false, "Link not valid: #{search_terms}", link_text]
           end
 
-          title = SL::URL.get_title(search_terms) || search_terms
+          title = SL::URL.title(search_terms) || search_terms
 
           link_text = title if link_text == ''
           return [search_terms, title, link_text]

@@ -43,7 +43,7 @@ module SL
     ##
     ## Test if self is older than a semantic version number
     ##
-    ## @param      semver  [String,SemVer] The semantic version number or SemVer object
+    ## @param      other  [String,SemVer] The semantic version number or SemVer object
     ##
     ## @return     [Boolean] true if semver is older
     ##
@@ -85,7 +85,8 @@ module SL
     ##
     ## Test if self is newer than a semantic version number
     ##
-    ## @param      semver  [String,SemVer] The semantic version number or SemVer object
+    ## @param      other  [String,SemVer] The semantic version
+    ##                     number or SemVer object
     ##
     ## @return     [Boolean] true if semver is newer
     ##

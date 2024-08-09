@@ -47,7 +47,8 @@ module SL
       #
       def define(terms)
         def_url = "https://www.wordnik.com/words/#{terms.url_encode}"
-        body = `/usr/bin/curl -sSL '#{def_url}'`
+        curl = TTY::Which.which('curl')
+        body = `#{curl} -sSL '#{def_url}'`
         if body =~ /id="define"/
           first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]
           parts = first_definition.match(%r{<abbr title="partOfSpeech">(.*?)</abbr> (.*?)$})

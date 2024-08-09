@@ -1,8 +1,12 @@
 module SL
   class HistorySearch
     class << self
+      # Search Safari history for terms
+      #
+      # @param      term  The search term
+      #
       def search_safari_history(term)
-        # Firefox history
+        # Safari
         src = File.expand_path('~/Library/Safari/History.db')
         if File.exist?(src)
           SL.notify('Searching Safari History', term)
