@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class TwitterSearch
     class << self
@@ -10,7 +12,7 @@ module SL
         }
       end
 
-      def search(search_type, search_terms, link_text)
+      def search(_search_type, search_terms, link_text)
         if SL::URL.url?(search_terms) && search_terms =~ %r{^https://twitter.com/}
           url, title = twitter_embed(search_terms)
         else
@@ -37,7 +39,7 @@ module SL
         else
           return [false, 'Error retrieving tweet']
         end
-        return [url, title]
+        [url, title]
       end
     end
 

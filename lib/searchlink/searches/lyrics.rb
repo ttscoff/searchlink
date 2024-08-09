@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Always start with module SL
 module SL
   # Give it a unique class name

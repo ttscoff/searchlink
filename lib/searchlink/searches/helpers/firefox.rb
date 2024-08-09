@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class HistorySearch
     class << self
@@ -56,12 +58,11 @@ module SL
 
           marks.map! do |bm|
             date = Time.parse(bm['datum'])
-            score = score_mark({url: bm['url'], title: bm['title']}, term)
+            score = score_mark({ url: bm['url'], title: bm['title'] }, term)
             { url: bm['url'], title: bm['title'], date: date, score: score }
           end
 
-
-          m = marks.sort_by { |m| [m[:url].length * -1, m[:score]] }.last
+          m = marks.max_by { |m| [m[:url].length * -1, m[:score]] }
 
           [m[:url], m[:title], m[:date]]
         else
@@ -124,7 +125,7 @@ module SL
           bm = JSON.parse(most_recent)[0]
 
           date = Time.parse(bm['datum'])
-          score = score_mark({url: bm['url'], title: bm['title']}, term)
+          score = score_mark({ url: bm['url'], title: bm['title'] }, term)
           [bm['url'], bm['title'], date, score]
         else
           false

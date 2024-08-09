@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class << self
     attr_writer :titleize, :clipboard, :output, :footer, :line_num,
@@ -95,7 +97,7 @@ module SL
       text = text ? text.strip : title
       title = title && (SL.config['include_titles'] || force_title) ? %( "#{title.clean}") : ''
 
-      title.gsub!(/[ \t]+/, ' ')
+      title = title.gsub(/[ \t]+/, ' ')
 
       case type.to_sym
       when :ref_title

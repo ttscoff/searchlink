@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
+# Main module
 module SL
+  # URL module
   module URL
     class << self
       # Validates that a link exists and returns 200

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # Bit.ly link shortening
   class BitlySearch

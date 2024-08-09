@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'rake/clean'
 require 'rubygems'
+require 'bundler/gem_tasks'
 require 'rubygems/package_task'
 require 'rdoc'
 require 'rdoc/task'
@@ -12,11 +15,7 @@ task default: %i[test yard]
 
 desc 'Run test suite'
 # task test: %i[rubocop spec]
-task test: %i[spec]
-
-spec = eval(File.read('searchlink.gemspec'))
-Gem::PackageTask.new(spec) do |pkg|
-end
+task test: %i[rubocop spec]
 
 RSpec::Core::RakeTask.new
 
@@ -95,5 +94,3 @@ task :bump, :type do |_, args|
   end
   File.open(version_file, 'w+') { |f| f.puts content }
 end
-
-task default: %i[ver]

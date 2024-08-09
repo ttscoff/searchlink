@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # Dictionary Definition Search
   class DefinitionSearch

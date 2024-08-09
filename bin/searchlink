@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
+# frozen_string_literal: true
 
 SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
 $LOAD_PATH.unshift File.join(__dir__, '..')

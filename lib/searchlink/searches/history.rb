@@ -1,10 +1,12 @@
-#import
+# frozen_string_literal: true
+
+# import
 require_relative 'helpers/chromium'
 
-#import
+# import
 require_relative 'helpers/firefox'
 
-#import
+# import
 require_relative 'helpers/safari'
 
 module SL
@@ -48,7 +50,7 @@ module SL
         str = search_type.match(/^h(([scfabe])([hb])?)*$/)[1]
 
         types = []
-        while str && str.length.positive?
+        while str&.length&.positive?
           if str =~ /^s([hb]*)/
             t = Regexp.last_match(1)
             if t.length > 1 || t.empty?

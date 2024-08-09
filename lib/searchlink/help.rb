@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class SearchLink
     def help_css
@@ -65,7 +67,7 @@ module SL
 
       if SL.config['custom_site_searches']
         text += "\n-- [Custom Searches] ----------------------\n"
-        SL.config['custom_site_searches'].sort_by { |l, s| l }.each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
+        SL.config['custom_site_searches'].sort_by { |l, _s| l }.each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
       end
       text
     end

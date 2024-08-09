@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # title: Apple Music Search
 # description: Search Apple Music
 module SL

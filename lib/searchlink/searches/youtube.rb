@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # YouTube Search/Linking
   class YouTubeSearch

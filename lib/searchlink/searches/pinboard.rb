@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class PinboardSearch
     PINBOARD_CACHE = SL::Util.cache_file_for('pinboard')

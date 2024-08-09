@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module SL
   VERSION = '2.3.66'
 end
 
+# Main module
 module SL
   class << self
     def version_check
@@ -68,7 +71,7 @@ module SL
     end
 
     def update_searchlink
-      if %x{uname}.strip !~ /Darwin/
+      if `uname`.strip !~ /Darwin/
         add_output('Auto updating only available on macOS')
         return
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   module Searches
     class << self
@@ -14,7 +16,7 @@ module SL
       #
       # @param [String, Array] title title or array of titles
       # @param [Symbol] type plugin type (:search)
-      # @param [Class] klass class that handles plugin actions. Search plugins 
+      # @param [Class] klass class that handles plugin actions. Search plugins
       #                must have a #settings and a #search method
       #
       def register(title, type, klass)
@@ -48,7 +50,7 @@ module SL
                '<tbody>']
 
         searches.each do |s|
-          out << "<tr><td><code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}</code></td><td>#{s[1]}</td></tr>"
+          out << "<tr><td><code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(',')})" : s[0]}</code></td><td>#{s[1]}</td></tr>"
         end
         out.concat(['</tbody>', '</table>']).join("\n")
       end
@@ -63,7 +65,7 @@ module SL
         plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
         out = []
         searches.each do |s|
-          out += "!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}#{s[0].spacer}#{s[1]}"
+          out += "!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(',')})" : s[0]}#{s[0].spacer}#{s[1]}"
         end
         out.join("\n")
       end

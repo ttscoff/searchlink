@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class SearchLink
     # Parse arguments in the input string
@@ -8,9 +10,9 @@ module SL
     # @option opt [Boolean] :no_restore (false) whether to restore previous config
     # @return     [String] the parsed string
     #
-    def parse_arguments(string, opt={})
+    def parse_arguments(string, opt = {})
       input = string.dup
-      return "" if input.nil?
+      return '' if input.nil?
 
       skip_flags = opt[:only_meta] || false
       no_restore = opt[:no_restore] || false
@@ -279,7 +281,11 @@ module SL
               if link_info =~ /^(?:[!\^](\S+))\s*(.*)$/
                 m = Regexp.last_match
 
-                search_type = m[1].nil? ? (SL::GoogleSearch.test_for_key ? 'gg' : 'g') : m[1]
+                search_type = if m[1].nil?
+                                SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                              else
+                                m[1]
+                              end
 
                 search_terms = m[2].gsub(/(^["']|["']$)/, '')
                 search_terms.strip!
@@ -301,7 +307,7 @@ module SL
                 # if the end of input contains "!!", only print the url
                 link_only = true if search_terms =~ /!!\^?$/
 
-                search_terms.sub!(/(!!)?\^?(!!)?$/,"")
+                search_terms.sub!(/(!!)?\^?(!!)?$/, '')
 
               elsif link_info =~ /^!/
                 search_word = link_info.match(/^!(\S+)/)
@@ -389,7 +395,7 @@ module SL
 
               if (search_type && search_terms) || url
                 # warn "Searching #{search_type} for #{search_terms}"
-                if (!url)
+                unless url
                   search_count += 1
                   url, title, link_text = do_search(search_type, search_terms, link_text, search_count)
                 end
@@ -433,7 +439,7 @@ module SL
                     res
                   end
                 else
-                   SL.add_error('No results', "#{search_terms} (#{match_string})")
+                  SL.add_error('No results', "#{search_terms} (#{match_string})")
                   counter_errors += 1
                   match
                 end
@@ -564,7 +570,7 @@ module SL
                     end
                     terms_p = terms.split(/ +/)
                     if terms_p.length > highest_token
-                      remainder = terms_p[highest_token - 1..].join(' ')
+                      remainder = terms_p[highest_token - 1..-1].join(' ')
                       terms_p = terms_p[0..highest_token - 2]
                       terms_p.push(remainder)
                     end
@@ -619,14 +625,11 @@ module SL
         # Social handle expansion
         when /^([tfilm])?@(\S+)\s*$/
           type = Regexp.last_match(1)
-          unless type
-            # If contains @ mid-handle, use Mastodon
-            if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
-              type = 'm'
-            else
-              type = 't'
-            end
-          end
+          type ||= if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
+                     'm'
+                   else
+                     't'
+                   end
           link_text = input.sub(/^[tfilm]/, '')
           url, title = SL::SocialSearch.social_handle(type, link_text)
           link_text = title

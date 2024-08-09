@@ -4,7 +4,6 @@
 # MIT License, please maintain attribution
 require 'net/https'
 require 'uri'
-require 'rexml/document'
 require 'shellwords'
 require 'yaml'
 require 'cgi'

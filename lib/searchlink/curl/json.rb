@@ -27,11 +27,11 @@ module Curl
       parts = path.split(/./)
       target = json
       parts.each do |part|
-        if part =~ /(?<key>[^\[]+)\[(?<int>\d+)\]/
-          target = target[key][int.to_i]
-        else
-          target = target[part]
-        end
+        target = if part =~ /(?<key>[^\[]+)\[(?<int>\d+)\]/
+                   target[key][int.to_i]
+                 else
+                   target[part]
+                 end
       end
 
       target
@@ -56,7 +56,9 @@ module Curl
       headers = headers.nil? ? '' : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(' ')
       compress = compressed ? '--compressed' : ''
       source = `#{@curl} -#{flags} #{compress} #{headers} '#{url}' 2>/dev/null`
-      source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null` if source.nil? || source.empty?
+      if source.nil? || source.empty?
+        source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null`
+      end
 
       return false if source.nil? || source.empty?
 
@@ -71,7 +73,7 @@ module Curl
           m = Regexp.last_match
           headers[m[1]] = m[2]
         else
-          source = lines[idx..].join("\n")
+          source = lines[idx..-1].join("\n")
           break
         end
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Main SearchLink class
 module SL
   include URL

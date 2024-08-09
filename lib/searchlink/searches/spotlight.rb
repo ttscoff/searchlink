@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # Spotlight file search
   class SpotlightSearch
@@ -14,7 +16,7 @@ module SL
       def search(_, search_terms, link_text)
         query = search_terms.gsub(/%22/, '"')
         matches = `mdfind '#{query}' 2>/dev/null`.strip.split(/\n/)
-        res = matches.sort_by { |r| File.basename(r).length }.first
+        res = matches.min_by { |r| File.basename(r).length }
         return [false, query, link_text] if res.strip.empty?
 
         title = File.basename(res)

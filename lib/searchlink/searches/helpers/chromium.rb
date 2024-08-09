@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ##
 ## Chromium (Chrome, Arc, Brave, Edge) search methods
 ##
@@ -273,7 +275,7 @@ module SL
           if json.key? 'children'
             urls = extract_chrome_bookmarks(json['children'], urls, term)
           elsif json['type'] == 'url'
-            date = Time.at(json['date_added'].to_i / 1000000 + (Time.new(1601, 01, 01).strftime('%s').to_i))
+            date = Time.at(json['date_added'].to_i / 1_000_000 + Time.new(1601, 0o1, 0o1).strftime('%s').to_i)
             url = { url: json['url'], title: json['name'], date: date }
             score = score_mark(url, term)
 
@@ -299,7 +301,7 @@ module SL
       def score_mark(mark, terms)
         return 0 unless mark[:url]
 
-        score = if mark[:title] && mark[:title].matches_exact(terms)
+        score = if mark[:title]&.matches_exact(terms)
                   12 + mark[:url].matches_score(terms, start_word: false)
                 elsif mark[:url].matches_exact(terms)
                   11

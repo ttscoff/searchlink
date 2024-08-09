@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # GitHub search
   class GitHubSearch
@@ -58,6 +60,11 @@ module SL
         url = "https://api.github.com/users/#{user}/gists?per_page=100&page=#{page}"
 
         res = Curl::Json.new(url, headers: headers).json
+
+        if res.is_a?(Hash) && res['status'].to_i == 401
+          SL.notify('Error', 'Bad GitHub credentials')
+          return nil
+        end
 
         best = nil
         best = filter_gists(res, search_terms) if res
@@ -209,7 +216,7 @@ module SL
         else
           if terms.split(/ +/).count > 1
             parts = terms.split(/ +/)
-            gist = search_user_gists(parts[0], parts[1..].join(' '))
+            gist = search_user_gists(parts[0], parts[1..-1].join(' '))
 
             if gist
               url = gist[:url]

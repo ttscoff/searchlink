@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # DuckDuckGo Search
   class DuckDuckGoSearch
@@ -36,36 +38,34 @@ module SL
 
         # return SL.ddg(search_terms, link_text) if search_type == 'g' && SL::GoogleSearch.test_for_key
 
-        begin
-          terms = "%5C#{search_terms.url_encode}"
-          page = Curl::Html.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
+        terms = "%5C#{search_terms.url_encode}"
+        page = Curl::Html.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
 
-          locs = page.meta['refresh'].match(%r{/l/\?uddg=(.*?)$})
-          locs = page.body.match(%r{/l/\?uddg=(.*?)'}) if locs.nil?
-          locs = page.body.match(/url=(.*?)'/) if locs.nil?
+        locs = page.meta['refresh'].match(%r{/l/\?uddg=(.*?)$})
+        locs = page.body.match(%r{/l/\?uddg=(.*?)'}) if locs.nil?
+        locs = page.body.match(/url=(.*?)'/) if locs.nil?
 
-          return false if locs.nil?
+        return false if locs.nil?
 
-          url = locs[1].url_decode.sub(/&rut=\w+/, '')
+        url = locs[1].url_decode.sub(/&rut=\w+/, '')
 
-          result = url.strip.url_decode || false
-          return false unless result
+        result = url.strip.url_decode || false
+        return false unless result
 
-          return false if result =~ /internal-search\.duckduckgo\.com/
+        return false if result =~ /internal-search\.duckduckgo\.com/
 
-          # output_url = CGI.unescape(result)
-          output_url = result
+        # output_url = CGI.unescape(result)
+        output_url = result
 
-          output_title = if SL.config['include_titles'] || SL.titleize
-                           SL::URL.title(output_url) || ''
-                         else
-                           ''
-                         end
+        output_title = if SL.config['include_titles'] || SL.titleize
+                         SL::URL.title(output_url) || ''
+                       else
+                         ''
+                       end
 
-          output_url = SL.first_image(output_url) if search_type =~ /img$/
+        output_url = SL.first_image(output_url) if search_type =~ /img$/
 
-          [output_url, output_title, link_text]
-        end
+        [output_url, output_title, link_text]
       end
 
       # Searches DuckDuckGo for the given search terms and

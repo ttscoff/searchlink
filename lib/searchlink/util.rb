@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 module SL
+  # Utilities
   module Util
     class << self
       ## Execute system command with deadman's switch

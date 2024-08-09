@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   class << self
     attr_writer :config, :prev_config

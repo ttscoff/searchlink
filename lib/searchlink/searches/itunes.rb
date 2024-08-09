@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # title: iTunes Search
 # description: Search iTunes
 module SL

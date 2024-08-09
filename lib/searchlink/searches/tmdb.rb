@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SL
   # The Movie Database search
   class TMDBSearch

@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 # Array helpers
 class ::Array
-  # 
   # This method takes an array and returns the longest element of that array.
   #
   # @return [String] Longest string in array
@@ -8,6 +9,7 @@ class ::Array
   def longest_element
     longest_elements[0]
   end
+
   # Finds the longest elements and returns an Array
   #
   # @return [Array] array of longest elements
