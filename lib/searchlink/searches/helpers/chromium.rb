@@ -48,14 +48,27 @@ module SL
       ## @return     [Array] Single bookmark, [url, title, date]
       ##
       def search_edge_history(term)
-        # Google history
-        history_file = File.expand_path('~/Library/Application Support/Microsoft Edge/Default/History')
-        if File.exist?(history_file)
-          SL.notify('Searching Edge History', term)
-          search_chromium_history(history_file, term)
-        else
-          false
+        base = File.expand_path('~/Library/Application Support/Microsoft Edge/')
+        profiles = Dir.glob('**/History', base: base)
+        profiles.delete_if { |p| p =~ /^Snapshots/ }
+        profiles.map! { |f| File.join(base, f) }
+
+        res = false
+
+        profiles.each do |bookmarks|
+          next unless File.exist?(bookmarks)
+
+          profile = bookmarks.match(%r{Edge/([^/]+)/})[1]
+
+          SL.notify("Searching Chrome History for profile #{profile}", term)
+          res = search_chromium_history(bookmarks, term)
+
+          break if res
         end
+
+        return res if res
+
+        false
       end
 
       ## Search Chrome history
@@ -66,13 +79,29 @@ module SL
       ##
       def search_chrome_history(term)
         # Google history
-        history_file = File.expand_path('~/Library/Application Support/Google/Chrome/Default/History')
-        if File.exist?(history_file)
-          SL.notify('Searching Chrome History', term)
-          search_chromium_history(history_file, term)
-        else
-          false
+        base = File.expand_path('~/Library/Application Support/Google/Chrome/')
+        profiles = Dir.glob('**/History', base: base)
+        profiles.delete_if { |p| p =~ /^Snapshots/ }
+        profiles.map! { |f| File.join(base, f) }
+
+        # bookmarks_file = File.expand_path('~/Library/Application Support/Google/Chrome/Default/Bookmarks')
+
+        res = false
+
+        profiles.each do |bookmarks|
+          next unless File.exist?(bookmarks)
+
+          profile = bookmarks.match(%r{Chrome/([^/]+)/})[1]
+
+          SL.notify("Searching Chrome History for profile #{profile}", term)
+          res = search_chromium_history(bookmarks, term)
+
+          break if res
         end
+
+        return res if res
+
+        false
       end
 
       ##
@@ -105,6 +134,7 @@ module SL
         terms.push("(url NOT LIKE '%search/?%'
                    AND url NOT LIKE '%?q=%'
                    AND url NOT LIKE '%?s=%'
+                   AND url NOT LIKE '%www.bing.com%'
                    AND url NOT LIKE '%duckduckgo.com/?t%')")
         if exact_match
           terms.push("(url LIKE '%#{term.strip.downcase}%' OR title LIKE '%#{term.strip.downcase}%')")
@@ -138,11 +168,11 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_arc_bookmarks(term)
-        bookmarks_file = File.expand_path('~/Library/Application Support/Arc/User Data/Default/Bookmarks')
+        bookmarks_file = File.expand_path('~/Library/Application Support/Arc/StorableSidebar.json')
 
         if File.exist?(bookmarks_file)
-          SL.notify('Searching Brave Bookmarks', term)
-          return search_chromium_bookmarks(bookmarks_file, term)
+          SL.notify('Searching Arc Bookmarks', term)
+          return search_json_bookmarks(bookmarks_file, term)
         end
 
         false
@@ -156,12 +186,25 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_brave_bookmarks(term)
-        bookmarks_file = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Bookmarks')
+        base = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/')
+        profiles = Dir.glob('**/Bookmarks', base: base)
+        profiles.delete_if { |p| p =~ /^Snapshots/ }
+        profiles.map! { |f| File.join(base, f) }
 
-        if File.exist?(bookmarks_file)
-          SL.notify('Searching Brave Bookmarks', term)
-          return search_chromium_bookmarks(bookmarks_file, term)
+        res = false
+
+        profiles.each do |bookmarks|
+          next unless File.exist?(bookmarks)
+
+          profile = bookmarks.match(%r{Browser/([^/]+)/})[1]
+
+          SL.notify("Searching Brave Bookmarks for profile #{profile}", term)
+          res = search_chromium_bookmarks(bookmarks, term)
+
+          break if res
         end
+
+        return res if res
 
         false
       end
@@ -174,12 +217,24 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_edge_bookmarks(term)
-        bookmarks_file = File.expand_path('~/Library/Application Support/Microsoft Edge/Default/Bookmarks')
+        base = File.expand_path('~/Library/Application Support/Microsoft Edge')
+        profiles = Dir.glob('**/Bookmarks', base: base)
+        profiles.delete_if { |p| p =~ /^Snapshots/ }
+        profiles.map! { |f| File.join(base, f) }
 
-        if File.exist?(bookmarks_file)
-          SL.notify('Searching Edge Bookmarks', term)
-          return search_chromium_bookmarks(bookmarks_file, term)
+        res = false
+
+        profiles.each do |bookmarks|
+          if File.exist?(bookmarks)
+            profile = bookmarks.match(%r{Edge/([^/]+)/})[1]
+
+            SL.notify("Searching Edge Bookmarks for profile #{profile}", term)
+            res = search_chromium_bookmarks(bookmarks, term)
+            break if res
+          end
         end
+
+        return res if res
 
         false
       end
@@ -192,11 +247,104 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_chrome_bookmarks(term)
-        bookmarks_file = File.expand_path('~/Library/Application Support/Google/Chrome/Default/Bookmarks')
+        base = File.expand_path('~/Library/Application Support/Google/Chrome/')
+        profiles = Dir.glob('**/Bookmarks', base: base)
+        profiles.delete_if { |p| p =~ /^Snapshots/ }
+        profiles.map! { |f| File.join(base, f) }
 
-        if File.exist?(bookmarks_file)
-          SL.notify('Searching Chrome Bookmarks', term)
-          return search_chromium_bookmarks(bookmarks_file, term)
+        res = false
+
+        profiles.each do |bookmarks|
+          if File.exist?(bookmarks)
+            profile = bookmarks.match(%r{Chrome/([^/]+)/})[1]
+
+            SL.notify("Searching Chrome Bookmarks for profile #{profile}", term)
+            res = search_chromium_bookmarks(bookmarks, term)
+            break if res
+          end
+        end
+
+        return res if res
+
+        false
+      end
+
+      ##
+      ## Search Arc/JSON bookmarks
+      ##
+      ## @param      bookmarks_file  [String] path to bookmarks file
+      ## @param      term            [String] the string to search for
+      ##
+      ## @return     [Array] single bookmark [url, title, date]
+      ##
+      def search_json_bookmarks(bookmarks_file, term)
+        arc_bookmarks = JSON.parse(IO.read(bookmarks_file))
+
+        exact_match = false
+        match_phrases = []
+
+        # If search terms start with ''term, only search for exact string matches
+        if term =~ /^ *'/
+          exact_match = true
+          term.gsub!(/(^ *'+|'+ *$)/, '')
+        elsif term =~ /%22(.*?)%22/
+          match_phrases = term.scan(/%22(\S.*?\S)%22/)
+          term.gsub!(/%22(\S.*?\S)%22/, '')
+        end
+
+        if arc_bookmarks
+          bookmarks = []
+          arc_bookmarks['sidebarSyncState']['items'].each do |mark|
+            next if mark.is_a?(String)
+
+            next unless mark['value']['childrenIds'].empty?
+
+            next unless mark['value']['data']['tab']
+
+            url = {
+              url: mark['value']['data']['tab']['savedURL'],
+              saved_title: mark['value']['data']['tab']['savedTitle'],
+              title: mark['value']['title'],
+              created: mark['value']['createdAt'].to_datetime,
+              active: mark['value']['data']['tab']['timeLastActiveAt']&.to_datetime
+            }
+
+            score = score_mark(url, term)
+
+            if score > 7
+              url[:score] = score
+              bookmarks << url
+            end
+          end
+
+          unless bookmarks.empty?
+            if exact_match
+              bookmarks.delete_if do |bm|
+                !(bm[:url].matches_exact(term) ||
+                bm[:title].matches_exact(term) ||
+                bm[:saved_title].matches_exact(term))
+              end
+            end
+
+            if match_phrases
+              match_phrases.map! { |phrase| phrase[0] }
+              bookmarks.delete_if do |bm|
+                matched = true
+                match_phrases.each do |phrase|
+                  matched = false unless bm[:url].matches_exact(phrase) ||
+                                         bm[:title].matches_exact(phrase) ||
+                                         bm[:saved_title].matches_exact(phrase)
+                end
+                !matched
+              end
+            end
+
+            return false if bookmarks.empty?
+
+            lastest_bookmark = bookmarks.max_by { |u| [u[:created], u[:active]] }
+
+            return [lastest_bookmark[:url], lastest_bookmark[:title], lastest_bookmark[:date]]
+          end
         end
 
         false
@@ -284,7 +432,7 @@ module SL
               urls << url
             end
           else
-            json.each { |_, v| urls = extract_chrome_bookmarks(v, urls, term) }
+            json.each_value { |v| urls = extract_chrome_bookmarks(v, urls, term) }
           end
         else
           return urls
@@ -301,19 +449,27 @@ module SL
       def score_mark(mark, terms)
         return 0 unless mark[:url]
 
-        score = if mark[:title]&.matches_exact(terms)
-                  12 + mark[:url].matches_score(terms, start_word: false)
-                elsif mark[:url].matches_exact(terms)
-                  11
-                elsif mark[:title] && mark[:title].matches_score(terms) > 5
-                  mark[:title].matches_score(terms)
-                elsif mark[:url].matches_score(terms, start_word: false)
-                  mark[:url].matches_score(terms, start_word: false)
-                else
-                  0
-                end
+        if mark[:title]&.matches_exact(terms)
+          12 + mark[:url].matches_score(terms, start_word: false)
+        elsif mark[:url].matches_exact(terms)
+          11
+        elsif (mark[:title] && mark[:title].matches_score(terms) > 5) ||
+              (mark[:saved_title] && mark[:saved_title].matches_score(terms) > 5)
 
-        score
+          if mark[:saved_title]
+            t = mark[:title]&.matches_score(terms)
+            s = mark[:saved_title].matches_score(terms)
+            return s if t.nil?
+
+            [t, s].max
+          else
+            mark[:title]&.matches_score(terms)
+          end
+        elsif mark[:url].matches_score(terms, start_word: false)
+          mark[:url].matches_score(terms, start_word: false)
+        else
+          0
+        end
       end
     end
   end

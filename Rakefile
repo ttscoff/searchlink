@@ -97,3 +97,16 @@ task :bump, :type do |_, args|
   end
   File.open(version_file, 'w+') { |f| f.puts content }
 end
+
+namespace :spec do
+  FileList['spec/*_spec.rb'].each do |spec|
+    test_name = File.basename(spec, '.rb').sub(/^(.*?)_spec$/, '\1')
+
+    RSpec::Core::RakeTask.new(:"#{test_name}") do |t|
+      t.pattern = spec
+    end
+
+    # Define default task for :spec
+    task default: test_name
+  end
+end

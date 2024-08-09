@@ -18,6 +18,9 @@ require 'erb'
 require 'tokens' if File.exist?('lib/tokens.rb')
 
 # import
+require 'searchlink/number'
+
+# import
 require 'searchlink/util'
 
 # import

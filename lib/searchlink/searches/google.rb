@@ -16,7 +16,7 @@ module SL
         }
       end
 
-      def test_for_key
+      def api_key?
         return false unless SL.config.key?('google_api_key') && SL.config['google_api_key']
 
         key = SL.config['google_api_key']
@@ -30,7 +30,7 @@ module SL
       def search(search_type, search_terms, link_text)
         image = search_type =~ /img$/ ? true : false
 
-        unless test_for_key
+        unless api_key?
           SL.add_error('api key', 'Missing Google API Key')
           return false
         end

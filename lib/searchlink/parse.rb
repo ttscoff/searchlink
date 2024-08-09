@@ -282,7 +282,7 @@ module SL
                 m = Regexp.last_match
 
                 search_type = if m[1].nil?
-                                SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                                SL::GoogleSearch.api_key? ? 'gg' : 'g'
                               else
                                 m[1]
                               end
@@ -316,8 +316,8 @@ module SL
                   search_type = search_word[1] unless search_word.nil?
                   search_terms = link_text
                 elsif search_word && search_word[1] =~ /^(\S+\.)+\S+$/
-                  search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
-                  puts SL::GoogleSearch.test_for_key
+                  search_type = SL::GoogleSearch.api_key? ? 'gg' : 'g'
+                  puts SL::GoogleSearch.api_key?
                   search_terms = "site:#{search_word[1]} #{link_text}"
                 else
                   SL.add_error("Invalid search#{SL::Searches.did_you_mean(search_word[1])}", match)
@@ -325,10 +325,10 @@ module SL
                   search_terms = false
                 end
               elsif link_text && !link_text.empty? && (!link_info || link_info.empty?)
-                search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                search_type = SL::GoogleSearch.api_key? ? 'gg' : 'g'
                 search_terms = link_text
               elsif link_info && !link_info.empty?
-                search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                search_type = SL::GoogleSearch.api_key? ? 'gg' : 'g'
                 search_terms = link_info
               else
                 SL.add_error('Invalid search', match)
@@ -385,7 +385,7 @@ module SL
                       end
                     end
                   else
-                    search_type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                    search_type = SL::GoogleSearch.api_key? ? 'gg' : 'g'
                     search_terms = "site:#{v} #{search_terms}"
                   end
 
@@ -601,7 +601,7 @@ module SL
                     end
                   end
                 else
-                  type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+                  type = SL::GoogleSearch.api_key? ? 'gg' : 'g'
                   terms = "site:#{v} #{terms}"
                 end
 
@@ -612,7 +612,7 @@ module SL
             # if contains TLD, use site-specific search
             if type =~ /^(\S+\.)+\S+$/
               terms = "site:#{type} #{terms}"
-              type = SL::GoogleSearch.test_for_key ? 'gg' : 'g'
+              type = SL::GoogleSearch.api_key? ? 'gg' : 'g'
             end
             search_count ||= 0
             search_count += 1

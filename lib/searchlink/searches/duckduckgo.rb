@@ -36,7 +36,7 @@ module SL
       def search(search_type, search_terms, link_text)
         return zero_click(search_terms, link_text) if search_type =~ /^z$/
 
-        # return SL.ddg(search_terms, link_text) if search_type == 'g' && SL::GoogleSearch.test_for_key
+        # return SL.ddg(search_terms, link_text) if search_type == 'g' && SL::GoogleSearch.api_key?
 
         terms = "%5C#{search_terms.url_encode}"
         page = Curl::Html.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
@@ -122,7 +122,7 @@ module SL
     # @param      timeout       [Integer] The timeout
     #
     def google(search_terms, link_text = nil, timeout: SL.config['timeout'], image: false)
-      if SL::GoogleSearch.test_for_key
+      if SL::GoogleSearch.api_key?
         s_class = 'google'
         s_type = image ? 'img' : 'gg'
       else
@@ -147,7 +147,7 @@ module SL
     # @return     [SL::Searches::Result] The search result
     #
     def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'], google: true, image: false)
-      if google && SL::GoogleSearch.test_for_key
+      if google && SL::GoogleSearch.api_key?
         s_class = 'google'
         s_type = image ? 'img' : 'gg'
       else
