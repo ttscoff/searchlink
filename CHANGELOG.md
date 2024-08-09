@@ -1,6 +1,14 @@
 ### 2.3.69
 
-2024-08-09 11:58
+2024-08-09 12:06
+
+#### IMPROVED
+
+- Browser history and bookmark searches search all profiles in browsers that support them
+
+#### FIXED
+
+- Arc history and bookmark search
 
 ### 2.3.68
 
