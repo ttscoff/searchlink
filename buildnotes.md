@@ -87,7 +87,7 @@ puts `git commit -a -m "Version bump #{new_ver}"`
 #!/usr/bin/env ruby
 require 'fileutils'
 
-version = `git ver`.strip
+version = `rake cver`.strip
 zipball = "dist/SearchLink.zip"
 FileUtils.rm(zipball) if File.exist?(zipball)
 puts "Creating #{zipball}"
