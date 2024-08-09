@@ -1,3 +1,15 @@
+### 2.3.66
+
+2024-08-09 07:54
+
+#### IMPROVED
+
+- Code cleanup, backwards compatibility
+
+#### FIXED
+
+- Remove rexml dependency
+
 ### 2.3.65
 
 2024-01-16 12:40
