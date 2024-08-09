@@ -89,6 +89,7 @@ require 'fileutils'
 
 version = `rake cver`.strip
 zipball = "dist/SearchLink.zip"
+FileUtils.mkdir_p('dist')
 FileUtils.rm(zipball) if File.exist?(zipball)
 puts "Creating #{zipball}"
 `zip -r "#{zipball}" "SearchLink Services/"*`
