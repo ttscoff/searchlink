@@ -31,14 +31,25 @@ module SL
       ## @return     [Array] Single bookmark, [url, title, date]
       ##
       def search_brave_history(term)
-        # Google history
-        history_file = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/Default/History')
-        if File.exist?(history_file)
-          SL.notify('Searching Brave History', term)
-          search_chromium_history(history_file, term)
-        else
-          false
+        base = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/')
+        profiles = Dir.glob('**/History', base: base)
+        profiles.delete_if { |p| p =~ /^Snapshots/ }
+        profiles.map! { |f| File.join(base, f) }
+
+        res = false
+
+        profiles.each do |bookmarks|
+          next unless File.exist?(bookmarks)
+
+          profile = bookmarks.match(%r{Browser/([^/]+)/})[1]
+
+          SL.notify("Searching Brave History for profile #{profile}", term)
+          res = search_chromium_history(bookmarks, term)
+
+          break if res
         end
+
+        return res
       end
 
       ## Search Edge history
@@ -66,9 +77,7 @@ module SL
           break if res
         end
 
-        return res if res
-
-        false
+        return res
       end
 
       ## Search Chrome history
@@ -99,9 +108,7 @@ module SL
           break if res
         end
 
-        return res if res
-
-        false
+        return res
       end
 
       ##
@@ -172,7 +179,7 @@ module SL
 
         if File.exist?(bookmarks_file)
           SL.notify('Searching Arc Bookmarks', term)
-          return search_json_bookmarks(bookmarks_file, term)
+          return search_arc_json(bookmarks_file, term)
         end
 
         false
@@ -204,9 +211,7 @@ module SL
           break if res
         end
 
-        return res if res
-
-        false
+        return res
       end
 
       ##
@@ -234,9 +239,7 @@ module SL
           end
         end
 
-        return res if res
-
-        false
+        return res
       end
 
       ##
@@ -264,9 +267,7 @@ module SL
           end
         end
 
-        return res if res
-
-        false
+        return res
       end
 
       ##
@@ -277,7 +278,7 @@ module SL
       ##
       ## @return     [Array] single bookmark [url, title, date]
       ##
-      def search_json_bookmarks(bookmarks_file, term)
+      def search_arc_json(bookmarks_file, term)
         arc_bookmarks = JSON.parse(IO.read(bookmarks_file))
 
         exact_match = false
@@ -341,7 +342,7 @@ module SL
 
             return false if bookmarks.empty?
 
-            lastest_bookmark = bookmarks.max_by { |u| [u[:created], u[:active]] }
+            lastest_bookmark = bookmarks.min_by { |u| u[:created] }
 
             return [lastest_bookmark[:url], lastest_bookmark[:title], lastest_bookmark[:date]]
           end
