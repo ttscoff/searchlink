@@ -49,7 +49,7 @@ module SL
           break if res
         end
 
-        return res
+        res
       end
 
       ## Search Edge history
@@ -77,7 +77,7 @@ module SL
           break if res
         end
 
-        return res
+        res
       end
 
       ## Search Chrome history
@@ -108,7 +108,7 @@ module SL
           break if res
         end
 
-        return res
+        res
       end
 
       ##
@@ -211,7 +211,7 @@ module SL
           break if res
         end
 
-        return res
+        res
       end
 
       ##
@@ -230,16 +230,16 @@ module SL
         res = false
 
         profiles.each do |bookmarks|
-          if File.exist?(bookmarks)
-            profile = bookmarks.match(%r{Edge/([^/]+)/})[1]
+          next unless File.exist?(bookmarks)
 
-            SL.notify("Searching Edge Bookmarks for profile #{profile}", term)
-            res = search_chromium_bookmarks(bookmarks, term)
-            break if res
-          end
+          profile = bookmarks.match(%r{Edge/([^/]+)/})[1]
+
+          SL.notify("Searching Edge Bookmarks for profile #{profile}", term)
+          res = search_chromium_bookmarks(bookmarks, term)
+          break if res
         end
 
-        return res
+        res
       end
 
       ##
@@ -267,7 +267,7 @@ module SL
           end
         end
 
-        return res
+        res
       end
 
       ##
