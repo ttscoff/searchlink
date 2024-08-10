@@ -62,13 +62,16 @@ module SL
 
     # Posts macOS notifications
     #
-    # @param      str   The title of the notification
-    # @param      sub   The text of the notification
+    # @param      title     [String]   The title of the notification
+    # @param      subtitle  [String]   The text of the notification
     #
-    def notify(str, sub)
+    def notify(title, subtitle)
       return unless SL.config['notifications']
 
-      `osascript -e 'display notification "SearchLink" with title "#{str}" subtitle "#{sub}"'`
+      title = title.gsub(/"/, '\\"')
+      subtitle = subtitle.gsub(/"/, '\\"')
+
+      `osascript -e 'display notification "SearchLink" with title "#{title}" subtitle "#{subtitle}"'`
     end
   end
 end

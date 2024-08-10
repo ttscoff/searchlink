@@ -1,4 +1,5 @@
-template: markdown,git,project
+template: markdown,git,project,sublime
+sublime_project: searchlink
 project: searchlink
 readme: src/_README.md
 download_title: SearchLink

@@ -5,14 +5,14 @@ module SL
   class SemVer
     attr_accessor :maj, :min, :patch, :pre
 
-    # Initialize a Semantic Version object
-    #
-    # @param      version_string  [String] a semantic version number
-    #
-    # @return     [SemVer] SemVer object
-    #
+    ## Initialize a Semantic Version object
+    ##
+    ## @param      version_string  [String] a semantic version number
+    ##
+    ## @return     [SemVer] SemVer object
+    ##
     def initialize(version_string)
-      raise "Invalid semantic version number: #{version_string}" unless version_string.valid_version?
+      raise VersionError.new("Invalid semantic version number: #{version_string}") unless version_string.valid_version?
 
       @maj, @min, @patch = version_string.split(/\./)
       @pre = nil
