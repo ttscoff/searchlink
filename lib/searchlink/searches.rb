@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module SL
+  # Searches and plugin registration
   module Searches
     class << self
       def plugins
@@ -25,7 +26,7 @@ module SL
 
       def description_for_search(search_type)
         description = "#{search_type} search"
-        plugins[:search].each do |_, plugin|
+        plugins[:search].each_value do |plugin|
           search = plugin[:searches].select { |s| s[0].is_a?(Array) ? s[0].include?(search_type) : s[0] == search_type }
           unless search.empty?
             description = search[0][1]
@@ -50,7 +51,11 @@ module SL
                '<tbody>']
 
         searches.each do |s|
-          out << "<tr><td><code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(',')})" : s[0]}</code></td><td>#{s[1]}</td></tr>"
+          out << "<tr>
+          <td>
+          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(',')})" : s[0]}
+          </code>
+          </td><td>#{s[1]}</td></tr>"
         end
         out.concat(['</tbody>', '</table>']).join("\n")
       end
@@ -62,7 +67,7 @@ module SL
       #
       def available_searches
         searches = []
-        plugins[:search].each { |_, plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
+        plugins[:search].each_value { |plugin| searches.concat(plugin[:searches].delete_if { |s| s[1].nil? }) }
         out = []
         searches.each do |s|
           out += "!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(',')})" : s[0]}#{s[0].spacer}#{s[1]}"
@@ -77,8 +82,8 @@ module SL
 
       def all_possible_searches
         searches = []
-        plugins[:search].each { |_, plugin| plugin[:searches].each { |s| searches.push(s[0]) } }
-        searches.concat(SL.config['custom_site_searches'].keys)
+        plugins[:search].each_value { |plugin| plugin[:searches].each { |s| searches.push(s[0]) } }
+        searches.concat(SL.config['custom_site_searches'].keys.sort)
       end
 
       def did_you_mean(term)
@@ -101,11 +106,11 @@ module SL
       end
 
       def register_plugin(title, type, klass)
-        raise StandardError, "Plugin #{title} has no settings method" unless klass.respond_to? :settings
+        raise PluginError.new("Plugin has no settings method", plugin: title)  unless klass.respond_to? :settings
 
         settings = klass.settings
 
-        raise StandardError, "Plugin #{title} has no search method" unless klass.respond_to? :search
+        raise PluginError.new("Plugin has no search method", plugin: title) unless klass.respond_to? :search
 
         plugins[type] ||= {}
         plugins[type][title] = {
@@ -123,12 +128,32 @@ module SL
           Dir.glob(File.join(plugins_folder, '**/*.rb')).sort.each do |plugin|
             require plugin
           end
+
+          load_custom_scripts(plugins_folder)
         end
 
         return unless File.directory?(new_plugins_folder)
 
         Dir.glob(File.join(new_plugins_folder, '**/*.rb')).sort.each do |plugin|
           require plugin
+        end
+
+        load_custom_scripts(new_plugins_folder)
+      end
+
+      def load_custom_scripts(plugins_folder)
+        Dir.glob(File.join(plugins_folder, '**/*.{json,yml,yaml}')).each do |file|
+          ext = File.extname(file).sub(/^\./, '')
+          config = IO.read(file)
+          cfg = case ext
+                when /^y/i
+                  YAML.safe_load(config)
+                else
+                  JSON.parse(config)
+                end
+          cfg['filename'] = File.basename(file)
+          cfg['path'] = file.shorten_path
+          SL::ScriptSearch.new(cfg)
         end
       end
 

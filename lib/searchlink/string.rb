@@ -488,5 +488,13 @@ module SL
     def code_indent
       split(/\n/).map { |l| "    #{l}" }.join("\n")
     end
+
+    ##
+    ## Shorten path by adding ~ for home directory
+    ##
+    def shorten_path
+      home_directory = ENV['HOME']
+      sub(home_directory, '~')
+    end
   end
 end

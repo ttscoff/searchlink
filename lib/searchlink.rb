@@ -13,9 +13,13 @@ require 'zlib'
 require 'time'
 require 'json'
 require 'erb'
+require 'english'
 
 # import
 require 'tokens' if File.exist?('lib/tokens.rb')
+
+# import
+require 'searchlink/exceptions'
 
 # import
 require 'searchlink/number'
@@ -64,5 +68,8 @@ require 'searchlink/output'
 
 # import
 require 'searchlink/which'
+
+# import
+require 'searchlink/script_plugin'
 
 module Secrets; end
