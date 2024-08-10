@@ -20,14 +20,14 @@ module SL
 
       input.parse_flags! unless skip_flags
 
-      options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links]
+      options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links complete_bare]
       options.each do |o|
         if input =~ /^ *#{o}:\s+(\S+)$/
           val = Regexp.last_match(1).strip
           val = true if val =~ /true/i
           val = false if val =~ /false/i
           SL.config[o] = val
-          $stderr.print "\r\033[0KGlobal config: #{o} = #{SL.config[o]}\n" unless SILENT
+          warn "\r\033[0KGlobal config: #{o} = #{SL.config[o]}\n" unless SILENT
         end
 
         next if skip_flags
@@ -242,7 +242,10 @@ module SL
                 (?:https?://)(?:[\da-z.-]+)\.(?:[a-z.]{2,6})
                 (?:[/\w\d.\-()_/+=?&%]*?(?=[\s\n]|$))
               )}
-        input.gsub!(rx, '[%](\0)')
+        input.gsub!(rx) do
+          url_match = Regexp.last_match
+          url_match.pre_match =~ /!\S+ +$/ ? url_match[0] : "[%](#{url_match[0]})"
+        end
       end
 
       if input =~ /\[(.*?)\]\((.*?)\)/

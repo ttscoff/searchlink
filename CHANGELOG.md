@@ -1,3 +1,16 @@
+### 2.3.70
+
+2024-08-10 12:17
+
+#### NEW
+
+- Set `complete_bare: true` in config to add markup and titles to "bare" urls
+- Script Search API to allow search plugins to be written in any language, as long as they return an appropriate JSON or YAML response
+
+#### IMPROVED
+
+- Various fixes for bookmark search
+
 ### 2.3.69
 
 2024-08-09 12:06

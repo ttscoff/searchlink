@@ -23,4 +23,3 @@ RSpec.configure do |c|
   #   delete_test_file
   # end
 end
-
