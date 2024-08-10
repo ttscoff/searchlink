@@ -121,7 +121,7 @@ git push
 3. File->Export and save CodeSigned workflows to /SearchLink Services
 4. Git commit and push
 
-All of this can be done with `bld prepare` and `bld stage`
+All of this can be done with `bld prepare` and `bld stage`. You must manually paste the compiled contents into the Services AND export signed versions to the "/SearchLink Services" folder.
 @end
 
 - Compress 3 services to SearchLink.zip
