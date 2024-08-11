@@ -1,3 +1,12 @@
+### 2.3.71
+
+2024-08-11 07:51
+
+#### FIXED
+
+- [%]() will always get title added
+- Execution of script search from plugin directory
+
 ### 2.3.70
 
 2024-08-10 12:20
