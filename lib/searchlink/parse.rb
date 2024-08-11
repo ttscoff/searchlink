@@ -424,6 +424,14 @@ module SL
                   @url, title, @link_text = do_search(search_type, search_terms, @link_text, @search_count)
                 end
 
+                if (@link_text == '' || @link_text == '%') && @url
+                  if title
+                    @link_text = title
+                  else
+                    add_title(@url)
+                  end
+                end
+
                 if @url
                   title = SL::URL.title(@url) if SL.titleize && title == ''
 

@@ -145,6 +145,7 @@ module SL
         Dir.glob(File.join(plugins_folder, '**/*.{json,yml,yaml}')).each do |file|
           ext = File.extname(file).sub(/^\./, '')
           config = IO.read(file)
+
           cfg = case ext
                 when /^y/i
                   YAML.safe_load(config)

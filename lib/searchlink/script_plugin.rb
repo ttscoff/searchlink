@@ -68,7 +68,7 @@ module SL
     end
 
     def find_script(script)
-      return script if File.exist?(File.expand_path(script))
+      return File.expand_path(script) if File.exist?(File.expand_path(script))
 
       base = File.expand_path('~/.config/searchlink/plugins')
       first = File.join(base, script)
