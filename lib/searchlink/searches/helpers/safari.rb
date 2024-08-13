@@ -29,7 +29,7 @@ module SL
           terms.push("(url NOT LIKE '%search/?%'
                      AND url NOT LIKE '%?q=%' AND url NOT LIKE '%?s=%'
                      AND url NOT LIKE '%/search?%'
-                     AND url NOT LIKE '%duckduckgo.com/?t%')")
+                     AND url NOT LIKE '%duckduckgo.com%')")
           if exact_match
             terms.push("(url LIKE '%#{term.strip.downcase}%' OR title LIKE '%#{term.strip.downcase}%')")
           else
