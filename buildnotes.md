@@ -54,6 +54,12 @@ open -a Automator ~/Library/Services/SearchLink\ File.workflow
 open -a Automator ~/Library/Services/SearchLink.workflow
 ```
 
+## Update Automator Services
+
+This script will copy missing services, update their embedded script, and codesign them for distribution.
+
+@run(rake services)
+
 ## Create Release
 
 ```run Create release with changelog using gh
@@ -97,12 +103,7 @@ puts "Creating #{zipball}"
 puts `gh release upload #{version} #{zipball}`
 ```
 
-## Prepare for Deploy
-
-@include(open automator services)
-@run(changelog -u)
-
-## Stage Deploy
+## Stage Git Release
 
 ```run Clean up git
 #!/bin/bash
@@ -112,22 +113,18 @@ git pull
 git push
 ```
 
-## Finalize Deploy
+## Deploy
 
-@before
-1. Update Changelog
-1. Open Searchlink and SearchLink File in Automator (bld auto)
-2. Paste in current contents of searchlink.rb
-3. File->Export and save CodeSigned workflows to /SearchLink Services
-4. Git commit and push
-
-All of this can be done with `bld prepare` and `bld stage`. You must manually paste the compiled contents into the Services AND export signed versions to the "/SearchLink Services" folder.
-@end
-
+- Stage git release
+- Copy and sign 3 services
 - Compress 3 services to SearchLink.zip
 - Create a git release for X.X.X 
 - Upload zip to release
 - Update blog project and downloads
+
+@include(Copy Automator Services)
+@run(changelog -u)
+@include(Stage Git Release)
 
 ```run Make sure all 3 services are present
 #!/usr/bin/env ruby
