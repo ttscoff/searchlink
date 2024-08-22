@@ -133,17 +133,15 @@ module SL
       SL::Util.search_with_timeout(search, timeout)
     end
 
-    # Performs a DuckDuckGo search with the given search
-    # terms and link text. If link text is not provided, the
-    # first result will be returned. The search will timeout
-    # after the given number of seconds.
+    # Performs a DuckDuckGo search with the given search terms and link text. If
+    # link text is not provided, the first result will be returned. The search
+    # will timeout after the given number of seconds.
     #
-    # @param      search_terms  [String] The search terms to
-    #                           use
-    # @param      link_text     [String] The text of the
-    #                           link to search for
-    # @param      timeout       [Integer] The timeout for
-    #                           the search in seconds
+    # @param      search_terms  [String] The search terms to use
+    # @param      link_text     [String] The text of the link to search for
+    # @param      timeout       [Integer] The timeout for the search in seconds
+    # @param      google        [Boolean] Use Google if API key installed
+    # @param      image         [Boolean] Image search
     # @return     [SL::Searches::Result] The search result
     #
     def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'], google: true, image: false)
