@@ -157,6 +157,17 @@ module SL
       SL::Util.search_with_timeout(search, timeout)
     end
 
+    ##
+    ## Perform a site-specific search
+    ##
+    ## @param      site          [String] The site to search
+    ## @param      search_terms  [String] The search terms
+    ## @param      link_text     [String] The link text
+    ##
+    def site_search(site, search_terms, link_text)
+      ddg("site:#{site} #{search_terms}", link_text)
+    end
+
     def first_image(url)
       images = Curl::Html.new(url).images
       images.filter { |img| img[:type] == 'img' }.first[:src]
