@@ -7,7 +7,7 @@ download_url: https://github.com/ttscoff/searchlink/releases/latest/download/Sea
 
 # SearchLink
 
-# Branching
+## Branching
 
 I'm doing everything on main and tagging releases. If you feel like creating a feature branch, just create a branch off of main and merge it back in after testing.
 
@@ -122,7 +122,7 @@ git push
 - Upload zip to release
 - Update blog project and downloads
 
-@include(Copy Automator Services)
+@include(Update Automator Services)
 @run(changelog -u)
 @include(Stage Git Release)
 
