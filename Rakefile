@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require 'rake/clean'
-require 'rubygems'
-require 'bundler/gem_tasks'
-require 'rubygems/package_task'
-require 'rdoc'
-require 'rdoc/task'
-require 'rspec/core/rake_task'
-require 'rubocop/rake_task'
-require 'yard'
-require 'tty-spinner'
+require "rake/clean"
+require "rubygems"
+require "bundler/gem_tasks"
+require "rubygems/package_task"
+require "rdoc"
+require "rdoc/task"
+require "rspec/core/rake_task"
+require "rubocop/rake_task"
+require "yard"
+require "tty-spinner"
 
 task default: %i[test yard]
 
-desc 'Alias for build'
+desc "Alias for build"
 task package: :build
 
-desc 'Run test suite'
+desc "Run test suite"
 # task test: %i[rubocop spec]
 task test: %i[rubocop spec]
 
@@ -45,10 +45,10 @@ YARD::Rake::YardocTask.new
 #   $stderr.puts "Services updated: #{services.join(", ")}"
 # end
 
-desc 'Development version check'
+desc "Development version check"
 task :ver do
   gver = `git ver`
-  cver = IO.read(File.join(File.dirname(__FILE__), 'CHANGELOG.md')).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
+  cver = IO.read(File.join(File.dirname(__FILE__), "CHANGELOG.md")).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
   puts "git tag: #{gver}"
@@ -56,29 +56,29 @@ task :ver do
   puts "changelog: #{cver}"
 end
 
-desc 'Get Script Version'
+desc "Get Script Version"
 task :sver do
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
   print version
 end
 
-desc 'Changelog version check'
+desc "Changelog version check"
 task :cver do
-  puts IO.read(File.join(File.dirname(__FILE__), 'CHANGELOG.md')).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
+  puts IO.read(File.join(File.dirname(__FILE__), "CHANGELOG.md")).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
 end
 
-desc 'Bump incremental version number'
+desc "Bump incremental version number"
 task :bump, :type do |_, args|
-  args.with_defaults(type: 'inc')
-  version_file = 'lib/searchlink/version.rb'
+  args.with_defaults(type: "inc")
+  version_file = "lib/searchlink/version.rb"
   content = IO.read(version_file)
   content.sub!(/VERSION = '(?<major>\d+)\.(?<minor>\d+)\.(?<inc>\d+)(?<pre>\S+)?'/) do
     m = Regexp.last_match
-    major = m['major'].to_i
-    minor = m['minor'].to_i
-    inc = m['inc'].to_i
-    pre = m['pre']
+    major = m["major"].to_i
+    minor = m["minor"].to_i
+    inc = m["inc"].to_i
+    pre = m["pre"]
 
     case args[:type]
     when /^maj/
@@ -95,12 +95,12 @@ task :bump, :type do |_, args|
     $stdout.puts "At version #{major}.#{minor}.#{inc}#{pre}"
     "VERSION = '#{major}.#{minor}.#{inc}#{pre}'"
   end
-  File.open(version_file, 'w+') { |f| f.puts content }
+  File.open(version_file, "w+") { |f| f.puts content }
 end
 
 namespace :spec do
-  FileList['spec/*_spec.rb'].each do |spec|
-    test_name = File.basename(spec, '.rb').sub(/^(.*?)_spec$/, '\1')
+  FileList["spec/*_spec.rb"].each do |spec|
+    test_name = File.basename(spec, ".rb").sub(/^(.*?)_spec$/, '\1')
 
     RSpec::Core::RakeTask.new(:"#{test_name}") do |t|
       t.pattern = spec
@@ -111,18 +111,18 @@ namespace :spec do
   end
 end
 
-SIGNING_ID = 'Apple Development: Brett Terpstra'
+SIGNING_ID = "Apple Development: Brett Terpstra"
 
-require 'plist'
-require 'shellwords'
-require 'fileutils'
+require "plist"
+require "shellwords"
+require "fileutils"
 
 class Workflow
   # String helpers
   class ::String
     def import_markers(base)
-      gsub(/^# *import\nrequire(?:_relative)? '(.*?)'\n/) do
-        file = Regexp.last_match(1)
+      gsub(/^# *import\nrequire(?:_relative)? (["'])(.*?)\1\n/) do
+        file = Regexp.last_match(2)
         file = File.join(base, "#{file}.rb")
 
         content = IO.read(file)
@@ -140,34 +140,34 @@ class Workflow
   end
 
   def self.copy_services
-    services = ['SearchLink', 'SearchLink File', 'Jump to SearchLink Error']
-    target = File.expand_path('./SearchLink Services')
+    services = ["SearchLink", "SearchLink File", "Jump to SearchLink Error"]
+    target = File.expand_path("./SearchLink Services")
     services.each do |service|
-      source = File.join(File.expand_path('~/Library/Services'), "#{service}.workflow")
+      source = File.join(File.expand_path("~/Library/Services"), "#{service}.workflow")
       FileUtils.cp_r(source, target)
     end
   end
 
   def compile
-    source_file = File.expand_path('bin/searchlink')
+    source_file = File.expand_path("bin/searchlink")
     source = IO.read(source_file)
 
-    source.import_markers!(File.join(File.dirname(source_file), '..'))
+    source.import_markers!(File.join(File.dirname(source_file), ".."))
 
-    source.sub(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, '')
+    source.sub(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, "")
   end
 
   def sign
     cmd = [
-      'codesign',
-      '--force',
-      '--deep',
-      '--verbose',
+      "codesign",
+      "--force",
+      "--deep",
+      "--verbose",
       "--sign '#{SIGNING_ID}'",
-      '-o runtime',
-      '--timestamp',
-      Shellwords.escape(@workflow)
-    ].join(' ')
+      "-o runtime",
+      "--timestamp",
+      Shellwords.escape(@workflow),
+    ].join(" ")
     res = `#{cmd} 2>&1`
 
     return true if res =~ /signed bundle/
@@ -177,26 +177,26 @@ class Workflow
   end
 
   def update_script
-    wflow = File.join(File.expand_path(@workflow), 'Contents/document.wflow')
+    wflow = File.join(File.expand_path(@workflow), "Contents/document.wflow")
     script = compile
     workflow = IO.read(wflow)
 
     plist = Plist.parse_xml(wflow)
-    plist['actions'].each_with_index do |action, idx|
-      next unless action['action']['AMParameterProperties'].key?('COMMAND_STRING')
+    plist["actions"].each_with_index do |action, idx|
+      next unless action["action"]["ActionParameters"].key?("COMMAND_STRING")
 
-      plist['actions'][idx]['action']['AMParameterProperties']['COMMAND_STRING'] = script
+      plist["actions"][idx]["action"]["ActionParameters"]["COMMAND_STRING"] = script
       break
     end
 
-    File.open(wflow, 'w') { |f| f.puts plist.to_plist }
+    File.open(wflow, "w") { |f| f.puts plist.to_plist }
     "Updated script for #{File.basename(@workflow)}"
   end
 end
 
-desc 'Update and sign Services'
+desc "Update and sign Services"
 task :services do
-  workflows = Dir.glob('SearchLink Services/*.workflow')
+  workflows = Dir.glob("SearchLink Services/*.workflow")
   if workflows.count < 3
     Workflow.copy_services
   end
