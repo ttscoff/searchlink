@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SL
-  VERSION = '2.3.72'
+  VERSION = '2.3.73'
 end
 
 # Main module
