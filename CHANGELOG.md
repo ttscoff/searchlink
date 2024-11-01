@@ -1,3 +1,11 @@
+### 2.3.73
+
+2024-11-01 07:34
+
+#### FIXED
+
+- Fix compile script and update services
+
 ### 2.3.72
 
 2024-11-01 07:09
