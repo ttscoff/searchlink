@@ -4,9 +4,9 @@
 # String helpers
 class ::String
   def import_markers(base)
-    gsub(/^# *import\nrequire(?:_relative)? '(.*?)'\n/) do
-      file = Regexp.last_match(1)
-      file = File.join(base, "#{file}.rb")
+    gsub(/^# *import\nrequire(?:_relative)? (['"])(.*?)\1\n/) do
+      file = Regexp.last_match(2)
+      file = File.join(base, "#{file}").sub(/(\.rb)?$/, ".rb")
 
       content = IO.read(file)
       content.import_markers(File.dirname(file))
@@ -18,10 +18,10 @@ class ::String
   end
 end
 
-source_file = File.expand_path('bin/searchlink')
+source_file = File.expand_path("bin/searchlink")
 source = IO.read(source_file)
 
-source.import_markers!(File.join(File.dirname(source_file), '..'))
+source.import_markers!(File.join(File.dirname(source_file), ".."))
 
 # sources = [source]
 # Dir.glob('lib/searchlink/searches/*.rb').each do |f|
@@ -31,9 +31,9 @@ source.import_markers!(File.join(File.dirname(source_file), '..'))
 # end
 # source = sources.join("\n")
 
-source.sub!(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, '')
+source.sub!(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, "")
 # source.sub!(/^# *ignore *\n.*?$/, '')
 
-File.open('searchlink.rb', 'w') { |f| f.puts source }
+File.open("searchlink.rb", "w") { |f| f.puts source }
 
-puts 'Compiled searchlink.rb'
+puts "Compiled searchlink.rb"
