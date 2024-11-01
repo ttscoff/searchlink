@@ -86,7 +86,7 @@ If you're interested in installing SearchLink as a command line tool, [see the w
 [Plugins]: https://github.com/ttscoff/searchlink-plugins
 [searches]: https://github.com/ttscoff/searchlink/tree/main/lib/searchlink/searches
 
-All of [SearchLink's searches][searches] are defined using a [plugin architecture][plugins wiki]. You can see more examples and fodder for building your own in the [SearchLink Plugins repository][Plugins].
+All of the [SearchLink searches][searches] are defined using a [plugin architecture][plugins wiki]. You can see more examples and fodder for building your own in the [SearchLink Plugins repository][Plugins].
 
 ### Bonus for LaunchBar users
 
