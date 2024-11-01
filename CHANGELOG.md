@@ -1,3 +1,20 @@
+### 2.3.74
+
+2024-11-01 07:58
+
+#### NEW
+
+- Linkding search
+
+#### IMPROVED
+
+- Safari history results ignore DuckDuckGo search pages
+- Add global SL.site_search shortcut
+
+#### FIXED
+
+- Fix compile script and update services
+
 ### 2.3.73
 
 2024-11-01 07:34
