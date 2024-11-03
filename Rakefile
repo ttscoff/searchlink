@@ -113,7 +113,7 @@ end
 
 SIGNING_ID = "Apple Development: Brett Terpstra"
 
-require "plist"
+# require "plist"
 require "shellwords"
 require "fileutils"
 

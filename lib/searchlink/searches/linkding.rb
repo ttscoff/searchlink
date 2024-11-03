@@ -2,47 +2,47 @@
 
 module SL
   class LinkdingSearch
-    LINKDING_CACHE = SL::Util.cache_file_for("linkding")
+    LINKDING_CACHE = SL::Util.cache_file_for('linkding')
 
     class << self
       def settings
         {
-          trigger: "(ld|ding)",
+          trigger: '(ld|ding)',
           searches: [
-            [["ld", "ding"], "Linkding Bookmark Search"],
-          ],
+            [%w[ld ding], 'Linkding Bookmark Search']
+          ]
         }
       end
 
       def get_json(call)
-        curl = TTY::Which.which("curl")
-        bookmarks = `#{curl} -SsL -H "Authorization: Token #{SL.config["linkding_api_key"]}" "#{SL.config["linkding_server"]}#{call}"`
+        curl = TTY::Which.which('curl')
+        bookmarks = `#{curl} -SsL -H "Authorization: Token #{SL.config['linkding_api_key']}" "#{SL.config['linkding_server']}#{call}"`
 
-        bookmarks = bookmarks.force_encoding("utf-8")
+        bookmarks = bookmarks.force_encoding('utf-8')
         bookmarks.gsub!(/[^[:ascii:]]/) do |non_ascii|
-          non_ascii.force_encoding("utf-8")
-            .encode("utf-16be")
-            .unpack("H*")[0]
-            .gsub(/(....)/, '\u\1')
+          non_ascii.force_encoding('utf-8')
+                   .encode('utf-16be')
+                   .unpack1('H*')
+                   .gsub(/(....)/, '\u\1')
         end
 
-        bookmarks.gsub!(/[\u{1F600}-\u{1F6FF}]/, "")
+        bookmarks.gsub!(/[\u{1F600}-\u{1F6FF}]/, '')
 
         JSON.parse(bookmarks)
       end
 
       def get_linkding_bookmarks
-        curl = TTY::Which.which("curl")
-        call = "/api/bookmarks/?limit=8000&format=json"
+        curl = TTY::Which.which('curl')
+        call = '/api/bookmarks/?limit=8000&format=json'
 
         json = get_json(call)
-        bookmarks = json["results"]
+        bookmarks = json['results']
         offset = 0
 
-        while json["next"]
+        while json['next']
           offset += 8000
           json = get_json(call + "&offset=#{offset}")
-          bookmarks.concat(json["results"])
+          bookmarks.concat(json['results'])
         end
 
         bookmarks
@@ -51,7 +51,7 @@ module SL
       def linkding_bookmarks
         bookmarks = get_linkding_bookmarks
         updated = Time.now
-        { "update_time" => updated, "bookmarks" => bookmarks }
+        { 'update_time' => updated, 'bookmarks' => bookmarks }
       end
 
       def save_linkding_cache(cache)
@@ -60,9 +60,9 @@ module SL
         # file = File.new(cachefile,'w')
         # file = Zlib::GzipWriter.new(File.new(cachefile,'w'))
         begin
-          File.open(cachefile, "wb") { |f| f.write(Marshal.dump(cache)) }
+          File.open(cachefile, 'wb') { |f| f.write(Marshal.dump(cache)) }
         rescue IOError
-          SL.add_error("Linkding cache error", "Failed to write stash to disk")
+          SL.add_error('Linkding cache error', 'Failed to write stash to disk')
           return false
         end
         true
@@ -79,19 +79,19 @@ module SL
             cache = Marshal.load(File.binread(cachefile))
             # file.close
           rescue IOError # Zlib::GzipFile::Error
-            SL.add_error("Error loading linkding cache", "IOError reading #{cachefile}")
+            SL.add_error('Error loading linkding cache', "IOError reading #{cachefile}")
             cache = linkding_bookmarks
             save_linkding_cache(cache)
           rescue StandardError
-            SL.add_error("Error loading linkding cache", "StandardError reading #{cachefile}")
+            SL.add_error('Error loading linkding cache', "StandardError reading #{cachefile}")
             cache = linkding_bookmarks
             save_linkding_cache(cache)
           end
-          curl = TTY::Which.which("curl")
-          updated = get_json("/api/bookmarks/?limit=1&format=json")["results"][0]
-          last_bookmark = Time.parse(updated["date_modified"])
-          if cache&.key?("update_time")
-            last_update = cache["update_time"]
+          curl = TTY::Which.which('curl')
+          updated = get_json('/api/bookmarks/?limit=1&format=json')['results'][0]
+          last_bookmark = Time.parse(updated['date_modified'])
+          if cache&.key?('update_time')
+            last_update = cache['update_time']
             refresh_cache = true if last_update < last_bookmark
           else
             refresh_cache = true
@@ -120,14 +120,14 @@ module SL
       #
       # Exact matching is case and punctuation insensitive
       def search(_, search_terms, link_text)
-        unless SL.config["linkding_server"]
-          SL.add_error("Missing Linkding server",
-                       "add it to your configuration (linkding_server: https://YOUR_SERVER)")
+        unless SL.config['linkding_server']
+          SL.add_error('Missing Linkding server',
+                       'add it to your configuration (linkding_server: https://YOUR_SERVER)')
           return false
         end
 
-        unless SL.config["linkding_api_key"]
-          SL.add_error("Missing Linkding API token",
+        unless SL.config['linkding_api_key']
+          SL.add_error('Missing Linkding API token',
                        "Find your api key at https://your_server/settings/integrations and add it
                         to your configuration (linkding_api_key: YOURKEY)")
           return false
@@ -140,21 +140,21 @@ module SL
         case search_terms
         when /^ *'/
           exact_match = true
-          search_terms.gsub!(/(^ *'+|'+ *$)/, "")
+          search_terms.gsub!(/(^ *'+|'+ *$)/, '')
         when /%22(.*?)%22/
           match_phrases = search_terms.scan(/%22(\S.*?\S)%22/)
-          search_terms.gsub!(/%22(\S.*?\S)%22/, "")
+          search_terms.gsub!(/%22(\S.*?\S)%22/, '')
         end
 
         cache = linkding_cache
         # cache = linkding_bookmarks
-        bookmarks = cache["bookmarks"]
+        bookmarks = cache['bookmarks']
 
         if exact_match
           bookmarks.each do |bm|
-            text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
+            text = [bm['title'], bm['description'], bm['tag_names'].join(' ')].join(' ')
 
-            return [bm["url"], bm["title"]] if text.matches_exact(search_terms)
+            return [bm['url'], bm['title']] if text.matches_exact(search_terms)
           end
 
           return false
@@ -163,7 +163,7 @@ module SL
         unless match_phrases.empty?
           bookmarks.delete_if do |bm|
             matched = tru
-            full_text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
+            full_text = [bm['title'], bm['description'], bm['tag_names'].join(' ')].join(' ')
             match_phrases.each do |phrase|
               matched = false unless full_text.matches_exact(phrase)
             end
@@ -173,28 +173,28 @@ module SL
 
         matches = []
         bookmarks.each do |bm|
-          title_tags = [bm["title"], bm["description"]].join(" ")
-          full_text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
+          title_tags = [bm['title'], bm['description']].join(' ')
+          full_text = [bm['title'], bm['description'], bm['tag_names'].join(' ')].join(' ')
 
           score = if title_tags.matches_exact(search_terms)
-              14.0
-            elsif full_text.matches_exact(search_terms)
-              13.0
-            elsif full_text.matches_any(search_terms)
-              full_text.matches_score(search_terms)
-            else
-              0
-            end
+                    14.0
+                  elsif full_text.matches_exact(search_terms)
+                    13.0
+                  elsif full_text.matches_any(search_terms)
+                    full_text.matches_score(search_terms)
+                  else
+                    0
+                  end
 
-          return [bm["url"], bm["title"]] if score == 14
+          return [bm['url'], bm['title']] if score == 14
 
           next unless score.positive?
 
           matches.push({
                          score: score,
-                         href: bm["url"],
-                         title: bm["title"],
-                         date: bm["date_added"],
+                         href: bm['url'],
+                         title: bm['title'],
+                         date: bm['date_added']
                        })
         end
 
@@ -208,6 +208,6 @@ module SL
       end
     end
 
-    SL::Searches.register "linkding", :search, self
+    SL::Searches.register 'linkding', :search, self
   end
 end

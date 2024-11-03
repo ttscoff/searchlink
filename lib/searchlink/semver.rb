@@ -12,7 +12,7 @@ module SL
     ## @return     [SemVer] SemVer object
     ##
     def initialize(version_string)
-      raise VersionError.new("Invalid semantic version number: #{version_string}") unless version_string.valid_version?
+      raise VersionError, "Invalid semantic version number: #{version_string}" unless version_string.valid_version?
 
       @maj, @min, @patch = version_string.split(/\./)
       @pre = nil

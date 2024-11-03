@@ -216,14 +216,14 @@ module SL
       input.scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| @links[match[1].strip] = match[0] }
 
       @prefix = if SL.config['prefix_random']
-                 if input =~ /\[(\d{4}-)\d+\]: \S+/
-                   Regexp.last_match(1)
-                 else
-                   format('%04d-', rand(9999))
-                 end
-               else
-                 ''
-               end
+                  if input =~ /\[(\d{4}-)\d+\]: \S+/
+                    Regexp.last_match(1)
+                  else
+                    format('%04d-', rand(9999))
+                  end
+                else
+                  ''
+                end
 
       @highest_marker = 0
       input.scan(/^\s{,3}\[(?:#{@prefix})?(\d+)\]: /).each do
@@ -376,7 +376,9 @@ module SL
                 search_terms = @link_text if search_terms == ''
 
                 # if the input starts with a +, append it to the link text as the search terms
-                search_terms = "#{@link_text} #{search_terms.strip.sub(/^\+\s*/, '')}" if search_terms.strip =~ /^\+[^+]/
+                if search_terms.strip =~ /^\+[^+]/
+                  search_terms = "#{@link_text} #{search_terms.strip.sub(/^\+\s*/, '')}"
+                end
 
                 # if the end of input contain "^", copy to clipboard instead of STDOUT
                 SL.clipboard = true if search_terms =~ /(!!)?\^(!!)?$/

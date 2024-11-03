@@ -258,13 +258,13 @@ module SL
         res = false
 
         profiles.each do |bookmarks|
-          if File.exist?(bookmarks)
-            profile = bookmarks.match(%r{Chrome/([^/]+)/})[1]
+          next unless File.exist?(bookmarks)
 
-            SL.notify("Searching Chrome Bookmarks for profile #{profile}", term)
-            res = search_chromium_bookmarks(bookmarks, term)
-            break if res
-          end
+          profile = bookmarks.match(%r{Chrome/([^/]+)/})[1]
+
+          SL.notify("Searching Chrome Bookmarks for profile #{profile}", term)
+          res = search_chromium_bookmarks(bookmarks, term)
+          break if res
         end
 
         res
