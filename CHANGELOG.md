@@ -1,3 +1,15 @@
+### 2.3.74
+
+2024-11-01 08:57
+
+#### NEW
+
+- Add linkding searching
+
+#### FIXED
+
+- Fixed deploy script
+
 ### 2.3.73
 
 2024-11-01 07:34
