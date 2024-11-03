@@ -386,7 +386,7 @@ module SL
                 # if the end of input contains "!!", only print the url
                 link_only = true if search_terms =~ /!!\^?$/
 
-                search_terms.sub!(/(!!)?\^?(!!)?$/, '')
+                search_terms = search_terms.sub(/(!!)?\^?(!!)?$/, '')
 
               elsif link_info =~ /^!/
                 search_word = link_info.match(/^!(\S+)/)
