@@ -16,7 +16,7 @@ require "erb"
 require "english"
 
 # import
-require_relative "tokens" if File.exist?("lib/tokens.rb")
+require_relative "tokens" if File.exist?("tokens.rb")
 
 # import
 require_relative "searchlink/exceptions"
