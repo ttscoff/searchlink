@@ -1,3 +1,19 @@
+### 2.3.75
+
+2024-12-06 08:19
+
+#### IMPROVED
+
+- Allow data: option for Curl::Json
+
+#### FIXED
+
+- Update itunes search urls to https
+- Handle nil results better
+- Fix duckduckgo zero results url
+- Fix token require for compiled script
+- Reference English gem with capital E
+
 ### 2.3.74
 
 2024-11-01 08:57
