@@ -13,7 +13,7 @@ require "zlib"
 require "time"
 require "json"
 require "erb"
-require "english"
+require "English"
 
 # import
 require_relative "tokens" if File.exist?("tokens.rb")
