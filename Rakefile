@@ -113,7 +113,7 @@ end
 
 SIGNING_ID = "Apple Development: Brett Terpstra"
 
-# require "plist"
+require "plist"
 require "shellwords"
 require "fileutils"
 
@@ -168,6 +168,7 @@ class Workflow
       "--timestamp",
       Shellwords.escape(@workflow),
     ].join(" ")
+    `xattr -cr #{Shellwords.escape(@workflow)}`
     res = `#{cmd} 2>&1`
 
     return true if res =~ /signed bundle/
