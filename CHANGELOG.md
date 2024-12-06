@@ -1,3 +1,12 @@
+### 2.3.76
+
+2024-12-06 08:57
+
+#### FIXED
+
+- Put off some rubocop errors
+- Errant debug output
+
 ### 2.3.75
 
 2024-12-06 08:33
