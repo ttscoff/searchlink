@@ -5,7 +5,7 @@ module SL
   class ::String
     # Scrub invalid characters from string
     def scrubup
-      encode('utf-16', invalid: :replace).encode('utf-8').gsub(/\u00A0/, ' ')
+      encode("utf-16", invalid: :replace).encode("utf-8").gsub(/\u00A0/, " ")
     end
 
     # @see #scrub
@@ -32,7 +32,7 @@ module SL
     ## @return     [String] modified regular expression
     ##
     def normalize_trigger
-      gsub(/\((?!\?:)/, '(?:').gsub(/(^(\^|\\A)|(\$|\\Z)$)/, '').downcase
+      gsub(/\((?!\?:)/, "(?:").gsub(/(^(\^|\\A)|(\$|\\Z)$)/, "").downcase
     end
 
     ##
@@ -56,29 +56,29 @@ module SL
     def parse_flags
       gsub(/(\+\+|--)([dirtvs]+)\b/) do
         m = Regexp.last_match
-        bool = m[1] == '++' ? '' : 'no-'
-        output = ' '
-        m[2].split('').each do |arg|
+        bool = m[1] == "++" ? "" : "no-"
+        output = " "
+        m[2].split("").each do |arg|
           output += case arg
-                    when 'd'
+                    when "d"
                       "--#{bool}debug "
-                    when 'i'
+                    when "i"
                       "--#{bool}inline "
-                    when 'r'
+                    when "r"
                       "--#{bool}prefix_random "
-                    when 't'
+                    when "t"
                       "--#{bool}include_titles "
-                    when 'v'
+                    when "v"
                       "--#{bool}validate_links "
-                    when 's'
+                    when "s"
                       "--#{bool}remove_seo "
                     else
-                      ''
+                      ""
                     end
         end
 
         output
-      end.gsub(/ +/, ' ')
+      end.gsub(/ +/, " ")
     end
 
     def parse_flags!
@@ -91,7 +91,7 @@ module SL
     ## @return     { description_of_the_return_value }
     ##
     def fix_gist_file
-      sub(/^file-/, '').sub(/-([^\-]+)$/, '.\1')
+      sub(/^file-/, "").sub(/-([^\-]+)$/, '.\1')
     end
 
     # Turn a string into a slug, removing spaces and
@@ -100,7 +100,7 @@ module SL
     # @return     [String] slugified string
     #
     def slugify
-      downcase.gsub(/[^a-z0-9_]/i, '-').gsub(/-+/, '-').sub(/-?$/, '')
+      downcase.gsub(/[^a-z0-9_]/i, "-").gsub(/-+/, "-").sub(/-?$/, "")
     end
 
     # Destructive slugify
@@ -116,11 +116,11 @@ module SL
     ## @return     [String] cleaned URL/String
     ##
     def clean
-      gsub(/\n+/, ' ')
-        .gsub(/"/, '&quot')
-        .gsub(/\|/, '-')
+      gsub(/\n+/, " ")
+        .gsub(/"/, "&quot")
+        .gsub(/\|/, "-")
         .gsub(/([&?]utm_[scm].+=[^&\s!,.)\]]++?)+(&.*)/, '\2')
-        .sub(/\?&/, '').strip
+        .sub(/\?&/, "").strip
     end
 
     # convert itunes to apple music link
@@ -128,8 +128,8 @@ module SL
     # @return [String] apple music link
     def to_am
       input = dup
-      input.sub!(%r{/itunes\.apple\.com}, 'geo.itunes.apple.com')
-      append = input =~ %r{\?[^/]+=} ? '&app=music' : '?app=music'
+      input.sub!(%r{/itunes\.apple\.com}, "geo.itunes.apple.com")
+      append = input =~ %r{\?[^/]+=} ? "&app=music" : "?app=music"
       input + append
     end
 
@@ -139,7 +139,7 @@ module SL
     ## @return     [String] just hostname and path of URL
     ##
     def remove_protocol
-      sub(%r{^(https?|s?ftp|file)://}, '')
+      sub(%r{^(https?|s?ftp|file)://}, "")
     end
 
     ##
@@ -158,11 +158,11 @@ module SL
     def path_elements
       path = url_path
       # force trailing slash
-      path.sub!(%r{/?$}, '/')
+      path.sub!(%r{/?$}, "/")
       # remove last path element
-      path.sub!(%r{/[^/]+[.\-][^/]+/$}, '')
+      path.sub!(%r{/[^/]+[.\-][^/]+/$}, "")
       # remove starting/ending slashes
-      path.gsub!(%r{(^/|/$)}, '')
+      path.gsub!(%r{(^/|/$)}, "")
       # split at slashes, delete sections that are shorter
       # than 5 characters or only consist of numbers
       path.split(%r{/}).delete_if { |section| section =~ /^\d+$/ || section.length < 5 }
@@ -189,11 +189,11 @@ module SL
       words = split(/\s+/)
 
       punct_chars = {
-        '“' => '”',
-        '‘' => '’',
-        '[' => ']',
-        '(' => ')',
-        '<' => '>'
+        "“" => "”",
+        "‘" => "’",
+        "[" => "]",
+        "(" => ")",
+        "<" => ">"
       }
 
       left_punct = []
@@ -205,10 +205,10 @@ module SL
         end
       end
 
-      tail = ''
+      tail = ""
       left_punct.reverse.each { |c| tail += punct_chars[c] }
 
-      gsub(/[^a-z)\]’”.…]+$/i, '...').strip + tail
+      gsub(/[^a-z)\]’”.…]+$/i, "...").strip + tail
     end
 
     ##
@@ -235,9 +235,9 @@ module SL
       url = URI.parse(url)
       host = url.hostname
       unless host
-        return self unless SL.config['debug']
+        return self unless SL.config["debug"]
 
-        SL.add_error('Invalid URL', "Could not remove SEO for #{url}")
+        SL.add_error("Invalid URL", "Could not remove SEO for #{url}")
         return self
 
       end
@@ -245,12 +245,12 @@ module SL
       path = url.path
       root_page = path =~ %r{^/?$} ? true : false
 
-      title.gsub!(/\s*(&ndash;|&mdash;)\s*/, ' - ')
+      title.gsub!(/\s*(&ndash;|&mdash;)\s*/, " - ")
       title.gsub!(/&[lr]dquo;/, '"')
       title.gsub!(/&[lr]dquo;/, "'")
-      title.gsub!(/&#8211;/, ' — ')
+      title.gsub!(/&#8211;/, " — ")
       title = CGI.unescapeHTML(title)
-      title.gsub!(/ +/, ' ')
+      title.gsub!(/ +/, " ")
 
       seo_title_separators = %w[| » « — – - · :]
 
@@ -258,7 +258,7 @@ module SL
         re_parts = []
 
         host_parts = host.sub(/(?:www\.)?(.*?)\.[^.]+$/, '\1').split(/\./).delete_if { |p| p.length < 3 }
-        h_re = !host_parts.empty? ? host_parts.map { |seg| seg.downcase.split(//).join('.?') }.join('|') : ''
+        h_re = !host_parts.empty? ? host_parts.map { |seg| seg.downcase.split(//).join(".?") }.join("|") : ""
         re_parts.push(h_re) unless h_re.empty?
 
         # p_re = path.path_elements.map{|seg| seg.downcase.split(//).join('.?') }.join('|')
@@ -268,7 +268,7 @@ module SL
 
         dead_switch = 0
 
-        while title.downcase.gsub(/[^a-z]/i, '') =~ /#{site_re}/i
+        while title.downcase.gsub(/[^a-z]/i, "") =~ /#{site_re}/i
 
           break if dead_switch > 5
 
@@ -277,14 +277,14 @@ module SL
 
             next if parts.length == 1
 
-            remaining_separators = seo_title_separators[i..-1].map { |s| Regexp.escape(s) }.join('')
+            remaining_separators = seo_title_separators[i..-1].map { |s| Regexp.escape(s) }.join("")
             seps = Regexp.new("^[^#{remaining_separators}]+$")
 
             longest = parts.longest_element.strip
 
             unless parts.empty?
               parts.delete_if do |pt|
-                compressed = pt.strip.downcase.gsub(/[^a-z]/i, '')
+                compressed = pt.strip.downcase.gsub(/[^a-z]/i, "")
                 compressed =~ /#{site_re}/ && pt =~ seps ? !root_page : false
               end
             end
@@ -302,7 +302,7 @@ module SL
           dead_switch += 1
         end
       rescue StandardError => e
-        return self unless SL.config['debug']
+        return self unless SL.config["debug"]
 
         SL.add_error("Error SEO processing title for #{url}", e)
         return self
@@ -314,7 +314,7 @@ module SL
         title = seo_parts.longest_element.strip if seo_parts.length.positive?
       end
 
-      title && title.length > 5 ? title.gsub(/\s+/, ' ') : CGI.unescapeHTML(self)
+      title && title.length > 5 ? title.gsub(/\s+/, " ") : CGI.unescapeHTML(self)
     end
 
     ##
@@ -340,12 +340,12 @@ module SL
 
       words = split(/\s+/)
       words.each do |word|
-        break unless trunc_title.join(' ').length.close_punctuation + word.length <= max
+        break unless trunc_title.join(" ").length.close_punctuation + word.length <= max
 
         trunc_title << word
       end
 
-      trunc_title.empty? ? words[0] : trunc_title.join(' ')
+      trunc_title.empty? ? words[0] : trunc_title.join(" ")
     end
 
     ##
@@ -370,7 +370,7 @@ module SL
     ## @param      start_word  [Boolean] Require match to be
     ##                         at beginning of word
     ##
-    def matches_score(terms, separator: ' ', start_word: true)
+    def matches_score(terms, separator: " ", start_word: true)
       matched = 0
       regexes = terms.to_rx_array(separator: separator, start_word: start_word)
 
@@ -383,7 +383,7 @@ module SL
       ((matched / regexes.count.to_f) * 10).round(3)
     end
 
-    def matches_fuzzy(terms, separator: ' ', start_word: true, threshhold: 5)
+    def matches_fuzzy(terms, separator: " ", start_word: true, threshhold: 5)
       sources = split(/(#{separator})+/)
       words = terms.split(/(#{separator})+/)
       matches = 0
@@ -429,7 +429,7 @@ module SL
     ## @param      string [String] The string to match
     ##
     def matches_exact(string)
-      comp = gsub(/[^a-z0-9 ]/i, '')
+      comp = gsub(/[^a-z0-9 ]/i, "")
       comp =~ /\b#{string.gsub(/[^a-z0-9 ]/i, '').split(/ +/).map { |s| Regexp.escape(s) }.join(' +')}/i
     end
 
@@ -440,7 +440,7 @@ module SL
     ##
     def matches_none(terms)
       rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
-      rx_terms.each { |rx| return false if gsub(/[^a-z0-9 ]/i, '') =~ rx }
+      rx_terms.each { |rx| return false if gsub(/[^a-z0-9 ]/i, "") =~ rx }
       true
     end
 
@@ -451,7 +451,7 @@ module SL
     ##
     def matches_any(terms)
       rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
-      rx_terms.each { |rx| return true if gsub(/[^a-z0-9 ]/i, '') =~ rx }
+      rx_terms.each { |rx| return true if gsub(/[^a-z0-9 ]/i, "") =~ rx }
       false
     end
 
@@ -462,7 +462,7 @@ module SL
     ##
     def matches_all(terms)
       rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
-      rx_terms.each { |rx| return false unless gsub(/[^a-z0-9 ]/i, '') =~ rx }
+      rx_terms.each { |rx| return false unless gsub(/[^a-z0-9 ]/i, "") =~ rx }
       true
     end
 
@@ -475,8 +475,8 @@ module SL
     ##
     ## @return     [Array] array of regular expressions
     ##
-    def to_rx_array(separator: ' ', start_word: true)
-      bound = start_word ? '\b' : ''
+    def to_rx_array(separator: " ", start_word: true)
+      bound = start_word ? '\b' : ""
       str = gsub(/(#{separator})+/, separator)
       str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, '.?')}/i }
     end
@@ -493,8 +493,8 @@ module SL
     ## Shorten path by adding ~ for home directory
     ##
     def shorten_path
-      home_directory = ENV['HOME']
-      sub(home_directory, '~')
+      home_directory = ENV["HOME"]
+      sub(home_directory, "~")
     end
   end
 end

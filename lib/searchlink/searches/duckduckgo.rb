@@ -17,8 +17,8 @@ module SL
             ["g", "Google/DuckDuckGo Search"],
             ["ddg", "DuckDuckGo Search"],
             ["z", "DDG Zero Click Search"],
-            ["ddgimg", "Return the first image from the destination page"],
-          ],
+            ["ddgimg", "Return the first image from the destination page"]
+          ]
         }
       end
 
@@ -58,10 +58,10 @@ module SL
         output_url = result
 
         output_title = if SL.config["include_titles"] || SL.titleize
-            SL::URL.title(output_url) || ""
-          else
-            ""
-          end
+                         SL::URL.title(output_url) || ""
+                       else
+                         ""
+                       end
 
         output_url = SL.first_image(output_url) if search_type =~ /img$/
 

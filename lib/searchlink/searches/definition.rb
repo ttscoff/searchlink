@@ -10,10 +10,10 @@ module SL
       #
       def settings
         {
-          trigger: 'def(?:ine)?',
+          trigger: "def(?:ine)?",
           searches: [
-            ['def', 'Dictionary Definition'],
-            ['define', nil]
+            ["def", "Dictionary Definition"],
+            ["define", nil]
           ]
         }
       end
@@ -32,7 +32,7 @@ module SL
         fix = SL.spell(search_terms)
 
         if fix && search_terms.downcase != fix.downcase
-          SL.add_error('Spelling', "Spelling altered for '#{search_terms}' to '#{fix}'")
+          SL.add_error("Spelling", "Spelling altered for '#{search_terms}' to '#{fix}'")
           search_terms = fix
           link_text = fix
         end
@@ -49,12 +49,12 @@ module SL
       #
       def define(terms)
         def_url = "https://www.wordnik.com/words/#{terms.url_encode}"
-        curl = TTY::Which.which('curl')
+        curl = TTY::Which.which("curl")
         body = `#{curl} -sSL '#{def_url}'`
         if body =~ /id="define"/
           first_definition = body.match(%r{(?mi)(?:id="define"[\s\S]*?<li>)([\s\S]*?)</li>})[1]
           parts = first_definition.match(%r{<abbr title="partOfSpeech">(.*?)</abbr> (.*?)$})
-          return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(%r{</?.*?>}, '').strip]
+          return [def_url, "(#{parts[1]}) #{parts[2]}".gsub(%r{</?.*?>}, "").strip]
         end
 
         false
@@ -64,6 +64,6 @@ module SL
     end
 
     # Registers the search with the SL::Searches module
-    SL::Searches.register 'definition', :search, self
+    SL::Searches.register "definition", :search, self
   end
 end

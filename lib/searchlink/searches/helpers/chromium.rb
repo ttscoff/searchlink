@@ -15,9 +15,9 @@ module SL
       ##
       def search_arc_history(term)
         # Google history
-        history_file = File.expand_path('~/Library/Application Support/Arc/User Data/Default/History')
+        history_file = File.expand_path("~/Library/Application Support/Arc/User Data/Default/History")
         if File.exist?(history_file)
-          SL.notify('Searching Arc History', term)
+          SL.notify("Searching Arc History", term)
           search_chromium_history(history_file, term)
         else
           false
@@ -31,8 +31,8 @@ module SL
       ## @return     [Array] Single bookmark, [url, title, date]
       ##
       def search_brave_history(term)
-        base = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/')
-        profiles = Dir.glob('**/History', base: base)
+        base = File.expand_path("~/Library/Application Support/BraveSoftware/Brave-Browser/")
+        profiles = Dir.glob("**/History", base: base)
         profiles.delete_if { |p| p =~ /^Snapshots/ }
         profiles.map! { |f| File.join(base, f) }
 
@@ -59,8 +59,8 @@ module SL
       ## @return     [Array] Single bookmark, [url, title, date]
       ##
       def search_edge_history(term)
-        base = File.expand_path('~/Library/Application Support/Microsoft Edge/')
-        profiles = Dir.glob('**/History', base: base)
+        base = File.expand_path("~/Library/Application Support/Microsoft Edge/")
+        profiles = Dir.glob("**/History", base: base)
         profiles.delete_if { |p| p =~ /^Snapshots/ }
         profiles.map! { |f| File.join(base, f) }
 
@@ -88,8 +88,8 @@ module SL
       ##
       def search_chrome_history(term)
         # Google history
-        base = File.expand_path('~/Library/Application Support/Google/Chrome/')
-        profiles = Dir.glob('**/History', base: base)
+        base = File.expand_path("~/Library/Application Support/Google/Chrome/")
+        profiles = Dir.glob("**/History", base: base)
         profiles.delete_if { |p| p =~ /^Snapshots/ }
         profiles.map! { |f| File.join(base, f) }
 
@@ -131,10 +131,10 @@ module SL
         # If search terms start with ''term, only search for exact string matches
         if term =~ /^ *'/
           exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, '')
+          term.gsub!(/(^ *'+|'+ *$)/, "")
         elsif term =~ /%22(.*?)%22/
           match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, '')
+          term.gsub!(/%22(\S.*?\S)%22/, "")
         end
 
         terms = []
@@ -154,7 +154,7 @@ module SL
           end)
         end
 
-        query = terms.join(' AND ')
+        query = terms.join(" AND ")
         most_recent = `sqlite3 -json '#{tmpfile}' "select title, url,
         datetime(last_visit_time / 1000000 + (strftime('%s', '1601-01-01')), 'unixepoch') as datum
         from urls where #{query} order by datum desc limit 1 COLLATE NOCASE;"`.strip
@@ -163,8 +163,8 @@ module SL
 
         bm = JSON.parse(most_recent)[0]
 
-        date = Time.parse(bm['datum'])
-        [bm['url'], bm['title'], date]
+        date = Time.parse(bm["datum"])
+        [bm["url"], bm["title"], date]
       end
 
       ##
@@ -175,10 +175,10 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_arc_bookmarks(term)
-        bookmarks_file = File.expand_path('~/Library/Application Support/Arc/StorableSidebar.json')
+        bookmarks_file = File.expand_path("~/Library/Application Support/Arc/StorableSidebar.json")
 
         if File.exist?(bookmarks_file)
-          SL.notify('Searching Arc Bookmarks', term)
+          SL.notify("Searching Arc Bookmarks", term)
           return search_arc_json(bookmarks_file, term)
         end
 
@@ -193,8 +193,8 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_brave_bookmarks(term)
-        base = File.expand_path('~/Library/Application Support/BraveSoftware/Brave-Browser/')
-        profiles = Dir.glob('**/Bookmarks', base: base)
+        base = File.expand_path("~/Library/Application Support/BraveSoftware/Brave-Browser/")
+        profiles = Dir.glob("**/Bookmarks", base: base)
         profiles.delete_if { |p| p =~ /^Snapshots/ }
         profiles.map! { |f| File.join(base, f) }
 
@@ -222,8 +222,8 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_edge_bookmarks(term)
-        base = File.expand_path('~/Library/Application Support/Microsoft Edge')
-        profiles = Dir.glob('**/Bookmarks', base: base)
+        base = File.expand_path("~/Library/Application Support/Microsoft Edge")
+        profiles = Dir.glob("**/Bookmarks", base: base)
         profiles.delete_if { |p| p =~ /^Snapshots/ }
         profiles.map! { |f| File.join(base, f) }
 
@@ -250,8 +250,8 @@ module SL
       ## @return     [Array] single bookmark [url, title, date]
       ##
       def search_chrome_bookmarks(term)
-        base = File.expand_path('~/Library/Application Support/Google/Chrome/')
-        profiles = Dir.glob('**/Bookmarks', base: base)
+        base = File.expand_path("~/Library/Application Support/Google/Chrome/")
+        profiles = Dir.glob("**/Bookmarks", base: base)
         profiles.delete_if { |p| p =~ /^Snapshots/ }
         profiles.map! { |f| File.join(base, f) }
 
@@ -287,27 +287,27 @@ module SL
         # If search terms start with ''term, only search for exact string matches
         if term =~ /^ *'/
           exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, '')
+          term.gsub!(/(^ *'+|'+ *$)/, "")
         elsif term =~ /%22(.*?)%22/
           match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, '')
+          term.gsub!(/%22(\S.*?\S)%22/, "")
         end
 
         if arc_bookmarks
           bookmarks = []
-          arc_bookmarks['sidebarSyncState']['items'].each do |mark|
+          arc_bookmarks["sidebarSyncState"]["items"].each do |mark|
             next if mark.is_a?(String)
 
-            next unless mark['value']['childrenIds'].empty?
+            next unless mark["value"]["childrenIds"].empty?
 
-            next unless mark['value']['data']['tab']
+            next unless mark["value"]["data"]["tab"]
 
             url = {
-              url: mark['value']['data']['tab']['savedURL'],
-              saved_title: mark['value']['data']['tab']['savedTitle'],
-              title: mark['value']['title'],
-              created: mark['value']['createdAt'].to_datetime,
-              active: mark['value']['data']['tab']['timeLastActiveAt']&.to_datetime
+              url: mark["value"]["data"]["tab"]["savedURL"],
+              saved_title: mark["value"]["data"]["tab"]["savedTitle"],
+              title: mark["value"]["title"],
+              created: mark["value"]["createdAt"].to_datetime,
+              active: mark["value"]["data"]["tab"]["timeLastActiveAt"]&.to_datetime
             }
 
             score = score_mark(url, term)
@@ -370,14 +370,14 @@ module SL
         # If search terms start with ''term, only search for exact string matches
         if term =~ /^ *'/
           exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, '')
+          term.gsub!(/(^ *'+|'+ *$)/, "")
         elsif term =~ /%22(.*?)%22/
           match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, '')
+          term.gsub!(/%22(\S.*?\S)%22/, "")
         end
 
         if chrome_bookmarks
-          roots = chrome_bookmarks['roots']
+          roots = chrome_bookmarks["roots"]
 
           urls = extract_chrome_bookmarks(roots, [], term)
 
@@ -417,15 +417,15 @@ module SL
       ##
       ## @return [Array] array of bookmarks
       ##
-      def extract_chrome_bookmarks(json, urls = [], term = '')
+      def extract_chrome_bookmarks(json, urls = [], term = "")
         if json.instance_of?(Array)
           json.each { |item| urls = extract_chrome_bookmarks(item, urls, term) }
         elsif json.instance_of?(Hash)
-          if json.key? 'children'
-            urls = extract_chrome_bookmarks(json['children'], urls, term)
-          elsif json['type'] == 'url'
-            date = Time.at(json['date_added'].to_i / 1_000_000 + Time.new(1601, 0o1, 0o1).strftime('%s').to_i)
-            url = { url: json['url'], title: json['name'], date: date }
+          if json.key? "children"
+            urls = extract_chrome_bookmarks(json["children"], urls, term)
+          elsif json["type"] == "url"
+            date = Time.at(json["date_added"].to_i / 1_000_000 + Time.new(1601, 0o1, 0o1).strftime("%s").to_i)
+            url = { url: json["url"], title: json["name"], date: date }
             score = score_mark(url, term)
 
             if score > 7

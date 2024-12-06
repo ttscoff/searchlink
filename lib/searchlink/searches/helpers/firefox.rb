@@ -5,12 +5,12 @@ module SL
     class << self
       def search_firefox_history(term)
         # Firefox history
-        base = File.expand_path('~/Library/Application Support/Firefox/Profiles')
+        base = File.expand_path("~/Library/Application Support/Firefox/Profiles")
         Dir.chdir(base)
-        profile = Dir.glob('*default-release')
+        profile = Dir.glob("*default-release")
         return false unless profile
 
-        src = File.join(base, profile[0], 'places.sqlite')
+        src = File.join(base, profile[0], "places.sqlite")
 
         exact_match = false
         match_phrases = []
@@ -19,14 +19,14 @@ module SL
         case term
         when /^ *'/
           exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, '')
+          term.gsub!(/(^ *'+|'+ *$)/, "")
         when /%22(.*?)%22/
           match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, '')
+          term.gsub!(/%22(\S.*?\S)%22/, "")
         end
 
         if File.exist?(src)
-          SL.notify('Searching Firefox History', term)
+          SL.notify("Searching Firefox History", term)
           tmpfile = "#{src}.tmp"
           FileUtils.cp(src, tmpfile)
 
@@ -45,7 +45,7 @@ module SL
               "(moz_places.url LIKE '%#{t[0].strip.downcase}%' OR moz_places.title LIKE '%#{t[0].strip.downcase}%')"
             end)
           end
-          query = terms.join(' AND ')
+          query = terms.join(" AND ")
           most_recent = `sqlite3 -json '#{tmpfile}' "select moz_places.title, moz_places.url,
           datetime(moz_historyvisits.visit_date/1000000, 'unixepoch', 'localtime') as datum
           from moz_places, moz_historyvisits where moz_places.id = moz_historyvisits.place_id
@@ -57,9 +57,9 @@ module SL
           marks = JSON.parse(most_recent)
 
           marks.map! do |bm|
-            date = Time.parse(bm['datum'])
-            score = score_mark({ url: bm['url'], title: bm['title'] }, term)
-            { url: bm['url'], title: bm['title'], date: date, score: score }
+            date = Time.parse(bm["datum"])
+            score = score_mark({ url: bm["url"], title: bm["title"] }, term)
+            { url: bm["url"], title: bm["title"], date: date, score: score }
           end
 
           m = marks.max_by { |m| [m[:url].length * -1, m[:score]] }
@@ -72,12 +72,12 @@ module SL
 
       def search_firefox_bookmarks(term)
         # Firefox history
-        base = File.expand_path('~/Library/Application Support/Firefox/Profiles')
+        base = File.expand_path("~/Library/Application Support/Firefox/Profiles")
         Dir.chdir(base)
-        profile = Dir.glob('*default-release')
+        profile = Dir.glob("*default-release")
         return false unless profile
 
-        src = File.join(base, profile[0], 'places.sqlite')
+        src = File.join(base, profile[0], "places.sqlite")
 
         exact_match = false
         match_phrases = []
@@ -85,14 +85,14 @@ module SL
         # If search terms start with ''term, only search for exact string matches
         if term =~ /^ *'/
           exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, '')
+          term.gsub!(/(^ *'+|'+ *$)/, "")
         elsif term =~ /%22(.*?)%22/
           match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, '')
+          term.gsub!(/%22(\S.*?\S)%22/, "")
         end
 
         if File.exist?(src)
-          SL.notify('Searching Firefox Bookmarks', term)
+          SL.notify("Searching Firefox Bookmarks", term)
           tmpfile = "#{src}.tmp"
           FileUtils.cp(src, tmpfile)
 
@@ -112,7 +112,7 @@ module SL
             end)
           end
 
-          query = terms.join(' AND ')
+          query = terms.join(" AND ")
 
           most_recent = `sqlite3 -json '#{tmpfile}' "select h.url, b.title,
           datetime(b.dateAdded/1000000, 'unixepoch', 'localtime') as datum
@@ -124,9 +124,9 @@ module SL
 
           bm = JSON.parse(most_recent)[0]
 
-          date = Time.parse(bm['datum'])
-          score = score_mark({ url: bm['url'], title: bm['title'] }, term)
-          [bm['url'], bm['title'], date, score]
+          date = Time.parse(bm["datum"])
+          score = score_mark({ url: bm["url"], title: bm["title"] }, term)
+          [bm["url"], bm["title"], date, score]
         else
           false
         end

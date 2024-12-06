@@ -6,17 +6,17 @@ module SL
     class << self
       def settings
         {
-          trigger: 'soa?',
+          trigger: "soa?",
           searches: [
-            ['so', 'StackOverflow Search'],
-            ['soa', 'StackOverflow Accepted Answer']
+            ["so", "StackOverflow Search"],
+            ["soa", "StackOverflow Accepted Answer"]
           ]
         }
       end
 
       def search(search_type, search_terms, link_text)
         url, title, link_text = SL.ddg("site:stackoverflow.com #{search_terms}", link_text)
-        link_text = title if link_text == '' && !SL.titleize
+        link_text = title if link_text == "" && !SL.titleize
 
         if search_type =~ /a$/
           body = `curl -SsL #{url}`.strip
@@ -28,6 +28,6 @@ module SL
       end
     end
 
-    SL::Searches.register 'stackoverflow', :search, self
+    SL::Searches.register "stackoverflow", :search, self
   end
 end

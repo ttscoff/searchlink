@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 # import
-require_relative 'helpers/chromium'
+require_relative "helpers/chromium"
 
 # import
-require_relative 'helpers/firefox'
+require_relative "helpers/firefox"
 
 # import
-require_relative 'helpers/safari'
+require_relative "helpers/safari"
 
 module SL
   # Browser history/bookmark search
@@ -15,33 +15,33 @@ module SL
     class << self
       def settings
         {
-          trigger: 'h(([scfabe])([hb])?)*',
+          trigger: "h(([scfabe])([hb])?)*",
           searches: [
-            ['h', 'Browser History/Bookmark Search'],
-            ['hsh', 'Safari History Search'],
-            ['hsb', 'Safari Bookmark Search'],
-            ['hshb', nil],
-            ['hsbh', nil],
-            ['hch', 'Chrome History Search'],
-            ['hcb', 'Chrome Bookmark Search'],
-            ['hchb', nil],
-            ['hcbh', nil],
-            ['hfh', 'Firefox History Search'],
-            ['hfb', 'Firefox Bookmark Search'],
-            ['hfhb', nil],
-            ['hfbh', nil],
-            ['hah', 'Arc History Search'],
-            ['hab', 'Arc Bookmark Search'],
-            ['hahb', nil],
-            ['habh', nil],
-            ['hbh', 'Brave History Search'],
-            ['hbb', 'Brave Bookmark Search'],
-            ['hbhb', nil],
-            ['hbbh', nil],
-            ['heh', 'Edge History Search'],
-            ['heb', 'Edge Bookmark Search'],
-            ['hehb', nil],
-            ['hebh', nil]
+            ["h", "Browser History/Bookmark Search"],
+            ["hsh", "Safari History Search"],
+            ["hsb", "Safari Bookmark Search"],
+            ["hshb", nil],
+            ["hsbh", nil],
+            ["hch", "Chrome History Search"],
+            ["hcb", "Chrome Bookmark Search"],
+            ["hchb", nil],
+            ["hcbh", nil],
+            ["hfh", "Firefox History Search"],
+            ["hfb", "Firefox Bookmark Search"],
+            ["hfhb", nil],
+            ["hfbh", nil],
+            ["hah", "Arc History Search"],
+            ["hab", "Arc Bookmark Search"],
+            ["hahb", nil],
+            ["habh", nil],
+            ["hbh", "Brave History Search"],
+            ["hbb", "Brave Bookmark Search"],
+            ["hbhb", nil],
+            ["hbbh", nil],
+            ["heh", "Edge History Search"],
+            ["heb", "Edge Bookmark Search"],
+            ["hehb", nil],
+            ["hebh", nil]
           ]
         }
       end
@@ -54,92 +54,92 @@ module SL
           if str =~ /^s([hb]*)/
             t = Regexp.last_match(1)
             if t.length > 1 || t.empty?
-              types.push('safari_history')
-              types.push('safari_bookmarks')
-            elsif t == 'h'
-              types.push('safari_history')
-            elsif t == 'b'
-              types.push('safari_bookmarks')
+              types.push("safari_history")
+              types.push("safari_bookmarks")
+            elsif t == "h"
+              types.push("safari_history")
+            elsif t == "b"
+              types.push("safari_bookmarks")
             end
-            str.sub!(/^s([hb]*)/, '')
+            str.sub!(/^s([hb]*)/, "")
           end
 
           if str =~ /^c([hb]*)/
             t = Regexp.last_match(1)
             if t.length > 1 || t.empty?
-              types.push('chrome_bookmarks')
-              types.push('chrome_history')
-            elsif t == 'h'
-              types.push('chrome_history')
-            elsif t == 'b'
-              types.push('chrome_bookmarks')
+              types.push("chrome_bookmarks")
+              types.push("chrome_history")
+            elsif t == "h"
+              types.push("chrome_history")
+            elsif t == "b"
+              types.push("chrome_bookmarks")
             end
-            str.sub!(/^c([hb]*)/, '')
+            str.sub!(/^c([hb]*)/, "")
           end
 
           if str =~ /^f([hb]*)$/
             t = Regexp.last_match(1)
             if t.length > 1 || t.empty?
-              types.push('firefox_bookmarks')
-              types.push('firefox_history')
-            elsif t == 'h'
-              types.push('firefox_history')
-            elsif t == 'b'
-              types.push('firefox_bookmarks')
+              types.push("firefox_bookmarks")
+              types.push("firefox_history")
+            elsif t == "h"
+              types.push("firefox_history")
+            elsif t == "b"
+              types.push("firefox_bookmarks")
             end
-            str.sub!(/^f([hb]*)/, '')
+            str.sub!(/^f([hb]*)/, "")
           end
 
           if str =~ /^e([hb]*)$/
             t = Regexp.last_match(1)
             if t.length > 1 || t.empty?
-              types.push('edge_bookmarks')
-              types.push('edge_history')
-            elsif t == 'h'
-              types.push('edge_history')
-            elsif t == 'b'
-              types.push('edge_bookmarks')
+              types.push("edge_bookmarks")
+              types.push("edge_history")
+            elsif t == "h"
+              types.push("edge_history")
+            elsif t == "b"
+              types.push("edge_bookmarks")
             end
-            str.sub!(/^e([hb]*)/, '')
+            str.sub!(/^e([hb]*)/, "")
           end
 
           if str =~ /^b([hb]*)$/
             t = Regexp.last_match(1)
             if t.length > 1 || t.empty?
-              types.push('brave_bookmarks')
-              types.push('brave_history')
-            elsif t == 'h'
-              types.push('brave_history')
-            elsif t == 'b'
-              types.push('brave_bookmarks')
+              types.push("brave_bookmarks")
+              types.push("brave_history")
+            elsif t == "h"
+              types.push("brave_history")
+            elsif t == "b"
+              types.push("brave_bookmarks")
             end
-            str.sub!(/^b([hb]*)/, '')
+            str.sub!(/^b([hb]*)/, "")
           end
 
           next unless str =~ /^a([hb]*)$/
 
           t = Regexp.last_match(1)
           if t.length > 1 || t.empty?
-            types.push('arc_bookmarks')
-            types.push('arc_history')
-          elsif t == 'h'
-            types.push('arc_history')
-          elsif t == 'b'
-            types.push('arc_bookmarks')
+            types.push("arc_bookmarks")
+            types.push("arc_history")
+          elsif t == "h"
+            types.push("arc_history")
+          elsif t == "b"
+            types.push("arc_bookmarks")
           end
-          str.sub!(/^a([hb]*)/, '')
+          str.sub!(/^a([hb]*)/, "")
         end
 
         url, title = search_history(search_terms, types)
-        link_text = title if link_text == '' || link_text == search_terms
+        link_text = title if link_text == "" || link_text == search_terms
         [url, title, link_text]
       end
 
       def search_history(term, types = [])
         if types.empty?
-          return false unless SL.config['history_types']
+          return false unless SL.config["history_types"]
 
-          types = SL.config['history_types']
+          types = SL.config["history_types"]
         end
 
         results = []
@@ -148,14 +148,14 @@ module SL
           types.each do |type|
             url, title, date = send("search_#{type}", term)
 
-            results << { 'url' => url, 'title' => title, 'date' => date } if url
+            results << { "url" => url, "title" => title, "date" => date } if url
           end
 
           if results.empty?
             false
           else
-            out = results.sort_by! { |r| r['date'] }.last
-            [out['url'], out['title']]
+            out = results.sort_by! { |r| r["date"] }.last
+            [out["url"], out["title"]]
           end
         else
           false
@@ -163,6 +163,6 @@ module SL
       end
     end
 
-    SL::Searches.register 'history', :search, self
+    SL::Searches.register "history", :search, self
   end
 end

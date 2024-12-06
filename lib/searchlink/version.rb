@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module SL
-  VERSION = '2.3.76'
+  VERSION = "2.3.76"
 end
 
 # Main module
 module SL
   class << self
     def version_check
-      cachefile = File.expand_path('~/.config/searchlink/cache/update.txt')
+      cachefile = File.expand_path("~/.config/searchlink/cache/update.txt")
 
       FileUtils.mkdir_p(File.dirname(cachefile)) unless File.directory?(File.dirname(cachefile))
 
@@ -29,11 +29,9 @@ module SL
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
 
-      File.open(cachefile, 'w') { |f| f.puts("#{last_time.strftime('%c')}|#{latest}") }
+      File.open(cachefile, "w") { |f| f.puts("#{last_time.strftime("%c")}|#{latest}") }
 
-      if latest_tag && current.older_than(latest)
-        return "SearchLink v#{current}, #{latest} available. Run 'update' to download."
-      end
+      return "SearchLink v#{current}, #{latest} available. Run \"update\" to download." if latest_tag && current.older_than(latest)
 
       "SearchLink v#{current}"
     end
@@ -43,17 +41,17 @@ module SL
     # @return false if no new version, or semantic version of latest release
     def new_version?
       headers = {
-        'Accept' => 'application/vnd.github+json',
-        'X-GitHub-Api-Version' => '2022-11-28'
+        "Accept" => "application/vnd.github+json",
+        "X-GitHub-Api-Version" => "2022-11-28",
       }
-      headers['Authorization'] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
+      headers["Authorization"] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
 
-      url = 'https://api.github.com/repos/ttscoff/searchlink/releases/latest'
+      url = "https://api.github.com/repos/ttscoff/searchlink/releases/latest"
       page = Curl::Json.new(url, headers: headers)
       result = page.json
 
       if result
-        latest_tag = result['tag_name']
+        latest_tag = result["tag_name"]
 
         return false unless latest_tag
 
@@ -64,7 +62,7 @@ module SL
 
         return latest_tag if current.older_than(latest)
       else
-        warn 'Check for new version failed.'
+        warn "Check for new version failed."
       end
 
       false
@@ -72,24 +70,24 @@ module SL
 
     def update_searchlink
       if `uname`.strip !~ /Darwin/
-        add_output('Auto updating only available on macOS')
+        add_output("Auto updating only available on macOS")
         return
       end
 
       new_version = SL.new_version?
       if new_version
-        folder = File.expand_path('~/Downloads')
-        services = File.expand_path('~/Library/Services')
-        dl = File.join(folder, 'SearchLink.zip')
-        curl = TTY::Which.which('curl')
+        folder = File.expand_path("~/Downloads")
+        services = File.expand_path("~/Library/Services")
+        dl = File.join(folder, "SearchLink.zip")
+        curl = TTY::Which.which("curl")
         `#{curl} -SsL -o "#{dl}" https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip`
         Dir.chdir(folder)
         `unzip -qo #{dl} -d #{folder}`
         FileUtils.rm(dl)
 
-        ['SearchLink', 'SearchLink File', 'Jump to SearchLink Error'].each do |workflow|
+        ["SearchLink", "SearchLink File", "Jump to SearchLink Error"].each do |workflow|
           wflow = "#{workflow}.workflow"
-          src = File.join(folder, 'SearchLink Services', wflow)
+          src = File.join(folder, "SearchLink Services", wflow)
           dest = File.join(services, wflow)
           if File.exist?(src) && File.exist?(dest)
             FileUtils.rm_rf(dest)
@@ -97,9 +95,9 @@ module SL
           end
         end
         add_output("Installed SearchLink #{new_version}")
-        FileUtils.rm_rf('SearchLink Services')
+        FileUtils.rm_rf("SearchLink Services")
       else
-        add_output('Already up to date.')
+        add_output("Already up to date.")
       end
     end
   end

@@ -21,9 +21,9 @@ module SL
     #
     # @return [Array] [Url, link, text]
     #
-    def do_search(search_type, search_terms, link_text = '', search_count = 0)
+    def do_search(search_type, search_terms, link_text = "", search_count = 0)
       if (search_count % 5).zero?
-        SL.notify('Throttling for 5s')
+        SL.notify("Throttling for 5s")
         sleep 5
       end
 
@@ -37,13 +37,13 @@ module SL
       else
         case search_type
         when /^r$/ # simple replacement
-          if SL.config['validate_links'] && !SL::URL.valid_link?(search_terms)
+          if SL.config["validate_links"] && !SL::URL.valid_link?(search_terms)
             return [false, "Link not valid: #{search_terms}", link_text]
           end
 
           title = SL::URL.title(search_terms) || search_terms
 
-          link_text = title if link_text == ''
+          link_text = title if link_text == ""
           return [search_terms, title, link_text]
         else
           if search_terms
@@ -56,11 +56,11 @@ module SL
         end
       end
 
-      if link_text == ''
+      if link_text == ""
         link_text = SL.titleize ? title : search_terms
       end
 
-      if url && SL.config['validate_links'] && !SL::URL.valid_link?(url) && search_type !~ /^sp(ell)?/
+      if url && SL.config["validate_links"] && !SL::URL.valid_link?(url) && search_type !~ /^sp(ell)?/
         [false, "Not found: #{url}", link_text]
       elsif !url
         [false, "No results: #{url}", link_text]

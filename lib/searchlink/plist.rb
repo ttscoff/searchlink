@@ -64,11 +64,11 @@ module Plist
     COMMENT_END = /.*?-->/um.freeze
 
     def parse
-      plist_tags = PTag.mappings.keys.join('|')
+      plist_tags = PTag.mappings.keys.join("|")
       start_tag  = /<(#{plist_tags})([^>]*)>/i
       end_tag    = %r{</(#{plist_tags})[^>]*>}i
 
-      require 'strscan'
+      require "strscan"
 
       @scanner = StringScanner.new(@xml)
       until @scanner.eos?
@@ -84,7 +84,7 @@ module Plist
         elsif @scanner.scan(end_tag)
           @listener.tag_end(@scanner[1])
         else
-          raise 'Unimplemented element'
+          raise "Unimplemented element"
         end
       end
     end
@@ -98,8 +98,8 @@ module Plist
 
     def self.inherited(sub_class)
       key = sub_class.to_s.downcase
-      key.gsub!(/^plist::/, '')
-      key.gsub!(/^p/, '') unless key == 'plist'
+      key.gsub!(/^plist::/, "")
+      key.gsub!(/^p/, "") unless key == "plist"
 
       @@mappings[key] = sub_class
     end
@@ -110,7 +110,7 @@ module Plist
     end
 
     def to_ruby
-      raise 'Unimplemented: ' + self.class.to_s + "#to_ruby on #{inspect}"
+      raise "Unimplemented: " + self.class.to_s + "#to_ruby on #{inspect}"
     end
   end
 
@@ -140,13 +140,13 @@ module Plist
 
   class PKey < PTag
     def to_ruby
-      CGI.unescapeHTML(text || '')
+      CGI.unescapeHTML(text || "")
     end
   end
 
   class PString < PTag
     def to_ruby
-      CGI.unescapeHTML(text || '')
+      CGI.unescapeHTML(text || "")
     end
   end
 
@@ -180,17 +180,17 @@ module Plist
     end
   end
 
-  require 'date'
+  require "date"
   class PDate < PTag
     def to_ruby
       DateTime.parse(text)
     end
   end
 
-  require 'base64'
+  require "base64"
   class PData < PTag
     def to_ruby
-      data = Base64.decode64(text.gsub(/\s+/, ''))
+      data = Base64.decode64(text.gsub(/\s+/, ""))
 
       begin
         Marshal.load(data)

@@ -8,10 +8,10 @@ module SL
     class << self
       def settings
         {
-          trigger: 'yte?',
+          trigger: "yte?",
           searches: [
-            ['yt', 'YouTube Search'],
-            ['yte', 'YouTube Embed']
+            ["yt", "YouTube Search"],
+            ["yte", "YouTube Embed"]
           ]
         }
       end
@@ -33,18 +33,18 @@ module SL
       def embed_for_url(url)
         return unless url =~ YOUTUBE_RX
 
-        id = Regexp.last_match('id')
+        id = Regexp.last_match("id")
         title = [
           %(<iframe width="560" height="315" src="https://www.youtube.com/embed/#{id}"),
           %(title="YouTube video player" frameborder="0"),
           %(allow="accelerometer; autoplay; clipboard-write; encrypted-media;),
           %(gyroscope; picture-in-picture; web-share"),
           %(allowfullscreen></iframe>)
-        ].join(' ')
-        ['embed', title]
+        ].join(" ")
+        ["embed", title]
       end
     end
 
-    SL::Searches.register 'youtube', :search, self
+    SL::Searches.register "youtube", :search, self
   end
 end

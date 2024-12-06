@@ -16,8 +16,8 @@ module SL
             ["amalb", "Apple Music Album"],
             ["amsong", "Apple Music Song"],
             ["amalbe", "Apple Music Album Embed"],
-            ["amsong", "Apple Music Song Embed"],
-          ],
+            ["amsong", "Apple Music Song Embed"]
+          ]
         }
       end
 
@@ -29,17 +29,17 @@ module SL
           stype.sub!(/e$/, "")
         end
         result = case stype
-          when /^pod$/
-            applemusic(search_terms, "podcast")
-          when /^art$/
-            applemusic(search_terms, "music", "musicArtist")
-          when /^alb$/
-            applemusic(search_terms, "music", "album")
-          when /^song$/
-            applemusic(search_terms, "music", "musicTrack")
-          else
-            applemusic(search_terms)
-          end
+                 when /^pod$/
+                   applemusic(search_terms, "podcast")
+                 when /^art$/
+                   applemusic(search_terms, "music", "musicArtist")
+                 when /^alb$/
+                   applemusic(search_terms, "music", "album")
+                 when /^song$/
+                   applemusic(search_terms, "music", "musicTrack")
+                 else
+                   applemusic(search_terms)
+                 end
 
         return [false, "Not found: #{search_terms}", link_text] unless result
 
@@ -47,10 +47,10 @@ module SL
         if otype == :embed && result[:type] =~ /(album|song)/
           url = "embed"
           if result[:type] =~ /song/
-            link = %(https://embed.music.apple.com/#{SL.config["country_code"].downcase}/album/#{result[:album]}?i=#{result[:id]}&app=music#{SL.config["itunes_affiliate"]})
+            link = %(https://embed.music.apple.com/#{SL.config['country_code'].downcase}/album/#{result[:album]}?i=#{result[:id]}&app=music#{SL.config['itunes_affiliate']})
             height = 150
           else
-            link = %(https://embed.music.apple.com/#{SL.config["country_code"].downcase}/album/#{result[:id]}?app=music#{SL.config["itunes_affiliate"]})
+            link = %(https://embed.music.apple.com/#{SL.config['country_code'].downcase}/album/#{result[:id]}?app=music#{SL.config['itunes_affiliate']})
             height = 450
           end
 
@@ -59,7 +59,7 @@ module SL
             %(frameborder="0" height="#{height}"),
             %(style="width:100%;max-width:660px;overflow:hidden;background:transparent;"),
             %(sandbox="allow-forms allow-popups allow-same-origin),
-            %(allow-scripts allow-top-navigation-by-user-activation"></iframe>),
+            %(allow-scripts allow-top-navigation-by-user-activation"></iframe>)
           ].join(" ")
         else
           url = result[:url]
@@ -74,7 +74,7 @@ module SL
       # entity => optional: artist, song, album, podcast
       # returns {:type=>,:id=>,:url=>,:title}
       def applemusic(terms, media = "music", entity = "")
-        url = "https://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config["country_code"]}&media=#{media}&entity=#{entity}"
+        url = "https://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&media=#{media}&entity=#{entity}"
         page = Curl::Json.new(url, compressed: true, symbolize_names: true)
         json = page.json
         return false unless json[:resultCount]&.positive?

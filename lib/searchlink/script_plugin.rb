@@ -6,17 +6,17 @@ module SL
   # Script Search
   class ScriptSearch
     def initialize(config)
-      @filename = config['filename']
-      @path = config['path']
+      @filename = config["filename"]
+      @path = config["path"]
 
       %w[trigger searches name script].each do |key|
         raise PluginError.new(%(configuration missing key "#{key}"), plugin: @filename) unless config.key?(key)
       end
 
-      @trigger = config['trigger']
-      @searches = config['searches']
-      @name = config['name']
-      @script = find_script(config['script'])
+      @trigger = config["trigger"]
+      @searches = config["searches"]
+      @name = config["name"]
+      @script = find_script(config["script"])
 
       unless File.executable?(@script)
         raise PluginError.new(%(script "#{File.basename(@script)}" not executable\nrun `chmod a+x #{@script.shorten_path}` to correct),
@@ -36,7 +36,7 @@ module SL
           terms = Shellwords.escape(search_terms)
           text = Shellwords.escape(link_text)
 
-          stdout = `#{[@script, type, terms, text].join(' ')} 2>&1`
+          stdout = `#{[@script, type, terms, text].join(" ")} 2>&1`
 
           unless $CHILD_STATUS.success?
             raise PluginError.new(%("#{File.basename(@script)}" returned error #{$CHILD_STATUS.exitstatus}\n#{stdout}),
@@ -60,7 +60,7 @@ module SL
             end
           end
 
-          [res['url'], res['title'], res['link_text']]
+          [res["url"], res["title"], res["link_text"]]
         end
       end
 
@@ -70,11 +70,11 @@ module SL
     def find_script(script)
       return File.expand_path(script) if File.exist?(File.expand_path(script))
 
-      base = File.expand_path('~/.config/searchlink/plugins')
+      base = File.expand_path("~/.config/searchlink/plugins")
       first = File.join(base, script)
       return first if File.exist?(first)
 
-      base = File.expand_path('~/.config/searchlink')
+      base = File.expand_path("~/.config/searchlink")
       second = File.join(base, script)
       return second if File.exist?(second)
 

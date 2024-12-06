@@ -6,9 +6,9 @@ module SL
     class << self
       def settings
         {
-          trigger: 's',
+          trigger: "s",
           searches: [
-            ['s', 'Software Search']
+            ["s", "Software Search"]
           ]
         }
       end
@@ -18,12 +18,12 @@ module SL
         search_url = %(#{excludes.map { |x| "-site:#{x}" }.join(' ')} #{search_terms} app)
 
         url, title, link_text = SL.ddg(search_url, link_text)
-        link_text = title if link_text == '' && !SL.titleize
+        link_text = title if link_text == "" && !SL.titleize
 
         [url, title, link_text]
       end
     end
 
-    SL::Searches.register 'software', :search, self
+    SL::Searches.register "software", :search, self
   end
 end

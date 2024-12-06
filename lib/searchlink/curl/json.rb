@@ -56,7 +56,7 @@ module Curl
       headers = headers.nil? ? "" : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(" ")
       data = data.nil? ? "" : %(-d '#{data}')
       compress = compressed ? "--compressed" : ""
-      puts %(#{@curl} -#{flags} #{compress} #{headers} #{data} "#{url}")
+
       source = `#{@curl} -#{flags} #{compress} #{headers} #{data} "#{url}" 2>/dev/null`
       if source.nil? || source.empty?
         source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null`

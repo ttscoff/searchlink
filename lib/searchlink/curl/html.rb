@@ -4,7 +4,7 @@ module Curl
   # String helpers
   class ::String
     def remove_entities
-      gsub(/&nbsp;/, ' ')
+      gsub(/&nbsp;/, " ")
     end
   end
 
@@ -24,7 +24,7 @@ module Curl
     ## @return     [HTMLCurl] new page object
     ##
     def initialize(url, headers: nil, headers_only: false, compressed: false)
-      @curl = TTY::Which.which('curl')
+      @curl = TTY::Which.which("curl")
       res = curl_html(url, headers: headers, headers_only: headers_only, compressed: compressed)
       @url = res[:url]
       @code = res[:code]
@@ -34,8 +34,8 @@ module Curl
       @head = res[:head] unless res[:head].nil?
       @body = reencode(res[:body])
       @source = res[:source]
-      @title = @meta['og:title'] || @meta['title'] unless @meta.nil?
-      @description = @meta['og:description'] || @meta['description'] unless @meta.nil?
+      @title = @meta["og:title"] || @meta["title"] unless @meta.nil?
+      @description = @meta["og:description"] || @meta["description"] unless @meta.nil?
       @body_links = content_links
       @body_images = content_images
     end
@@ -85,7 +85,7 @@ module Curl
         m = tag_source.to_enum(:scan, /(\S+)=(['"])(.*?)\2/).map { Regexp.last_match }
         attrs = m.each_with_object({}) { |at, a| a[at[1]] = at[3] }
         tags = tag_source.match(/<.*?>(?<content>.*?)</)
-        contents = tags.nil? ? nil : tags['content']
+        contents = tags.nil? ? nil : tags["content"]
         {
           tag: tag,
           source: tag_source,
@@ -145,7 +145,7 @@ module Curl
         next unless @meta.key?(src)
 
         output << {
-          type: 'opengraph',
+          type: "opengraph",
           attrs: nil,
           src: @meta[src]
         }
@@ -167,14 +167,14 @@ module Curl
               end
             end
             output << {
-              type: 'srcset',
+              type: "srcset",
               attrs: img[:attrs],
               images: srcset
             }
           end
         when /img/
           output << {
-            type: 'img',
+            type: "img",
             src: img[:attrs].filter { |a| a[:key] =~ /src/i }.first[:value],
             attrs: img[:attrs]
           }
@@ -190,7 +190,7 @@ module Curl
       [
         %(<HTMLCurl: @code="#{@code}" @url="#{@url}" @title="#{@title}"),
         %(@description=#{@description} @headers:#{headers} @meta:#{meta} @links:#{links}>)
-      ].join(' ')
+      ].join(" ")
     end
 
     ##
@@ -204,14 +204,14 @@ module Curl
       res = []
       headlines = @body.to_enum(:scan, %r{<h(?<level>#{level})(?<tag> .*?)?>(?<text>.*?)</h#{level}>}i).map { Regexp.last_match }
       headlines.each do |m|
-        headline = { level: m['level'] }
-        if m['tag'].nil?
+        headline = { level: m["level"] }
+        if m["tag"].nil?
           attrs = nil
         else
-          attrs = m['tag'].to_enum(:scan, /(?<attr>\w+)=(?<quot>["'])(?<content>.*?)\k<quot>/).map { Regexp.last_match }
-          attrs.each { |a| headline[a['attr'].to_sym] = a['content'] }
+          attrs = m["tag"].to_enum(:scan, /(?<attr>\w+)=(?<quot>["'])(?<content>.*?)\k<quot>/).map { Regexp.last_match }
+          attrs.each { |a| headline[a["attr"].to_sym] = a["content"] }
         end
-        headline[:text] = m['text'].remove_entities
+        headline[:text] = m["text"].remove_entities
         res << headline
       end
       res
@@ -247,20 +247,20 @@ module Curl
         <(?<tag>(?!</)[a-z0-9]+)(?<attrs>\s[^>]+)?
         (?:\s*/>|>(?<content>.*?)</\k<tag>>)}).map { Regexp.last_match }
       res.map do |tag|
-        if tag['attrs'].nil?
+        if tag["attrs"].nil?
           attrs = nil
         else
-          attrs = tag['attrs'].strip.to_enum(:scan, /(?ix)
+          attrs = tag["attrs"].strip.to_enum(:scan, /(?ix)
                                              (?<key>[@a-z0-9-]+)(?:=(?<quot>["'])
                                              (?<value>[^"']+)\k<quot>|[ >])?/i).map { Regexp.last_match }
-          attrs.map! { |a| { key: a['key'], value: a['key'] =~ /^(class|rel)$/ ? a['value'].split(/ /) : a['value'] } }
+          attrs.map! { |a| { key: a["key"], value: a["key"] =~ /^(class|rel)$/ ? a["value"].split(/ /) : a["value"] } }
         end
         {
-          tag: tag['tag'],
+          tag: tag["tag"],
           source: tag.to_s,
           attrs: attrs,
-          content: tag['content'],
-          tags: content_tags(tag['content'])
+          content: tag["content"],
+          tags: content_tags(tag["content"])
         }
       end
     end
@@ -275,10 +275,10 @@ module Curl
     def meta_tags(head)
       meta = {}
       title = head.match(%r{(?<=<title>)(.*?)(?=</title>)})
-      meta['title'] = title.nil? ? nil : title[1]
+      meta["title"] = title.nil? ? nil : title[1]
       refresh = head.match(/http-equiv=(['"])refresh\1(.*?)>/)
       url = refresh.nil? ? nil : refresh[2].match(/url=(.*?)['"]/)
-      meta['refresh_url'] = url
+      meta["refresh_url"] = url
       meta_tags = head.scan(/<meta.*?>/)
       meta_tags.each do |tag|
         meta_name = tag.match(/(?:name|property|http-equiv)=(["'])(.*?)\1/)
@@ -337,15 +337,15 @@ module Curl
       links = []
       link_tags = @body.to_enum(:scan, %r{<a (?<tag>.*?)>(?<text>.*?)</a>}).map { Regexp.last_match }
       link_tags.each do |m|
-        href = m['tag'].match(/href=(["'])(.*?)\1/)
+        href = m["tag"].match(/href=(["'])(.*?)\1/)
         href = href[2] unless href.nil?
-        title = m['tag'].match(/title=(["'])(.*?)\1/)
+        title = m["tag"].match(/title=(["'])(.*?)\1/)
         title = title[2] unless title.nil?
-        rel = m['tag'].match(/rel=(["'])(.*?)\1/)
+        rel = m["tag"].match(/rel=(["'])(.*?)\1/)
         rel = rel[2] unless rel.nil?
-        link_class = m['tag'].match(/class=(["'])(.*?)\1/)
+        link_class = m["tag"].match(/class=(["'])(.*?)\1/)
         link_class = link_class[2] unless link_class.nil?
-        text = m['text'].remove_entities
+        text = m["text"].remove_entities
         link = {
           href: href,
           title: title,
@@ -367,9 +367,9 @@ module Curl
       images = []
       image_tags = @body.to_enum(:scan, %r{<img (?<tag>.*?)/?>}).map { Regexp.last_match }
       image_tags.each do |m|
-        attrs = m['tag'].to_enum(:scan, /(?<attr>\w+)=(?<quot>["'])(?<content>.*?)\k<quot>/).map { Regexp.last_match }
+        attrs = m["tag"].to_enum(:scan, /(?<attr>\w+)=(?<quot>["'])(?<content>.*?)\k<quot>/).map { Regexp.last_match }
         image = {}
-        attrs.each { |a| image[a['attr'].to_sym] = a['content'] }
+        attrs.each { |a| image[a["attr"].to_sym] = a["content"] }
         images << image
       end
       images
@@ -386,13 +386,13 @@ module Curl
     ## @return     [Hash] hash of url, code, headers, meta, links, head, body, and source
     ##
     def curl_html(url, headers: nil, headers_only: false, compressed: false)
-      flags = 'SsL'
-      flags += headers_only ? 'I' : 'i'
-      agent = ['Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us)',
-               'AppleWebKit/533.17.9 (KHTML, like Gecko)',
-               'Version/5.0.2 Mobile/8J2 Safari/6533.18.5'].join(' ')
-      headers = headers.nil? ? '' : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(' ')
-      compress = compressed ? '--compressed' : ''
+      flags = "SsL"
+      flags += headers_only ? "I" : "i"
+      agent = ["Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us)",
+               "AppleWebKit/533.17.9 (KHTML, like Gecko)",
+               "Version/5.0.2 Mobile/8J2 Safari/6533.18.5"].join(" ")
+      headers = headers.nil? ? "" : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(" ")
+      compress = compressed ? "--compressed" : ""
       source = `#{@curl} -#{flags} #{compress} #{headers} '#{url}' 2>/dev/null`
       if source.nil? || source.empty?
         source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null`
@@ -416,7 +416,7 @@ module Curl
         end
       end
 
-      if headers['content-type'] =~ /json/
+      if headers["content-type"] =~ /json/
         return { url: url, code: code, headers: headers, meta: nil, links: nil, head: nil, body: source.strip, source: source.strip, body_links: nil, body_images: nil }
       end
 
@@ -457,7 +457,7 @@ module Curl
 
         # look for a charset in a meta tag in the first 1024 bytes
         unless encoding
-          data = body[0..1023].gsub(/<!--.*?(-->|\Z)/m, '')
+          data = body[0..1023].gsub(/<!--.*?(-->|\Z)/m, "")
           data.scan(/<meta.*?>/im).each do |meta|
             encoding ||= meta[/charset=["']?([^>]*?)($|["'\s>])/im, 1]
           end

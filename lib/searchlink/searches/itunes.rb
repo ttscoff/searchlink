@@ -16,8 +16,8 @@ module SL
             ["itu", "iOS App Store Search"],
             ["itud", "iOS App Store Developer Link"],
             ["mas", "Mac App Store Search"],
-            ["masd", "Mac App Store Developer Link"],
-          ],
+            ["masd", "Mac App Store Developer Link"]
+          ]
         }
       end
 
@@ -48,7 +48,7 @@ module SL
       def search_itunes(entity, terms, dev, aff = nil)
         aff ||= SL.config["itunes_affiliate"]
 
-        url = "https://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config["country_code"]}&entity=#{entity}&limit=1"
+        url = "https://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1"
         puts url
         begin
           page = Curl::Json.new(url, compressed: true)
@@ -74,10 +74,10 @@ module SL
           case result["wrapperType"]
           when "track"
             output_url = result["trackViewUrl"]
-            output_title = "#{result["trackName"]} by #{result["artistName"]}"
+            output_title = "#{result['trackName']} by #{result['artistName']}"
           when "collection"
             output_url = result["collectionViewUrl"]
-            output_title = "#{result["collectionName"]} by #{result["artistName"]}"
+            output_title = "#{result['collectionName']} by #{result['artistName']}"
           when "artist"
             output_url = result["artistLinkUrl"]
             output_title = result["artistName"]

@@ -20,8 +20,8 @@ module SL
     # Values found in ~/.searchlink will override defaults in
     # this script
     def config_file
-      old_style = File.expand_path('~/.searchlink')
-      new_style = File.expand_path('~/.config/searchlink/config.yaml')
+      old_style = File.expand_path("~/.searchlink")
+      new_style = File.expand_path("~/.config/searchlink/config.yaml")
       if File.exist?(old_style) && !File.exist?(new_style)
         old_style
       else
@@ -158,7 +158,7 @@ module SL
 
         ENDCONFIG
 
-        File.open(config_file, 'w') do |f|
+        File.open(config_file, "w") do |f|
           f.puts default_config
         end
       end
@@ -166,45 +166,45 @@ module SL
       config = YAML.load_file(config_file)
 
       # set to true to have an HTML comment inserted showing any errors
-      config['debug'] ||= false
+      config["debug"] ||= false
 
       # set to true to get a verbose report at the end of multi-line processing
-      config['report'] ||= false
+      config["report"] ||= false
 
-      config['backup'] = true unless config.key? 'backup'
+      config["backup"] = true unless config.key? "backup"
 
-      config['timeout'] ||= 15
+      config["timeout"] ||= 15
 
       # set to true to force inline links
-      config['inline'] ||= false
+      config["inline"] ||= false
 
       # set to true to add titles to links based on site title
-      config['include_titles'] ||= false
+      config["include_titles"] ||= false
 
       # set to true to remove SEO elements from page titles
-      config['remove_seo'] ||= false
+      config["remove_seo"] ||= false
 
       # set to true to use page title as link text when empty
-      config['empty_uses_page_title'] ||= false
+      config["empty_uses_page_title"] ||= false
 
       # change this to set a specific country for search (default US)
-      config['country_code'] ||= 'US'
+      config["country_code"] ||= "US"
 
       # set to true to include a random string in ref titles
       # allows running SearchLink multiple times w/out conflicts
-      config['prefix_random'] = false unless config['prefix_random']
+      config["prefix_random"] = false unless config["prefix_random"]
 
-      config['social_template'] ||= '%service%/%user%'
+      config["social_template"] ||= "%service%/%user%"
 
       # append affiliate link info to iTunes urls, empty quotes for none
       # example:
       # $itunes_affiliate = "&at=10l4tL&ct=searchlink"
-      config['itunes_affiliate'] ||= '&at=10l4tL&ct=searchlink'
+      config["itunes_affiliate"] ||= "&at=10l4tL&ct=searchlink"
 
       # to create Amazon affiliate links, set amazon_partner to your amazon
       # affiliate tag
       #    amazon_partner: "bretttercom-20"
-      config['amazon_partner'] ||= ''
+      config["amazon_partner"] ||= ""
 
       # To create custom abbreviations for Google Site Searches,
       # add to (or replace) the hash below.
@@ -212,18 +212,18 @@ module SL
       # This allows you, for example to use [search term](!bt)
       # as a shortcut to search brettterpstra.com. Keys in this
       # hash can override existing search triggers.
-      config['custom_site_searches'] ||= {
-        'bt' => 'brettterpstra.com',
-        'imdb' => 'imdb.com'
+      config["custom_site_searches"] ||= {
+        "bt" => "brettterpstra.com",
+        "imdb" => "imdb.com"
       }
 
       # confirm existence of links generated from custom search replacements
-      config['validate_links'] ||= false
+      config["validate_links"] ||= false
 
       # use notification center to show progress
-      config['notifications'] ||= false
-      config['pinboard_api_key'] ||= false
-      config['google_api_key'] ||= false
+      config["notifications"] ||= false
+      config["pinboard_api_key"] ||= false
+      config["google_api_key"] ||= false
 
       SL.line_num = nil
       SL.match_column = nil

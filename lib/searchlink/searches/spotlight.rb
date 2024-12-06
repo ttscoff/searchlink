@@ -8,8 +8,8 @@ module SL
         {
           trigger: "file",
           searches: [
-            ["file", "Spotlight Search"],
-          ],
+            ["file", "Spotlight Search"]
+          ]
         }
       end
 
@@ -21,7 +21,7 @@ module SL
 
         title = File.basename(res)
         link_text = title if link_text.strip.empty? || link_text == search_terms
-        ["file://#{res.strip.gsub(/ /, "%20")}", title, link_text]
+        ["file://#{res.strip.gsub(/ /, '%20')}", title, link_text]
       end
     end
 

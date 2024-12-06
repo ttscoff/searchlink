@@ -9,9 +9,9 @@ module SL
       #
       def search_safari_history(term)
         # Safari
-        src = File.expand_path('~/Library/Safari/History.db')
+        src = File.expand_path("~/Library/Safari/History.db")
         if File.exist?(src)
-          SL.notify('Searching Safari History', term)
+          SL.notify("Searching Safari History", term)
 
           exact_match = false
           match_phrases = []
@@ -19,10 +19,10 @@ module SL
           # If search terms start with ''term, only search for exact string matches
           if term =~ /^ *'/
             exact_match = true
-            term.gsub!(/(^ *'+|'+ *$)/, '')
+            term.gsub!(/(^ *'+|'+ *$)/, "")
           elsif term =~ /%22(.*?)%22/
             match_phrases = term.scan(/%22(\S.*?\S)%22/)
-            term.gsub!(/%22(\S.*?\S)%22/, '')
+            term.gsub!(/%22(\S.*?\S)%22/, "")
           end
 
           terms = []
@@ -41,7 +41,7 @@ module SL
             end)
           end
 
-          query = terms.join(' AND ')
+          query = terms.join(" AND ")
 
           cmd = %(sqlite3 -json '#{src}' "select title, url,
           datetime(visit_time/1000000, 'unixepoch', 'localtime') as datum
@@ -53,8 +53,8 @@ module SL
           return false if most_recent.strip.empty?
 
           bm = JSON.parse(most_recent)[0]
-          date = Time.parse(bm['datum'])
-          [bm['url'], bm['title'], date]
+          date = Time.parse(bm["datum"])
+          [bm["url"], bm["title"], date]
         else
           false
         end
@@ -114,19 +114,19 @@ module SL
         if parent.is_a?(Array)
           parent.each do |c|
             if c.is_a?(Hash)
-              if c.key?('Children')
-                results.concat(get_safari_bookmarks(c['Children'], terms))
-              elsif c.key?('URIDictionary')
-                title = c['URIDictionary']['title']
-                url = c['URLString']
+              if c.key?("Children")
+                results.concat(get_safari_bookmarks(c["Children"], terms))
+              elsif c.key?("URIDictionary")
+                title = c["URIDictionary"]["title"]
+                url = c["URLString"]
                 scored = score_bookmark({ url: url, title: title }, terms)
 
                 results.push(scored) if scored[:score] > 7
               end
             end
           end
-        elsif parent&.key?('Children')
-          results.concat(get_safari_bookmarks(parent['Children'], terms))
+        elsif parent&.key?("Children")
+          results.concat(get_safari_bookmarks(parent["Children"], terms))
         end
 
         results.sort_by { |h| [h[:score], h[:title].length * -1] }.reverse
