@@ -1,3 +1,11 @@
+### 2.3.77
+
+2024-12-18 06:17
+
+#### FIXED
+
+- Subsequent urls in bulk match were repeating first url match
+
 ### 2.3.76
 
 2024-12-06 08:58
