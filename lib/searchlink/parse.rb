@@ -325,7 +325,7 @@ module SL
               link_info.sub!(/\s*:\s*$/, "")
             end
 
-            unless !@link_text.empty? || !link_info.sub(/^[!\^]\S+/, "").strip.empty?
+            if @link_text.empty? && link_info.sub(/^[!\^]\S+/, "").strip.empty?
               SL.add_error("No input", match)
               counter_errors += 1
               invalid_search = true
@@ -399,7 +399,6 @@ module SL
                   search_terms = @link_text
                 elsif search_word && search_word[1] =~ /^(\S+\.)+\S+$/
                   search_type = SL::GoogleSearch.api_key? ? "gg" : "g"
-                  puts SL::GoogleSearch.api_key?
                   search_terms = "site:#{search_word[1]} #{@link_text}"
                 else
                   SL.add_error("Invalid search#{SL::Searches.did_you_mean(search_word[1])}", match)
@@ -424,10 +423,9 @@ module SL
 
               if (search_type && search_terms) || @url
                 # warn "Searching #{search_type} for #{search_terms}"
-                unless @url
-                  @search_count += 1
-                  @url, title, @link_text = do_search(search_type, search_terms, @link_text, @search_count)
-                end
+
+                @search_count += 1
+                @url, title, @link_text = do_search(search_type, search_terms, @link_text, @search_count)
 
                 if (@link_text == "" || @link_text == "%") && @url
                   if title
