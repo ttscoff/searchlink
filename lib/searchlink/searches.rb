@@ -209,6 +209,9 @@ require_relative "searches/history"
 require_relative "searches/hook"
 
 # import
+require_relative "searches/isgd"
+
+# import
 require_relative "searches/lastfm"
 
 # import
