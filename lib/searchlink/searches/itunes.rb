@@ -49,7 +49,6 @@ module SL
         aff ||= SL.config["itunes_affiliate"]
 
         url = "https://itunes.apple.com/search?term=#{terms.url_encode}&country=#{SL.config['country_code']}&entity=#{entity}&limit=1"
-        puts url
         begin
           page = Curl::Json.new(url, compressed: true)
           json = page.json
