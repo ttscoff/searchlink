@@ -5,6 +5,22 @@ module SL
   # URL module
   module URL
     class << self
+      def follow_redirects(url, limit = 5)
+        return url if limit.zero?
+
+        uri = URI.parse(url)
+        response = Net::HTTP.get_response(uri)
+
+        case response
+        when Net::HTTPSuccess
+          response.uri.to_s
+        when Net::HTTPRedirection
+          follow_redirects(response["location"], limit - 1)
+        else
+          url
+        end
+      end
+
       # Validates that a link exists and returns 200
       def valid_link?(uri_str, limit = 5)
         return false unless uri_str
@@ -130,6 +146,17 @@ module SL
         # end
 
         begin
+          if url =~ %r{https://(amzn.to|(www\.)?amazon\.com)/}
+            final_url = follow_redirects(url)
+            m = final_url.match(%r{https://www.amazon.com/(.*?)/dp/})
+            title = if m
+                m[1].gsub(/-/, " ")
+              else
+                url.remove_protocol
+              end
+            return title
+          end
+
           page = Curl::Html.new(url)
 
           title = page.title || nil
@@ -146,7 +173,6 @@ module SL
           title.remove_protocol
         rescue StandardError
           SL.add_error("Error retrieving title", "Error determining title for #{url.strip}")
-          warn "Error retrieving title for #{url.strip}"
           url.remove_protocol
         end
       end
