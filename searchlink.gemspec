@@ -38,4 +38,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov", "~> 0.9"
   spec.add_development_dependency "tty-spinner", "~> 0.9"
   spec.add_development_dependency "yard", "~> 0.9.5"
+  spec.add_development_dependency "pastel", "~> 0.8"
 end

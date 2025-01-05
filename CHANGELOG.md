@@ -1,3 +1,17 @@
+### 2.3.81
+
+2025-01-05 07:55
+
+#### NEW
+
+- Multiline bracket syntax (see wiki)
+
+#### IMPROVED
+
+- Redirect handling
+- Special handling for amazon link titles
+- Code cleanup
+
 ### 2.3.80
 
 2024-12-19 14:15

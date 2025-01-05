@@ -10,6 +10,7 @@ require "rspec/core/rake_task"
 require "rubocop/rake_task"
 require "yard"
 require "tty-spinner"
+require "pastel"
 
 task default: %i[test yard]
 
@@ -197,6 +198,11 @@ end
 
 desc "Update and sign Services"
 task :services do
+  pastel = Pastel.new
+  error = pastel.red.bold.detach
+  warning = pastel.yellow.detach
+  success = pastel.green.detach
+
   workflows = Dir.glob("SearchLink Services/*.workflow")
   if workflows.count < 3
     Workflow.copy_services
@@ -204,7 +210,7 @@ task :services do
 
   workflows.each do |service|
     wf = Workflow.new(service)
-    print wf.update_script
-    puts wf.sign ? "... and signed" : "... and FAILED to sign"
+    print warning.(wf.update_script)
+    puts wf.sign ? success.("... and signed") : error.("... and FAILED to sign")
   end
 end

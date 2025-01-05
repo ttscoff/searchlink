@@ -253,12 +253,12 @@ module SL
       end
 
       if input =~ /\[\n(.*?\n)+\]\((.*?)?\)/
-        input.gsub!(/\[\n(((\s*[-+*]\s+)*(!\S+ +)?(.*?))\n)+\]\((!\S+.*?)?\)/) do
+        input.gsub!(/\[\n(((\s*(?:[-+*]|\d+\.)?\s+)*(!\S+ +)?(.*?))\n)+\]\((!\S+.*?)?\)/) do
           m = Regexp.last_match
           lines = m[0].split(/\n/)
           lines = lines[1..-2]
           lines.map do |l|
-            el_rx = /(\s*[-+*]\s+)?(!\S+ )?(\w.*?)$/
+            el_rx = /(\s*(?:[-+*]|\d+\.)?\s+)?(!\S+ )?(\w.*?)$/
             if l =~ el_rx
               els = l.match(el_rx)
               search = els[2] ? els[2].strip : (m[6] ? m[6] : "!g")

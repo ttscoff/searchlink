@@ -44,7 +44,11 @@ module SL
         "Accept" => "application/vnd.github+json",
         "X-GitHub-Api-Version" => "2022-11-28",
       }
-      headers["Authorization"] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
+      if defined? Secrets::GH_AUTH_TOKEN
+        headers["Authorization"] = "Bearer #{Secrets::GH_AUTH_TOKEN}"
+      elsif SL.config['github_token']
+        headers["Authorization"] = "Bearer #{SL.settings["github_token"]}"
+      end
 
       url = "https://api.github.com/repos/ttscoff/searchlink/releases/latest"
       page = Curl::Json.new(url, headers: headers)
