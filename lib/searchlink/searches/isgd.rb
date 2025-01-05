@@ -30,15 +30,15 @@ module SL
 
         data = Curl::Json.new("https://is.gd/create.php?format=json&url=#{CGI.escape(long_url)}", symbolize_names: true)
 
-        if data.json.key?('errorcode')
-          SL.add_error('Error creating is.gd url', data.json[:errorcode])
+        if data.json.key?("errorcode")
+          SL.add_error("Error creating is.gd url", data.json[:errorcode])
           return [false, title, link_text]
         end
 
         link = data.json[:shorturl]
         rtitle = SL::URL.title(long_url)
         title = rtitle
-        link_text = rtitle if link_text == '' && !SL.titleize
+        link_text = rtitle if link_text == "" && !SL.titleize
         [link, title, link_text]
       end
     end

@@ -91,7 +91,7 @@ module SL
     ## @return     { description_of_the_return_value }
     ##
     def fix_gist_file
-      sub(/^file-/, "").sub(/-([^\-]+)$/, '.\1')
+      sub(/^file-/, "").sub(/-([^-]+)$/, '.\1')
     end
 
     # Turn a string into a slug, removing spaces and
@@ -160,7 +160,7 @@ module SL
       # force trailing slash
       path.sub!(%r{/?$}, "/")
       # remove last path element
-      path.sub!(%r{/[^/]+[.\-][^/]+/$}, "")
+      path.sub!(%r{/[^/]+[.-][^/]+/$}, "")
       # remove starting/ending slashes
       path.gsub!(%r{(^/|/$)}, "")
       # split at slashes, delete sections that are shorter
@@ -277,7 +277,7 @@ module SL
 
             next if parts.length == 1
 
-            remaining_separators = seo_title_separators[i..-1].map { |s| Regexp.escape(s) }.join("")
+            remaining_separators = seo_title_separators[i..].map { |s| Regexp.escape(s) }.join("")
             seps = Regexp.new("^[^#{remaining_separators}]+$")
 
             longest = parts.longest_element.strip

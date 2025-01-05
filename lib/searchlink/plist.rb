@@ -65,18 +65,17 @@ module Plist
 
     def parse
       plist_tags = PTag.mappings.keys.join("|")
-      start_tag  = /<(#{plist_tags})([^>]*)>/i
-      end_tag    = %r{</(#{plist_tags})[^>]*>}i
+      start_tag = /<(#{plist_tags})([^>]*)>/i
+      end_tag = %r{</(#{plist_tags})[^>]*>}i
 
       require "strscan"
 
       @scanner = StringScanner.new(@xml)
       until @scanner.eos?
-        if @scanner.scan(COMMENT_START)
-          @scanner.scan(COMMENT_END)
-        elsif @scanner.scan(XMLDECL_PATTERN)
-        elsif @scanner.scan(DOCTYPE_PATTERN)
-        elsif @scanner.scan(start_tag)
+        next unless @scanner.scan(COMMENT_START)
+
+        @scanner.scan(COMMENT_END)
+        if @scanner.scan(start_tag)
           @listener.tag_start(@scanner[1], nil)
           @listener.tag_end(@scanner[1]) if @scanner[2] =~ %r{/$}
         elsif @scanner.scan(TEXT)
@@ -88,117 +87,121 @@ module Plist
         end
       end
     end
-  end
 
-  class PTag
-    @@mappings = {}
-    def self.mappings
-      @@mappings
-    end
-
-    def self.inherited(sub_class)
-      key = sub_class.to_s.downcase
-      key.gsub!(/^plist::/, "")
-      key.gsub!(/^p/, "") unless key == "plist"
-
-      @@mappings[key] = sub_class
-    end
-
-    attr_accessor :text, :children
-    def initialize
-      @children = []
-    end
-
-    def to_ruby
-      raise "Unimplemented: " + self.class.to_s + "#to_ruby on #{inspect}"
-    end
-  end
-
-  class PList < PTag
-    def to_ruby
-      children.first&.to_ruby
-    end
-  end
-
-  class PDict < PTag
-    def to_ruby
-      dict = {}
-      key = nil
-
-      children.each do |c|
-        if key.nil?
-          key = c.to_ruby
-        else
-          dict[key] = c.to_ruby
-          key = nil
-        end
+    class PTag
+      @@mappings = {}
+      def self.mappings
+        @@mappings
       end
 
-      dict
+      def self.inherited(sub_class)
+        key = sub_class.to_s.downcase
+        key.gsub!(/^plist::/, "")
+        key.gsub!(/^p/, "") unless key == "plist"
+
+        @@mappings[key] = sub_class
+        super
+      end
+
+      attr_accessor :text, :children
+
+      def initialize
+        @children = []
+      end
+
+      def to_ruby
+        raise "Unimplemented: #{self.class}#to_ruby on #{inspect}"
+      end
     end
-  end
 
-  class PKey < PTag
-    def to_ruby
-      CGI.unescapeHTML(text || "")
+    class PList < PTag
+      def to_ruby
+        children.first&.to_ruby
+      end
     end
-  end
 
-  class PString < PTag
-    def to_ruby
-      CGI.unescapeHTML(text || "")
+    class PDict < PTag
+      def to_ruby
+        dict = {}
+        key = nil
+
+        children.each do |c|
+          if key.nil?
+            key = c.to_ruby
+          else
+            dict[key] = c.to_ruby
+            key = nil
+          end
+        end
+
+        dict
+      end
     end
-  end
 
-  class PArray < PTag
-    def to_ruby
-      children.collect(&:to_ruby)
+    class PKey < PTag
+      def to_ruby
+        CGI.unescapeHTML(text || "")
+      end
     end
-  end
 
-  class PInteger < PTag
-    def to_ruby
-      text.to_i
+    class PString < PTag
+      def to_ruby
+        CGI.unescapeHTML(text || "")
+      end
     end
-  end
 
-  class PTrue < PTag
-    def to_ruby
-      true
+    class PArray < PTag
+      def to_ruby
+        children.collect(&:to_ruby)
+      end
     end
-  end
 
-  class PFalse < PTag
-    def to_ruby
-      false
+    class PInteger < PTag
+      def to_ruby
+        text.to_i
+      end
     end
-  end
 
-  class PReal < PTag
-    def to_ruby
-      text.to_f
+    class PTrue < PTag
+      def to_ruby
+        true
+      end
     end
-  end
 
-  require "date"
-  class PDate < PTag
-    def to_ruby
-      DateTime.parse(text)
+    class PFalse < PTag
+      def to_ruby
+        false
+      end
     end
-  end
 
-  require "base64"
-  class PData < PTag
-    def to_ruby
-      data = Base64.decode64(text.gsub(/\s+/, ""))
+    class PReal < PTag
+      def to_ruby
+        text.to_f
+      end
+    end
 
-      begin
-        Marshal.load(data)
-      rescue Exception
-        io = StringIO.new
-        io.write data
-        io.rewind
-        io
+    require "date"
+
+    class PDate < PTag
+      def to_ruby
+        DateTime.parse(text)
+      end
+    end
+
+    require "base64"
+
+    class PData < PTag
+      def to_ruby
+        data = Base64.decode64(text.gsub(/\s+/, ""))
+
+        begin
+          Marshal.load(data)
+        rescue Exception
+          io = StringIO.new
+          io.write data
+          io.rewind
+          io
+        end
       end
     end
   end

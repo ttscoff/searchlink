@@ -216,7 +216,7 @@ module SL
         else
           if terms.split(/ +/).count > 1
             parts = terms.split(/ +/)
-            gist = search_user_gists(parts[0], parts[1..-1].join(" "))
+            gist = search_user_gists(parts[0], parts[1..].join(" "))
 
             if gist
               url = gist[:url]

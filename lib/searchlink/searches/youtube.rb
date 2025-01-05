@@ -3,7 +3,7 @@
 module SL
   # YouTube Search/Linking
   class YouTubeSearch
-    YOUTUBE_RX = %r{(?:youtu\.be/|youtube\.com/watch\?v=)?(?<id>[a-z0-9_\-]+)$}i.freeze
+    YOUTUBE_RX = %r{(?:youtu\.be/|youtube\.com/watch\?v=)?(?<id>[a-z0-9_-]+)$}i.freeze
 
     class << self
       def settings
@@ -19,7 +19,7 @@ module SL
       def search(search_type, search_terms, link_text)
         if SL::URL.url?(search_terms) && search_terms =~ YOUTUBE_RX
           url = search_terms
-        elsif search_terms =~ /^[a-z0-9_\-]+$/i
+        elsif search_terms =~ /^[a-z0-9_-]+$/i
           url = "https://youtube.com/watch?v=#{search_terms}"
         else
           url, title = SL.ddg("site:youtube.com #{search_terms}", link_text)

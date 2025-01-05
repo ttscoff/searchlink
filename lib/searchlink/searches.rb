@@ -53,7 +53,7 @@ module SL
         searches.each do |s|
           out << "<tr>
           <td>
-          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(',')})" : s[0]}
+          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}
           </code>
           </td><td>#{s[1]}</td></tr>"
         end
@@ -72,7 +72,7 @@ module SL
 
         searches.each do |s|
           shortcut = if s[0].is_a?(Array)
-                       "#{s[0][0]} (#{s[0][1..-1].join(',')})"
+                       "#{s[0][0]} (#{s[0][1..].join(',')})"
                      else
                        s[0]
                      end
@@ -100,13 +100,13 @@ module SL
 
       def valid_searches
         searches = []
-        plugins[:search].each { |_, plugin| searches.push(plugin[:trigger]) }
+        plugins[:search].each_value { |plugin| searches.push(plugin[:trigger]) }
         searches
       end
 
       def valid_search?(term)
         valid = false
-        valid = true if term =~ /^(#{valid_searches.join("|")})$/
+        valid = true if term =~ /^(#{valid_searches.join('|')})$/
         valid = true if SL.config["custom_site_searches"].keys.include? term
         # SL.notify("Invalid search#{did_you_mean(term)}", term) unless valid
         valid
@@ -166,7 +166,7 @@ module SL
       end
 
       def do_search(search_type, search_terms, link_text, timeout: SL.config["timeout"])
-        plugins[:search].each do |_title, plugin|
+        plugins[:search].each_value do |plugin|
           trigger = plugin[:trigger].gsub(/(^\^|\$$)/, "")
           if search_type =~ /^#{trigger}$/
             search = proc { plugin[:class].search(search_type, search_terms, link_text) }

@@ -151,7 +151,7 @@ module SL
             end
             terms_p = search_terms.split(/ +/)
             if terms_p.length > highest_token
-              remainder = terms_p[highest_token - 1..-1].join(" ")
+              remainder = terms_p[highest_token - 1..].join(" ")
               terms_p = terms_p[0..highest_token - 2]
               terms_p.push(remainder)
             end
@@ -252,6 +252,24 @@ module SL
         end
       end
 
+      if input =~ /\[\n(.*?\n)+\]\((.*?)?\)/
+        input.gsub!(/\[\n(((\s*[-+*]\s+)*(!\S+ +)?(.*?))\n)+\]\((!\S+.*?)?\)/) do
+          m = Regexp.last_match
+          lines = m[0].split(/\n/)
+          lines = lines[1..-2]
+          lines.map do |l|
+            el_rx = /(\s*[-+*]\s+)?(!\S+ )?(\w.*?)$/
+            if l =~ el_rx
+              els = l.match(el_rx)
+              search = els[2] ? els[2].strip : (m[6] ? m[6] : "!g")
+              "#{els[1]}[#{els[3].strip}](#{search})"
+            else
+              l
+            end
+          end.join("\n")
+        end
+      end
+
       if input =~ /\[(.*?)\]\((.*?)\)/
         lines = input.split(/\n/)
         out = []
@@ -263,11 +281,11 @@ module SL
           SL.line_num = num - line_difference
           @cursor_difference = 0
           # ignore links in code blocks
-          if line =~ /^( {4,}|\t+)[^*+\-]/
+          if line =~ /^(( {4,}|\t+)[^*+-])/
             out.push(line)
             next
           end
-          if line =~ /^[~`]{3,}/
+          if line =~ /^\s*[~`]{3,}/
             if in_code_block
               in_code_block = false
               out.push(line)
@@ -605,7 +623,7 @@ module SL
                     end
                     terms_p = terms.split(/ +/)
                     if terms_p.length > highest_token
-                      remainder = terms_p[highest_token - 1..-1].join(" ")
+                      remainder = terms_p[highest_token - 1..].join(" ")
                       terms_p = terms_p[0..highest_token - 2]
                       terms_p.push(remainder)
                     end

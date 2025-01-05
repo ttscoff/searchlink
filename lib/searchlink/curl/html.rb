@@ -411,7 +411,7 @@ module Curl
           m = Regexp.last_match
           headers[m[1]] = m[2]
         else
-          source = lines[idx..-1].join("\n")
+          source = lines[idx..].join("\n")
           break
         end
       end
