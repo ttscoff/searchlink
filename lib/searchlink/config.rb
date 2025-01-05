@@ -158,6 +158,22 @@ module SL
 
         ENDCONFIG
 
+        SL::Searches.plugins[:search].each_value do |plugin|
+          if plugin.key?(:config) && !plugin[:config].nil? && !plugin[:config].empty?
+            plugin[:config].each do |cfg|
+              key = cfg[0]
+              value = cfg[1]
+              description = cfg[2]
+              new_config = ""
+              new_config += "\n"
+              new_config += "# #{description}\n" if description
+              new_config += "#{key}: #{value}\n"
+
+              default_config = default_config + new_config
+            end
+          end
+        end
+
         File.open(config_file, "w") do |f|
           f.puts default_config
         end

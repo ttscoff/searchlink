@@ -12,6 +12,9 @@ module SL
             ["ghu", "GitHub User Search"],
             ["gist", "Gist Search"],
             ["giste", "Gist Embed"]
+          ],
+          config: [
+            ["# github_token", "github_patxxxxxxx", "GitHub Personal Access Token (optional)"]
           ]
         }
       end

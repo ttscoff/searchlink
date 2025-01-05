@@ -48,21 +48,29 @@ YARD::Rake::YardocTask.new
 
 desc "Development version check"
 task :ver do
+  pastel = Pastel.new
   gver = `git ver`
   cver = IO.read(File.join(File.dirname(__FILE__), "CHANGELOG.md")).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
-  puts "git tag: #{gver}"
-  puts "version.rb: #{version}"
-  puts "changelog: #{cver}"
+  puts "#{pastel.yellow("git tag:")} #{pastel.green(gver)}"
+  puts "#{pastel.yellow("version.rb:")} #{pastel.green(version)}"
+  puts "#{pastel.yellow("changelog:")} #{pastel.green(cver)}"
 end
 
-desc "Get Script Version"
+desc "Git version check"
+task :gver do
+  puts `git ver`
+end
+
+desc "Get Script (version.rb) Version"
 task :sver do
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
   print version
 end
+
+task vver: :sver
 
 desc "Changelog version check"
 task :cver do
@@ -146,10 +154,11 @@ class Workflow
     services.each do |service|
       source = File.join(File.expand_path("~/Library/Services"), "#{service}.workflow")
       FileUtils.cp_r(source, target)
+      `xattr -cr #{Shellwords.escape(File.join(target, "#{service}.workflow"))}`
     end
   end
 
-  def compile
+  def self.compile
     source_file = File.expand_path("bin/searchlink")
     source = IO.read(source_file)
 
@@ -180,7 +189,7 @@ class Workflow
 
   def update_script
     wflow = File.join(File.expand_path(@workflow), "Contents/document.wflow")
-    script = compile
+    script = Workflow.compile
     workflow = IO.read(wflow)
 
     plist = Plist.parse_xml(wflow)
@@ -195,6 +204,17 @@ class Workflow
     "Updated script for #{File.basename(@workflow)}"
   end
 end
+
+desc "Compile standalone script"
+task :compile do
+  pastel = Pastel.new
+  source = Workflow.compile
+  File.open("searchlink.rb", "w") { |f| f.puts source }
+  puts "#{pastel.green.bold("Compiled standalone script to")} #{pastel.yellow.bold("searchlink.rb")}"
+end
+
+desc "Alias for compile"
+task script: :compile
 
 desc "Update and sign Services"
 task :services do

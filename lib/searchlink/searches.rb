@@ -123,6 +123,7 @@ module SL
         plugins[type][title] = {
           trigger: settings.fetch(:trigger, title).normalize_trigger,
           searches: settings[:searches],
+          config: settings[:config],
           class: klass
         }
       end
