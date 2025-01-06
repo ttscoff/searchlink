@@ -150,11 +150,6 @@ module SL
           # Pinboard search
           # You can find your api key here: https://pinboard.in/settings/password
           pinboard_api_key: ''
-          # Generate an access token at https://app.bitly.com/settings/api/
-          bitly_access_token: ''
-          bitly_domain: 'bit.ly'
-          # Custom Google API key to use Google search (free for 100 queries/day)
-          google_api_key: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         ENDCONFIG
 
@@ -163,7 +158,9 @@ module SL
             plugin[:config].each do |cfg|
               key = cfg[0]
               value = cfg[1]
-              description = cfg[2]
+              required = cfg[2]
+              description = cfg[3]
+              key = required ? key : "# #{key}"
               new_config = ""
               new_config += "\n"
               new_config += "# #{description}\n" if description

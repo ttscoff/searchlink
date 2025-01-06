@@ -12,6 +12,9 @@ module SL
           searches: [
             ["gg", "Google Search"],
             ["img", "First image from result"]
+          ],
+          config: [
+            ["google_api_key", "xxxxxx", false, "Custom Google API key to use Google search (free for 100 queries/day)"]
           ]
         }
       end

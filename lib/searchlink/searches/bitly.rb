@@ -10,6 +10,10 @@ module SL
           searches: [
             ["bl", "bit.ly Shorten"],
             ["bitly", "bit.ly shorten"]
+          ],
+          config: [
+            ["bitly_access_token", '', false, "Generate an access token at https://app.bitly.com/settings/api/"],
+            ["bitly_domain", "bit.ly", false]
           ]
         }
       end
