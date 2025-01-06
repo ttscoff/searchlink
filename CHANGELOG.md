@@ -1,3 +1,22 @@
+### 2.3.82
+
+2025-01-06 08:55
+
+#### NEW
+
+- Plugins can optionally have a config: key that allows adding to the default config file when it's created. Format `config: [ ["key", "default value", required(true|false), "optional comment"] ]` (an array of arrays)
+- Plugin configuration options that don't exist in user config are added, allowing new plugins to add optional/required config to default file for user editing
+
+#### IMPROVED
+
+- Start adding config options to default plugins
+- Improve plugin config handling, make config a keyed hash
+- Add config example to lyrics.rb (which serves as an example plugin)
+
+#### FIXED
+
+- Stop pinboard plugin from replacing link text
+
 ### 2.3.81
 
 2025-01-05 07:55
