@@ -179,7 +179,7 @@ module SL
       # hash can override existing search triggers.
       config["custom_site_searches"] ||= {
         "bt" => "brettterpstra.com",
-        "imdb" => "imdb.com",
+        "imdb" => "imdb.com"
       }
 
       # confirm existence of links generated from custom search replacements

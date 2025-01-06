@@ -5,7 +5,7 @@ module SL
   class ::String
     # Quote a YAML value if needed
     def yaml_val
-      yaml = YAML.load("key: '#{self}'")
+      yaml = YAML.safe_load("key: '#{self}'")
       YAML.dump(yaml).match(/key: (.*?)$/)[1]
     end
 
@@ -263,7 +263,6 @@ module SL
 
         SL.add_error("Invalid URL", "Could not remove SEO for #{url}")
         return self
-
       end
 
       path = url.path
@@ -293,7 +292,6 @@ module SL
         dead_switch = 0
 
         while title.downcase.gsub(/[^a-z]/i, "") =~ /#{site_re}/i
-
           break if dead_switch > 5
 
           seo_title_separators.each_with_index do |sep, i|
@@ -435,12 +433,12 @@ module SL
       (1..n).each do |j|
         (1..m).each do |i|
           d[i][j] = if s[i - 1] == t[j - 1] # adjust index into string
-                      d[i - 1][j - 1]       # no operation required
+                      d[i - 1][j - 1] # no operation required
                     else
                       [d[i - 1][j] + 1, # deletion
                        d[i][j - 1] + 1, # insertion
                        d[i - 1][j - 1] + 1 # substitution
-].min
+        ].min
                     end
         end
       end

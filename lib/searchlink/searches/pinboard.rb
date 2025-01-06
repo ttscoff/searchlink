@@ -9,16 +9,16 @@ module SL
         {
           trigger: "pb",
           searches: [
-            ["pb", "Pinboard Bookmark Search"],
+            ["pb", "Pinboard Bookmark Search"]
           ],
           config: [
             {
               description: "Pinboard API key.\nYou can find your api key here: https://pinboard.in/settings/password",
               key: "pinboard_api_key",
               value: "''",
-              required: true,
-            },
-          ],
+              required: true
+            }
+          ]
         }
       end
 
@@ -156,14 +156,14 @@ module SL
           full_text = [bm["description"], bm["extended"], bm["tags"]].join(" ")
 
           score = if title_tags.matches_exact(search_terms)
-              14.0
-            elsif full_text.matches_exact(search_terms)
-              13.0
-            elsif full_text.matches_any(search_terms)
-              full_text.matches_score(search_terms)
-            else
-              0
-            end
+                    14.0
+                  elsif full_text.matches_exact(search_terms)
+                    13.0
+                  elsif full_text.matches_any(search_terms)
+                    full_text.matches_score(search_terms)
+                  else
+                    0
+                  end
 
           return [bm["href"], bm["description"], link_text] if score == 14
 
@@ -173,7 +173,7 @@ module SL
                          score: score,
                          href: bm["href"],
                          title: bm["description"],
-                         date: bm["time"],
+                         date: bm["time"]
                        })
         end
 

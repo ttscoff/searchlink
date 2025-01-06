@@ -21,6 +21,25 @@ module SL
             ["lyrice", "Song Lyrics Embed"],
             ["lyricjs", "Song Lyrics JS Embed"]
           ]
+          #
+          # # The config block is optional, but can be used to define any
+          # # configuration options that the plugin requires. New configuration
+          # # options that don't exist in current config will be appended
+          # config: [
+          #   {
+          #     # Description that will appear above the option in config.yaml
+          #     description: "Genius API"
+          #     # the configuration key
+          #     key: "genius_token",
+          #     # the default value
+          #     value: "''",
+          #     # whether the configuration is required. If
+          #     # false (meaning optional), it will be added
+          #     # with a # in front of the key in the config
+          #     # file, making it a comment.
+          #     required: false
+          #   }
+          # ]
         }
       end
 
