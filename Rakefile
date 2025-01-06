@@ -149,12 +149,24 @@ class Workflow
   end
 
   def self.copy_services
+    pastel = Pastel.new
+    error = pastel.red.bold.detach
+    warning = pastel.yellow.detach
+    success = pastel.green.detach
     services = ["SearchLink", "SearchLink File", "Jump to SearchLink Error"]
-    target = File.expand_path("./SearchLink Services")
+    FileUtils.mkdir_p("SearchLink Services/")
+    target = File.expand_path("./SearchLink Services/")
     services.each do |service|
       source = File.join(File.expand_path("~/Library/Services"), "#{service}.workflow")
+      print warning.call("Copying #{service}.workflow... ")
       FileUtils.cp_r(source, target)
-      `xattr -cr #{Shellwords.escape(File.join(target, "#{service}.workflow"))}`
+      if File.directory?(File.join(target, "#{service}.workflow"))
+        `xattr -cr #{Shellwords.escape(File.join(target, "#{service}.workflow"))}`
+        puts success.call("done")
+      else
+        puts error.call("FAILED")
+        Process.exit(1)
+      end
     end
   end
 
@@ -223,10 +235,22 @@ task :services do
   warning = pastel.yellow.detach
   success = pastel.green.detach
 
-  workflows = Dir.glob("SearchLink Services/*.workflow")
-  if workflows.count < 3
-    Workflow.copy_services
+  print warning.call("Removing existing services...")
+  FileUtils.rm_rf("SearchLink Services/")
+  if Dir.glob("SearchLink Services/*").empty?
+    puts success.call("done")
+  else
+    puts error.call("FAILED")
+    Process.exit(1)
   end
+
+  workflows = Dir.glob("SearchLink Services/*.workflow")
+
+  Workflow.copy_services
+
+  workflows = Dir.glob("SearchLink Services/*.workflow")
+
+  puts warning.call("Updating and signing services...")
 
   workflows.each do |service|
     wf = Workflow.new(service)

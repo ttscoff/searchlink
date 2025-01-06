@@ -102,7 +102,7 @@ module SL
     def add_title(link_info)
       @url = link_info
       title = SL::URL.title(@url)
-      @link_text ||= title
+      @link_text = title
 
       if @ref_title
         unless @links.key? @url
@@ -309,6 +309,7 @@ module SL
 
           line.gsub!(/\[(.*?)\]\((.*?)\)/) do |match|
             this_match = Regexp.last_match
+
             SL.match_column = this_match.begin(0) - @cursor_difference
             @match_string = this_match.to_s
             SL.match_length = @match_string.length

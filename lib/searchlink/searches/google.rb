@@ -51,6 +51,8 @@ module SL
           return SL.ddg(terms, link_text, google: false, image: image)
         end
 
+        return false if json["error"] || json["queries"]["request"][0]["totalResults"].to_i.zero? || json["items"].nil?
+
         unless json["queries"]["request"][0]["totalResults"].to_i.positive?
           SL.notify("no results", "Google returned no results, defaulting to DuckDuckGo")
           return SL.ddg(terms, link_text, google: false, image: image)

@@ -41,6 +41,8 @@ module SL
         terms = "%5C#{search_terms.url_encode}"
         page = Curl::Html.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
 
+        return false if page.meta["refresh"].nil?
+
         locs = page.meta["refresh"].match(%r{/l/\?uddg=(.*?)$})
         locs = page.body.match(%r{/l/\?uddg=(.*?)'}) if locs.nil?
         locs = page.body.match(/url=(.*?)'/) if locs.nil?
