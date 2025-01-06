@@ -3,6 +3,30 @@
 module SL
   # String helpers
   class ::String
+    # Quote a YAML value if needed
+    def yaml_val
+      yaml = YAML.load("key: '#{self}'")
+      YAML.dump(yaml).match(/key: (.*?)$/)[1]
+    end
+
+    # Word wrap a string not exceeding max width.
+    # CREDIT: Gavin Kistner, Dayne Broderson
+    #
+    def word_wrap!(col_width = 60, prefix = "")
+      replace dup.word_wrap(col_width, prefix)
+    end
+
+    # As with #word_wrap, but modifies the string in place.
+    #
+    # CREDIT: Gavin Kistner, Dayne Broderson
+    #
+    def word_wrap(col_width = 60, prefix = "")
+      str = dup
+      str.gsub!(/(\S{#{col_width}})(?=\S)/, "#{prefix}\\1")
+      str.gsub!(/(.{1,#{col_width}})(?:\s+|$)/, "#{prefix}\\1\n")
+      str
+    end
+
     # Scrub invalid characters from string
     def scrubup
       encode("utf-16", invalid: :replace).encode("utf-8").gsub(/\u00A0/, " ")

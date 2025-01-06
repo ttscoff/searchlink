@@ -14,7 +14,12 @@ module SL
             ["giste", "Gist Embed"]
           ],
           config: [
-            ["# github_token", "github_patxxxxxxx", "GitHub Personal Access Token (optional)"]
+            {
+              key: "github_token",
+              value: "github_patxxxxxxx",
+              require: false,
+              description: "GitHub Personal Access Token (optional)"
+            }
           ]
         }
       end

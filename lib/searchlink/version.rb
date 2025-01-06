@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SL
-  VERSION = '2.3.82'
+  VERSION = "2.3.82"
 end
 
 # Main module
@@ -46,7 +46,7 @@ module SL
       }
       if defined? Secrets::GH_AUTH_TOKEN
         headers["Authorization"] = "Bearer #{Secrets::GH_AUTH_TOKEN}"
-      elsif SL.config['github_token']
+      elsif SL.config["github_token"]
         headers["Authorization"] = "Bearer #{SL.settings["github_token"]}"
       end
 

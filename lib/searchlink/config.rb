@@ -32,7 +32,9 @@ module SL
 
     def initialize(opt = {})
       SL.printout = opt[:echo] || false
-      unless File.exist? config_file
+      if File.exist? config_file
+        write_new_plugin_config
+      else
         default_config = <<~ENDCONFIG
           # set to true to have an HTML comment included detailing any errors
           # Can be disabled per search with `--d`, or enabled with `++d`.
@@ -80,22 +82,6 @@ module SL
           # E.g. [](!g Search Text)
           empty_uses_page_title: false
 
-          # Formatting for social links, use %service%, %user%, and %url%
-          # E.g. "%user% on %service%" => "ttscoff on Twitter"
-          #      "%service%/%user%" => "Twitter/ttscoff"
-          #      "%url%" => "twitter.com/ttscoff"
-          social_template: "%service%/%user%"
-
-          # append affiliate link info to iTunes urls, empty quotes for none
-          # example:
-          # itunes_affiliate: "&at=10l4tL&ct=searchlink"
-          itunes_affiliate: "&at=10l4tL&ct=searchlink"
-
-          # to create Amazon affiliate links, set amazon_partner to your amazon
-          # affiliate tag
-          #    amazon_partner: "bretttercom-20"
-          amazon_partner: "bretttercom-20"
-
           # To create custom abbreviations for Google Site Searches,
           # add to (or replace) the hash below.
           # "abbreviation" => "site.url",
@@ -129,47 +115,13 @@ module SL
             dev: developer.apple.com
             nq: http://nerdquery.com/?media_only=0&query=$term&search=1&category=-1&catid=&type=and&results=50&db=0&prefix=0
             gs: http://scholar.google.com/scholar?btnI&hl=en&q=$term&btnG=&as_sdt=80006
-          # Remove or comment (with #) history searches you don't want
-          # performed by `!h`. You can force-enable them per search, e.g.
-          # `!hsh` (Safari History only), `!hcb` (Chrome Bookmarks only),
-          # etc. Multiple types can be strung together: !hshcb (Safari
-          # History and Chrome bookmarks).
-          history_types:
-          - safari_bookmarks
-          - safari_history
-          # - chrome_history
-          # - chrome_bookmarks
-          # - firefox_bookmarks
-          # - firefox_history
-          # - edge_bookmarks
-          # - edge_history
-          # - brave_bookmarks
-          # - brave_history
-          # - arc_history
-          # - arc_bookmarks
-          # Pinboard search
-          # You can find your api key here: https://pinboard.in/settings/password
-          pinboard_api_key: ''
 
         ENDCONFIG
 
-        SL::Searches.plugins[:search].each_value do |plugin|
-          if plugin.key?(:config) && !plugin[:config].nil? && !plugin[:config].empty?
-            plugin[:config].each do |cfg|
-              key = cfg[0]
-              value = cfg[1]
-              required = cfg[2]
-              description = cfg[3]
-              key = required ? key : "# #{key}"
-              new_config = ""
-              new_config += "\n"
-              new_config += "# #{description}\n" if description
-              new_config += "#{key}: #{value}\n"
+        default_config = get_plugin_configs(default_config)
 
-              default_config = default_config + new_config
-            end
-          end
-        end
+        puts default_config
+        Process.exit 0
 
         File.open(config_file, "w") do |f|
           f.puts default_config
@@ -227,7 +179,7 @@ module SL
       # hash can override existing search triggers.
       config["custom_site_searches"] ||= {
         "bt" => "brettterpstra.com",
-        "imdb" => "imdb.com"
+        "imdb" => "imdb.com",
       }
 
       # confirm existence of links generated from custom search replacements
@@ -235,15 +187,107 @@ module SL
 
       # use notification center to show progress
       config["notifications"] ||= false
-      config["pinboard_api_key"] ||= false
-      config["google_api_key"] ||= false
 
       SL.line_num = nil
       SL.match_column = nil
       SL.match_length = nil
       SL.config = config
+
+      add_plugin_configs(config)
     end
 
+    # Add plugin configurations to config object
+    #
+    # @param config [Hash] Hash of plugin configurations
+    #
+    # @note applies configurations to SL.config
+    #
+    def add_plugin_configs(config)
+      SL::Searches.plugins[:search].each_value do |plugin|
+        next unless plugin.key?(:config) && !plugin[:config].nil? && !plugin[:config].empty?
+
+        plugin[:config].each do |cfg|
+          SL.config[cfg[:key]] = config[cfg[:key]] if config.key?(cfg[:key])
+        end
+      end
+    end
+
+    # Add new keys to config if don't exist
+    def write_new_plugin_config
+      default_config = IO.read(config_file)
+      new_config = ""
+      SL::Searches.plugins[:search].each_value do |plugin|
+        next unless plugin.key?(:config) && !plugin[:config].nil? && !plugin[:config].empty?
+
+        plugin[:config].each do |cfg|
+          next if default_config =~ /^(# *)?#{cfg[:key]}:/
+
+          new_config += get_plugin_config(cfg)
+        end
+      end
+
+      return if new_config.empty?
+
+      File.open(config_file, "w") { |f| f.puts default_config + new_config }
+    end
+
+    #
+    # Get plugin configs
+    #
+    # @param default_config [String] Existing configuration
+    #
+    # @return [String] default_config with plugin configurations added
+    #
+    def get_plugin_configs(default_config)
+      SL::Searches.plugins[:search].each_value do |plugin|
+        next unless plugin.key?(:config) && !plugin[:config].nil? && !plugin[:config].empty?
+
+        plugin[:config].each do |cfg|
+          new_config = get_plugin_config(cfg)
+
+          default_config += new_config
+        end
+      end
+      default_config
+    end
+
+    #
+    # Get a single plugin configuration
+    #
+    # @param cfg [Hash] Hash of single plugin config
+    #
+    # @return [String] String representation of config
+    #
+    def get_plugin_config(cfg)
+      key = cfg[:key]
+      value = cfg[:value]
+      required = cfg[:required]
+      description = cfg[:description]
+      description = "\n#{description}" if description
+      description = description.word_wrap(60, "# ") if description
+      key = required ? key : "# #{key}"
+      if value.is_a?(Array)
+        array_value = "\n"
+        value.each do |v|
+          array_value += required ? "- #{v.yaml_val}" : "# - #{v.yaml_val}\n"
+        end
+        value = array_value
+      elsif value.is_a?(Hash)
+        hash_value = "\n"
+        value.each do |k, v|
+          hash_value += required ? "  #{k}: #{v.yaml_val}" : "#  #{k}: #{v.yaml_val}"
+        end
+        value = hash_value
+      else
+        value = value.yaml_val
+      end
+      new_config = ""
+      new_config += description if description
+
+      new_config + "#{key}: #{value}"
+    end
+
+    # Reset configuration
     def restore_prev_config
       @prev_config&.each do |k, v|
         SL.config[k] = v

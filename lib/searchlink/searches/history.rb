@@ -42,6 +42,32 @@ module SL
             ["heb", "Edge Bookmark Search"],
             ["hehb", nil],
             ["hebh", nil]
+          ],
+          config: [
+            {
+              description:
+                ["Remove or comment (with #) history searches you don't want",
+                 "performed by `!h`. You can force-enable them per search, e.g.",
+                 "`!hsh` (Safari History only), `!hcb` (Chrome Bookmarks only)",
+                 "etc. Multiple types can be strung together: !hshcb (Safari",
+                 "History and Chrome bookmarks)"].join(" "),
+              required: false,
+              key: "history_types",
+              value: %w[
+                safari_bookmarks
+                safari_history
+                chrome_history
+                chrome_bookmarks
+                firefox_bookmarks
+                firefox_history
+                edge_bookmarks
+                edge_history
+                brave_bookmarks
+                brave_history
+                arc_history
+                arc_bookmarks
+              ]
+            }
           ]
         }
       end

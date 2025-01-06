@@ -13,6 +13,15 @@ module SL
             ["@l", "LinkedIn Handle"],
             ["@m", "Mastodon Handle"],
           ],
+          config: [
+            description: "Formatting for social links, use %service%, %user%, and %url%
+            E.g. \"%user% on %service%\" => \"ttscoff on Twitter\"
+    \"%service%/%user%\" => \"Twitter/ttscoff\"
+    \"%url%\" => \"twitter.com/ttscoff\"",
+            key: "social_template",
+            value: "%service%/%user%",
+            required: true
+          ]
         }
       end
 

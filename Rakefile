@@ -53,9 +53,9 @@ task :ver do
   cver = IO.read(File.join(File.dirname(__FILE__), "CHANGELOG.md")).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
-  puts "#{pastel.yellow("git tag:")} #{pastel.green(gver)}"
-  puts "#{pastel.yellow("version.rb:")} #{pastel.green(version)}"
-  puts "#{pastel.yellow("changelog:")} #{pastel.green(cver)}"
+  puts "#{pastel.yellow('git tag:')} #{pastel.green(gver)}"
+  puts "#{pastel.yellow('version.rb:')} #{pastel.green(version)}"
+  puts "#{pastel.yellow('changelog:')} #{pastel.green(cver)}"
 end
 
 desc "Git version check"
@@ -210,7 +210,7 @@ task :compile do
   pastel = Pastel.new
   source = Workflow.compile
   File.open("searchlink.rb", "w") { |f| f.puts source }
-  puts "#{pastel.green.bold("Compiled standalone script to")} #{pastel.yellow.bold("searchlink.rb")}"
+  puts "#{pastel.green.bold('Compiled standalone script to')} #{pastel.yellow.bold('searchlink.rb')}"
 end
 
 desc "Alias for compile"
@@ -230,7 +230,7 @@ task :services do
 
   workflows.each do |service|
     wf = Workflow.new(service)
-    print warning.(wf.update_script)
-    puts wf.sign ? success.("... and signed") : error.("... and FAILED to sign")
+    print warning.call(wf.update_script)
+    puts wf.sign ? success.call("... and signed") : error.call("... and FAILED to sign")
   end
 end

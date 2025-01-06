@@ -17,6 +17,14 @@ module SL
             ["itud", "iOS App Store Developer Link"],
             ["mas", "Mac App Store Search"],
             ["masd", "Mac App Store Developer Link"]
+          ],
+          config: [
+            {
+              description: "append affiliate link info to iTunes urls, empty quotes for none\nexample:\nitunes_affiliate: '&at=10l4tL&ct=searchlink'",
+              key: "itunes_affiliate",
+              value: "&at=10l4tL&ct=searchlink",
+              required: true
+            }
           ]
         }
       end

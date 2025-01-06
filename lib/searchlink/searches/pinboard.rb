@@ -11,6 +11,14 @@ module SL
           searches: [
             ["pb", "Pinboard Bookmark Search"],
           ],
+          config: [
+            {
+              description: "Pinboard API key.\nYou can find your api key here: https://pinboard.in/settings/password",
+              key: "pinboard_api_key",
+              value: "''",
+              required: true,
+            },
+          ],
         }
       end
 
@@ -125,7 +133,7 @@ module SL
           bookmarks.each do |bm|
             text = [bm["description"], bm["extended"], bm["tags"]].join(" ")
 
-            return [bm["href"], bm["description"]] if text.matches_exact(search_terms)
+            return [bm["href"], bm["description"], link_text] if text.matches_exact(search_terms)
           end
 
           return false
@@ -157,7 +165,7 @@ module SL
               0
             end
 
-          return [bm["href"], bm["description"]] if score == 14
+          return [bm["href"], bm["description"], link_text] if score == 14
 
           next unless score.positive?
 

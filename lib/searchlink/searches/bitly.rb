@@ -12,8 +12,17 @@ module SL
             ["bitly", "bit.ly shorten"]
           ],
           config: [
-            ["bitly_access_token", '', false, "Generate an access token at https://app.bitly.com/settings/api/"],
-            ["bitly_domain", "bit.ly", false]
+            {
+              key: "bitly_access_token",
+              value: "xxxx",
+              required: false,
+              description: "Generate an access token at https://app.bitly.com/settings/api/"
+            },
+            {
+              key: "bitly_domain",
+              value: "bit.ly",
+              required: false
+            }
           ]
         }
       end

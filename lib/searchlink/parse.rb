@@ -102,7 +102,7 @@ module SL
     def add_title(link_info)
       @url = link_info
       title = SL::URL.title(@url)
-      @link_text = title
+      @link_text ||= title
 
       if @ref_title
         unless @links.key? @url
@@ -261,7 +261,11 @@ module SL
             el_rx = /(\s*(?:[-+*]|\d+\.)?\s+)?(!\S+ )?(\w.*?)$/
             if l =~ el_rx
               els = l.match(el_rx)
-              search = els[2] ? els[2].strip : (m[6] ? m[6] : "!g")
+              search = if els[2]
+                  els[2].strip
+                else
+                  m[6] || "!g"
+                end
               "#{els[1]}[#{els[3].strip}](#{search})"
             else
               l

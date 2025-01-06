@@ -9,6 +9,14 @@ module SL
           trigger: "a",
           searches: [
             ["a", "Amazon Search"]
+          ],
+          config: [
+            {
+              key: "amazon_partner",
+              value: "bretttercom-20",
+              description: "To create Amazon affiliate links, set amazon_partner to your amazon affiliate tag.",
+              required: true
+            }
           ]
         }
       end
