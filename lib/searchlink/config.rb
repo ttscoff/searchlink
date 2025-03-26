@@ -120,9 +120,6 @@ module SL
 
         default_config = get_plugin_configs(default_config)
 
-        puts default_config
-        Process.exit 0
-
         File.open(config_file, "w") do |f|
           f.puts default_config
         end
