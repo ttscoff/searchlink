@@ -238,7 +238,7 @@ module SL
         end
 
         # Assuming we retrieved a full gist URL
-        if url =~ %r{https://gist.github.com/(?:(?<user>[^/]+)/)?(?<id>[a-z0-9]+?)(?:[#/](?<file>(?:file-)?.*?))?$}
+        if url && url =~ %r{https://gist.github.com/(?:(?<user>[^/]+)/)?(?<id>[a-z0-9]+?)(?:[#/](?<file>(?:file-)?.*?))?$}
           m = Regexp.last_match
           user = m["user"]
           id = m["id"]
