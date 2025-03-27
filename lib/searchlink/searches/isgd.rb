@@ -17,29 +17,26 @@ module SL
         if SL::URL.url?(search_terms)
           link = search_terms
         else
-          link, rtitle = SL.ddg(search_terms, link_text)
+          link, title, link_text = SL.ddg(search_terms, link_text)
         end
 
-        url, title = isgd_shorten(link, rtitle)
-        link_text = title || url
+        url = shorten(link)
+        title = SL::URL.title(link) if title.nil? || title.empty?
+        link_text = title if (link_text.nil? || link_text.empty?) && !SL.titleize
         [url, title, link_text]
       end
 
-      def isgd_shorten(url, title = nil)
+      def shorten(url)
         long_url = url.dup
 
         data = Curl::Json.new("https://is.gd/create.php?format=json&url=#{CGI.escape(long_url)}", symbolize_names: true)
 
         if data.json.key?("errorcode")
           SL.add_error("Error creating is.gd url", data.json[:errorcode])
-          return [false, title, link_text]
+          return false
         end
 
-        link = data.json[:shorturl]
-        rtitle = SL::URL.title(long_url)
-        title = rtitle
-        link_text = rtitle if link_text == "" && !SL.titleize
-        [link, title, link_text]
+        data.json[:shorturl]
       end
     end
 

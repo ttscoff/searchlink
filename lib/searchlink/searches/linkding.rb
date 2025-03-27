@@ -10,6 +10,20 @@ module SL
           trigger: "(ld|ding)",
           searches: [
             [%w[ld ding], "Linkding Bookmark Search"]
+          ],
+          config: [
+            {
+              description: "Linkding server URL.",
+              key: "linkding_server",
+              value: "''",
+              required: true
+            },
+            {
+              description: "Linkding API key.\nYou can find your api key here: https://your_server/settings/integrations",
+              key: "linkding_api_key",
+              value: "''",
+              required: true
+            }
           ]
         }
       end
@@ -108,7 +122,7 @@ module SL
         cache
       end
 
-      # Search pinboard bookmarks
+      # Search linkding bookmarks
       # Begin query with '' to force exact matching (including description text)
       # Regular matching searches for each word of query and scores the bookmarks
       # exact matches in title get highest score
@@ -120,13 +134,13 @@ module SL
       #
       # Exact matching is case and punctuation insensitive
       def search(_, search_terms, link_text)
-        unless SL.config["linkding_server"]
+        unless SL.config["linkding_server"] && !SL.config["linkding_server"].empty?
           SL.add_error("Missing Linkding server",
                        "add it to your configuration (linkding_server: https://YOUR_SERVER)")
           return false
         end
 
-        unless SL.config["linkding_api_key"]
+        unless SL.config["linkding_api_key"] && !SL.config["linkding_api_key"].empty?
           SL.add_error("Missing Linkding API token",
                        "Find your api key at https://your_server/settings/integrations and add it
                         to your configuration (linkding_api_key: YOURKEY)")

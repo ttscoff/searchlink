@@ -11,7 +11,7 @@ AllCops:
     - 'searchlink.rb'
     - pkg/**/*.rb
 
-require:
+plugins:
   - rubocop-rspec
   - rubocop-rake
 

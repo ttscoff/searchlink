@@ -25,6 +25,9 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
+        @auth_token = Secrets::GH_AUTH_TOKEN if defined? Secrets::GH_AUTH_TOKEN
+        @auth_token = SL.config["github_token"] if SL.config.key?("github_token") && !SL.config["github_token"].empty?
+
         case search_type
         when /^gist/
           url, title, link_text = gist(search_terms, search_type, link_text)
@@ -46,7 +49,7 @@ module SL
           "Accept" => "application/vnd.github+json",
           "X-GitHub-Api-Version" => "2022-11-28"
         }
-        headers["Authorization"] = "Bearer #{Secrets::GH_AUTH_TOKEN}" if defined? Secrets::GH_AUTH_TOKEN
+        headers["Authorization"] = "Bearer #{@auth_token}" if defined? @auth_token
 
         url = "https://api.github.com/search/#{endpoint}?q=#{query.url_encode}&per_page=1&page=1&order=desc"
         res = Curl::Json.new(url, headers: headers)
@@ -163,6 +166,8 @@ module SL
       end
 
       def filter_gists(gists, search_terms)
+        return false if gists.is_a?(Hash)
+
         score = 0
         gists.map! do |g|
           {

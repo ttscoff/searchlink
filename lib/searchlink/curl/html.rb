@@ -111,7 +111,7 @@ module Curl
     def extract_tag_contents(tag, source: false)
       return @body.scan(%r{<#{tag}.*?>(?:.*?</#{tag}>)?}) if source
 
-      @body.scan(/<#{tag}.*?>(.*?)</).map { |t| t[0] }
+      @body.scan(/<#{tag}.*?>(.*?)</).map { |t| t[1] }
     end
 
     ##

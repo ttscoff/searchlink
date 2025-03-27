@@ -219,6 +219,9 @@ require_relative "searches/lastfm"
 require_relative "searches/pinboard"
 
 # import
+require_relative "searches/setapp"
+
+# import
 require_relative "searches/social"
 
 # import

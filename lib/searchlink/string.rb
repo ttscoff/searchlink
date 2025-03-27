@@ -158,6 +158,30 @@ module SL
     end
 
     ##
+    ## Append an affiliate string to a URL
+    ##
+    ## @param      aff_string   [String]  The affiliate string
+    ## @return     [String]  The URL with the affiliate string
+    ##
+    ## @see        #append_affiliate_string!
+    ##
+    def append_affiliate_string(aff_string)
+      separator = self =~ /\?/ ? "&" : "?"
+      "#{self}#{aff_string.sub(/^[?&]?/, separator)}"
+    end
+
+    ## Destructively append an affiliate string to a URL
+    ##
+    ## @param      aff_string   [String]  The affiliate string
+    ## @return     [String]  The URL with the affiliate string
+    ##
+    ## @see        #append_affiliate_string
+    ##
+    def append_affiliate_string!(aff_string)
+      replace append_affiliate_string(aff_string)
+    end
+
+    ##
     ## Remove the protocol from a URL
     ##
     ## @return     [String] just hostname and path of URL

@@ -14,11 +14,12 @@ module SL
           config: [
             {
               key: "bitly_access_token",
-              value: "xxxx",
-              required: false,
+              value: "",
+              required: true,
               description: "Generate an access token at https://app.bitly.com/settings/api/"
             },
             {
+              description: "Bit.ly domain (optional).",
               key: "bitly_domain",
               value: "bit.ly",
               required: false
@@ -31,32 +32,56 @@ module SL
         if SL::URL.url?(search_terms)
           link = search_terms
         else
-          link, rtitle = SL.ddg(search_terms, link_text)
+          link, title, link_text = SL.ddg(search_terms, link_text)
         end
 
-        url, title = bitly_shorten(link, rtitle)
-        link_text = title || url
-        [url, title, link_text]
+        url = shorten(link)
+
+        unless url
+          SL.add_error("Result is not a valid URL", "URL error")
+          return [false, title, link_text]
+        end
+
+        format_response(url, link, link_text)
       end
 
-      def bitly_shorten(url, title = nil)
-        unless SL.config.key?("bitly_access_token") && !SL.config["bitly_access_token"].empty?
-          SL.add_error("Bit.ly not configured", "Missing access token")
-          return [false, title]
-        end
+      def shorten(url)
+        return false unless has_bitly_config?
 
         domain = SL.config.key?("bitly_domain") ? SL.config["bitly_domain"] : "bit.ly"
-        long_url = url.dup
-        curl = TTY::Which.which("curl")
-        cmd = [
-          %(#{curl} -SsL -H 'Authorization: Bearer #{SL.config['bitly_access_token']}'),
-          %(-H 'Content-Type: application/json'),
-          "-X POST", %(-d '{ "long_url": "#{url}", "domain": "#{domain}" }'), "https://api-ssl.bitly.com/v4/shorten"
-        ]
-        data = JSON.parse(`#{cmd.join(" ")}`.strip)
-        link = data["link"]
-        title ||= SL::URL.title(long_url)
-        [link, title]
+        url.dup
+
+        headers = {
+          "Content-Type" => "application/json",
+          "Authorization" => "Bearer #{SL.config['bitly_access_token']}"
+        }
+        data_obj = {
+          "long_url" => url,
+          "domain" => domain
+        }
+        data = Curl::Json.new("https://api-ssl.bitly.com/v4/shorten", data: data_obj.to_json, headers: headers, symbolize_names: true)
+
+        return false unless data.json.key?(:link)
+
+        link = data.json[:link]
+
+        return false unless SL::URL.valid_link?(link)
+
+        link
+      end
+
+      private
+
+      def has_bitly_config?
+        return true if SL.config["bitly_access_token"] && !SL.config["bitly_access_token"].empty?
+
+        SL.add_error("Bit.ly not configured", "Missing access token")
+        false
+      end
+
+      def format_response(link, original_url, link_text)
+        rtitle = SL::URL.title(original_url)
+        [link, rtitle, link_text == "" && !SL.titleize ? rtitle : link_text]
       end
     end
 
