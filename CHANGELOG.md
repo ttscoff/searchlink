@@ -1,3 +1,18 @@
+### 2.3.84
+
+2025-03-27 08:38
+
+#### NEW
+
+- Add Setapp search type, includes Bit.ly and is.gd shortening
+
+#### FIXED
+
+- Handle No Results for gist search
+- Add config options for bit.ly and linkding plugins
+- Bad handling of github_token config
+- Handle No Results for gist search
+
 ### 2.3.83
 
 2025-03-26 13:12

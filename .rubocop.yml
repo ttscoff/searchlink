@@ -27,7 +27,7 @@ Metrics/BlockLength:
   Exclude:
     - Rakefile
     - bin/howzit
-    - lib/*.rb
+    - lib/**/*.rb
 
 Style/RegexpLiteral:
   Exclude:

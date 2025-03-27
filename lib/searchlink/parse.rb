@@ -386,10 +386,10 @@ module SL
                 m = Regexp.last_match
 
                 search_type = if m[1].nil?
-                    SL::GoogleSearch.api_key? ? "gg" : "g"
-                  else
-                    m[1]
-                  end
+                                SL::GoogleSearch.api_key? ? "gg" : "g"
+                              else
+                                m[1]
+                              end
 
                 search_terms = m[2].gsub(/(^["']|["']$)/, "")
                 search_terms.strip!
@@ -414,6 +414,12 @@ module SL
                 link_only = true if search_terms =~ /!!\^?$/
 
                 search_terms = search_terms.sub(/(!!)?\^?(!!)?$/, "")
+
+                if search_type =~ /^(\S+\.)+\S+$/
+                  search_type = "g"
+                  search_terms = "site:#{m[1]} #{search_terms}"
+                end
+
               elsif link_info =~ /^!/
                 search_word = link_info.match(/^!(\S+)/)
 

@@ -46,7 +46,7 @@ module SL
       end
 
       def shorten(url)
-        return false unless has_bitly_config?
+        return false unless bitly_config?
 
         domain = SL.config.key?("bitly_domain") ? SL.config["bitly_domain"] : "bit.ly"
         url.dup
@@ -72,7 +72,7 @@ module SL
 
       private
 
-      def has_bitly_config?
+      def bitly_config?
         return true if SL.config["bitly_access_token"] && !SL.config["bitly_access_token"].empty?
 
         SL.add_error("Bit.ly not configured", "Missing access token")
