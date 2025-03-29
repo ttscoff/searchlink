@@ -138,6 +138,10 @@ module SL
 
         @link_text = search_terms if !SL.titleize && @link_text == ""
         v = parse_arguments(v, { no_restore: true })
+        query, v = v.extract_query({})
+
+        SL.add_query(query)
+
         if v =~ %r{^(/|http)}i
           search_type = "r"
           tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
@@ -274,6 +278,7 @@ module SL
         end
       end
 
+      # Handle links in the form of [text](url) or [text](url "title")
       if input =~ /\[(.*?)\]\((.*?)\)/
         lines = input.split(/\n/)
         out = []
@@ -330,6 +335,7 @@ module SL
 
             @link_text = this_match[1] || ""
             link_info = parse_arguments(this_match[2].strip).strip || ""
+            query, link_info = link_info.extract_query({})
 
             if @link_text.strip == "" && link_info =~ /".*?"/
               link_info.gsub!(/"(.*?)"/) do
@@ -386,10 +392,10 @@ module SL
                 m = Regexp.last_match
 
                 search_type = if m[1].nil?
-                                SL::GoogleSearch.api_key? ? "gg" : "g"
-                              else
-                                m[1]
-                              end
+                    SL::GoogleSearch.api_key? ? "gg" : "g"
+                  else
+                    m[1]
+                  end
 
                 search_terms = m[2].gsub(/(^["']|["']$)/, "")
                 search_terms.strip!
@@ -419,7 +425,6 @@ module SL
                   search_type = "g"
                   search_terms = "site:#{m[1]} #{search_terms}"
                 end
-
               elsif link_info =~ /^!/
                 search_word = link_info.match(/^!(\S+)/)
 
@@ -449,6 +454,8 @@ module SL
               if search_type && !search_terms.empty?
                 search_type, search_terms = custom_search(search_type, search_terms)
               end
+
+              SL.add_query(query) if query
 
               if (search_type && search_terms) || @url
                 # warn "Searching #{search_type} for #{search_terms}"
@@ -544,12 +551,13 @@ module SL
         SL.add_report("Processed: #{total_links} links, #{counter_errors} errors.")
         SL.print_report
         SL.print_errors
-      else
+      else # Assume single line input
         link_only = false
         SL.clipboard = false
 
         res = parse_arguments(input.strip!).strip
         input = res.nil? ? input.strip : res
+        query, input = input.extract_query({})
 
         # if the end of input contain "^", copy to clipboard instead of STDOUT
         SL.clipboard = true if input =~ /\^[!~:\s]*$/
@@ -610,6 +618,7 @@ module SL
         when /^!(\S+)\s+(.*)$/
           type = Regexp.last_match(1)
           link_info = Regexp.last_match(2).strip
+
           @link_text ||= link_info
           terms = link_info + additional_terms
           terms.strip!
@@ -622,6 +631,8 @@ module SL
 
                 @link_text = terms if @link_text == ""
                 v = parse_arguments(v, { no_restore: true })
+                v_query, v = v.extract_query({})
+                SL.add_query(v_query)
                 if v =~ %r{^(/|http)}i
                   type = "r"
                   tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
@@ -681,6 +692,7 @@ module SL
             @search_count ||= 0
             @search_count += 1
 
+            SL.add_query(query) if query
             @url, title, @link_text = do_search(type, terms, @link_text, @search_count)
           else
             SL.add_error("Invalid search#{SL::Searches.did_you_mean(type)}", input)
@@ -695,9 +707,11 @@ module SL
               "t"
             end
           @link_text = input.sub(/^[tfilm]/, "")
+          SL.add_query(query) if query
           @url, title = SL::SocialSearch.social_handle(type, @link_text)
           @link_text = title
         else
+          SL.add_query(query) if query
           @link_text ||= input
           @url, title, @link_text = SL.ddg(input, @link_text)
         end

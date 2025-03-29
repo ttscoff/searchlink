@@ -60,6 +60,11 @@ module SL
       @errors ||= {}
     end
 
+    # Stories query parameters
+    def query
+      @query ||= {}
+    end
+
     # Posts macOS notifications
     #
     # @param      title     [String]   The title of the notification
@@ -102,6 +107,8 @@ module SL
 
       title = title.gsub(/[ \t]+/, " ")
 
+      url.add_query_string!
+
       case type.to_sym
       when :ref_title
         %(\n[#{text}]: #{url}#{title})
@@ -141,7 +148,6 @@ module SL
     #
     def print_footer
       unless SL.footer.empty?
-
         footnotes = []
         SL.footer.delete_if do |note|
           note.strip!
@@ -202,6 +208,14 @@ module SL
       SL.errors[type].push("(#{position}): #{str}")
     end
 
+    # Add to query string
+    # @param      hsh   [Hash] The queries to add
+    # @return     [nil]
+    def add_query(hsh)
+      SL.query ||= {}
+      SL.query.merge!(hsh)
+    end
+
     # Prints the report.
     #
     # @return     [String] The report.
@@ -226,10 +240,10 @@ module SL
 
       out = ""
       inline = if SL.originput.split(/\n/).length > 1
-                 false
-               else
-                 SL.config["inline"] || SL.originput.split(/\n/).length == 1
-               end
+          false
+        else
+          SL.config["inline"] || SL.originput.split(/\n/).length == 1
+        end
 
       SL.errors.each do |k, v|
         next if v.empty?
@@ -237,10 +251,10 @@ module SL
         v.each_with_index do |err, i|
           out += "(#{k}) #{err}"
           out += if inline
-                   i == v.length - 1 ? " | " : ", "
-                 else
-                   "\n"
-                 end
+              i == v.length - 1 ? " | " : ", "
+            else
+              "\n"
+            end
         end
       end
 
