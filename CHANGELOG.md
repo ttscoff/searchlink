@@ -1,3 +1,18 @@
+### 2.3.85
+
+2025-03-30 08:36
+
+#### NEW
+
+- Add ?key=value strings to search string to append query parameters to output url. Can accept multiple instances, or one "?key=value&key2=value2" string.
+- TinyURL shortener !tiny
+- Setapp search with affiliate linking and url shortening
+- Add _i, _b, or _t to a search type (e.g. !g_b) to shorten result with is.gd, bit.ly, or tinyurl
+
+#### IMPROVED
+
+- Code cleanup
+
 ### 2.3.84
 
 2025-03-27 08:39

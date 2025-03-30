@@ -116,15 +116,15 @@ module SL
       url.add_query_string!
 
       url = case SL.shortener
-        when :isgd
-          SL::IsgdSearch.shorten(url)
-        when :tinyurl
-          SL::TinyurlSearch.shorten(url)
-        when :bitly
-          SL::BitlySearch.shorten(url)
-        else
-          url
-        end
+            when :isgd
+              SL::IsgdSearch.shorten(url)
+            when :tinyurl
+              SL::TinyurlSearch.shorten(url)
+            when :bitly
+              SL::BitlySearch.shorten(url)
+            else
+              url
+            end
 
       case type.to_sym
       when :ref_title
@@ -257,10 +257,10 @@ module SL
 
       out = ""
       inline = if SL.originput.split(/\n/).length > 1
-          false
-        else
-          SL.config["inline"] || SL.originput.split(/\n/).length == 1
-        end
+                 false
+               else
+                 SL.config["inline"] || SL.originput.split(/\n/).length == 1
+               end
 
       SL.errors.each do |k, v|
         next if v.empty?
@@ -268,10 +268,10 @@ module SL
         v.each_with_index do |err, i|
           out += "(#{k}) #{err}"
           out += if inline
-              i == v.length - 1 ? " | " : ", "
-            else
-              "\n"
-            end
+                   i == v.length - 1 ? " | " : ", "
+                 else
+                   "\n"
+                 end
         end
       end
 

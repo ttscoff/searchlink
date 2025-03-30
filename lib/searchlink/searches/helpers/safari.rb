@@ -68,8 +68,13 @@ module SL
       ## @return     [Array] [url, title, date]
       ##
       def search_safari_bookmarks(terms)
-        data = `plutil -convert xml1 -o - ~/Library/Safari/Bookmarks.plist`.strip
+        data = `plutil -extract Children xml1 -o - ~/Library/Safari/Bookmarks.plist`.strip
+
+        data.gsub!(%r{<key>Data</key>\s+<data>(.+?)</data>\n}m, "")
+        data.gsub!(/\t/, "")
+
         parent = Plist.parse_xml(data)
+
         results = get_safari_bookmarks(parent, terms)
         return false if results.empty?
 

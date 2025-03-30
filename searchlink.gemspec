@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec", "~> 4.5"
   spec.add_development_dependency "guard-rubocop", "~> 1.2"
   spec.add_development_dependency "guard-yard", "~> 2.1"
-  spec.add_development_dependency "plist", "~> 3.7.1"
+  spec.add_development_dependency "plist", "~> 3.7.2"
   spec.add_development_dependency "rake", "~> 11.2"
   spec.add_development_dependency "redcarpet", "~> 3.2"
   spec.add_development_dependency "rspec", "~> 3.1"

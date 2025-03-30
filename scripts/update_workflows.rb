@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby -W1
 # frozen_string_literal: true
 
-SIGNING_ID = 'Apple Development: Brett Terpstra'
+SIGNING_ID = "Apple Development: Brett Terpstra"
 
-require 'plist'
-require 'shellwords'
+require "plist"
+require "shellwords"
 
 # String helpers
 class ::String
@@ -31,52 +31,52 @@ class Workflow
   end
 
   def compile
-    source_file = File.expand_path('bin/searchlink')
+    source_file = File.expand_path("bin/searchlink")
     source = IO.read(source_file)
 
-    source.import_markers!(File.join(File.dirname(source_file), '..'))
+    source.import_markers!(File.join(File.dirname(source_file), ".."))
 
-    source.sub(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, '')
+    source.sub(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, "")
   end
 
   def sign
     cmd = [
-      'codesign',
-      '--force',
-      '--deep',
-      '--verbose',
+      "codesign",
+      "--force",
+      "--deep",
+      "--verbose",
       "--sign '#{SIGNING_ID}'",
-      '-o runtime', 
-      '--timestamp',
+      "-o runtime",
+      "--timestamp",
       Shellwords.escape(@workflow)
-    ].join(' ')
+    ].join(" ")
     res = `#{cmd} 2>&1`
-    
+
     return true if res =~ /signed bundle/
 
     warn res
     false
   end
-    
+
   def update_script
-    wflow = File.join(File.expand_path(@workflow), 'Contents/document.wflow')
+    wflow = File.join(File.expand_path(@workflow), "Contents/document.wflow")
     script = compile
-    workflow = IO.read(wflow)
+    IO.read(wflow)
 
     plist = Plist.parse_xml(wflow)
-    plist['actions'].each_with_index do |action, idx|
-      next unless action['action']['AMParameterProperties'].key?('COMMAND_STRING')
+    plist["actions"].each_with_index do |action, idx|
+      next unless action["action"]["AMParameterProperties"].key?("COMMAND_STRING")
 
-      plist['actions'][idx]['action']['AMParameterProperties']['COMMAND_STRING'] = script
+      plist["actions"][idx]["action"]["AMParameterProperties"]["COMMAND_STRING"] = script
       break
     end
 
-    File.open(wflow, 'w') { |f| f.puts plist.to_plist }
+    File.open(wflow, "w") { |f| f.puts plist.to_plist }
     warn "updated script for #{File.basename(@workflow)}"
   end
 end
 
-services = Dir.glob('SearchLink Services/*.workflow').each do |service|
+Dir.glob("SearchLink Services/*.workflow").each do |service|
   wf = Workflow.new(service)
   wf.update_script
   puts wf.sign ? "Signed worfklow #{service}" : "Failure to sign workflow #{service}"

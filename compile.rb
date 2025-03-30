@@ -6,7 +6,7 @@ class ::String
   def import_markers(base)
     gsub(/^# *import\nrequire(?:_relative)? (['"])(.*?)\1\n/) do
       file = Regexp.last_match(2)
-      file = File.join(base, "#{file}").sub(/(\.rb)?$/, ".rb")
+      file = File.join(base, file.to_s).sub(/(\.rb)?$/, ".rb")
 
       content = IO.read(file)
       content.import_markers(File.dirname(file))

@@ -8,16 +8,16 @@ module SL
         {
           trigger: "tiny",
           searches: [
-            ["tiny", "TinyURL Shorten"],
+            ["tiny", "TinyURL Shorten"]
           ],
           config: [
             {
               key: "tinyurl_access_token",
               value: "",
               required: true,
-              description: "Generate a tinyurl API key at https://tinyurl.ph/developers (login required)",
-            },
-          ],
+              description: "Generate a tinyurl API key at https://tinyurl.ph/developers (login required)"
+            }
+          ]
         }
       end
 
@@ -39,14 +39,14 @@ module SL
 
         headers = {
           "Content-Type" => "application/json",
-          "Authorization" => "Bearer #{SL.config["tinyurl_access_token"]}",
+          "Authorization" => "Bearer #{SL.config['tinyurl_access_token']}"
         }
         data_obj = {
-          "url" => url,
+          "url" => url
         }
         data = Curl::Json.new("https://tinyurl.ph/api/url/add", data: data_obj.to_json, headers: headers, symbolize_names: true)
 
-        if data.json[:error] > 0
+        if data.json[:error].positive?
           SL.add_error("Error creating tinyurl", data.json[:error])
           return false
         end

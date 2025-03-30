@@ -59,15 +59,15 @@ module SL
 
       shortener = split(/_/).last
       SL.shortener = case shortener
-        when /i/i
-          :isgd
-        when /b/i
-          :bitly
-        when /t/i
-          :tinyurl
-        else
-          :none
-        end
+                     when /i/i
+                       :isgd
+                     when /b/i
+                       :bitly
+                     when /t/i
+                       :tinyurl
+                     else
+                       :none
+                     end
 
       sub(/_[ibt]$/i, "")
     end
@@ -88,11 +88,11 @@ module SL
 
       query = SL.query.map { |k, v| "#{k}=#{v}" }.join("&")
 
-      if self =~ /\?[^= ]+=\S+/
-        query = "&#{query}"
-      else
-        query = "?#{query}"
-      end
+      query = if self =~ /\?[^= ]+=\S+/
+                "&#{query}"
+              else
+                "?#{query}"
+              end
 
       "#{self}#{query}"
     end
@@ -151,21 +151,21 @@ module SL
         output = " "
         m[2].split("").each do |arg|
           output += case arg
-            when "d"
-              "--#{bool}debug "
-            when "i"
-              "--#{bool}inline "
-            when "r"
-              "--#{bool}prefix_random "
-            when "t"
-              "--#{bool}include_titles "
-            when "v"
-              "--#{bool}validate_links "
-            when "s"
-              "--#{bool}remove_seo "
-            else
-              ""
-            end
+                    when "d"
+                      "--#{bool}debug "
+                    when "i"
+                      "--#{bool}inline "
+                    when "r"
+                      "--#{bool}prefix_random "
+                    when "t"
+                      "--#{bool}include_titles "
+                    when "v"
+                      "--#{bool}validate_links "
+                    when "s"
+                      "--#{bool}remove_seo "
+                    else
+                      ""
+                    end
         end
 
         output
@@ -308,7 +308,7 @@ module SL
         "‘" => "’",
         "[" => "]",
         "(" => ")",
-        "<" => ">",
+        "<" => ">"
       }
 
       left_punct = []
@@ -378,7 +378,7 @@ module SL
         # p_re = path.path_elements.map{|seg| seg.downcase.split(//).join('.?') }.join('|')
         # re_parts.push(p_re) if p_re.length > 0
 
-        site_re = "(#{re_parts.join("|")})"
+        site_re = "(#{re_parts.join('|')})"
 
         dead_switch = 0
 
@@ -403,14 +403,14 @@ module SL
             end
 
             title = if parts.empty?
-                longest
-              elsif parts.length < 2
-                parts.join(sep)
-              elsif parts.length > 2
-                parts.longest_element.strip
-              else
-                parts.join(sep)
-              end
+                      longest
+                    elsif parts.length < 2
+                      parts.join(sep)
+                    elsif parts.length > 2
+                      parts.longest_element.strip
+                    else
+                      parts.join(sep)
+                    end
           end
           dead_switch += 1
         end
@@ -421,7 +421,7 @@ module SL
         return self
       end
 
-      seps = Regexp.new(" *[#{seo_title_separators.map { |s| Regexp.escape(s) }.join("")}] +")
+      seps = Regexp.new(" *[#{seo_title_separators.map { |s| Regexp.escape(s) }.join('')}] +")
       if title =~ seps
         seo_parts = title.split(seps)
         title = seo_parts.longest_element.strip if seo_parts.length.positive?
@@ -524,13 +524,13 @@ module SL
       (1..n).each do |j|
         (1..m).each do |i|
           d[i][j] = if s[i - 1] == t[j - 1] # adjust index into string
-              d[i - 1][j - 1] # no operation required
-            else
-              [d[i - 1][j] + 1, # deletion
-               d[i][j - 1] + 1, # insertion
-               d[i - 1][j - 1] + 1 # substitution
-].min
-            end
+                      d[i - 1][j - 1] # no operation required
+                    else
+                      [d[i - 1][j] + 1, # deletion
+                       d[i][j - 1] + 1, # insertion
+                       d[i - 1][j - 1] + 1 # substitution
+        ].min
+                    end
         end
       end
       d[m][n]
@@ -543,7 +543,7 @@ module SL
     ##
     def matches_exact(string)
       comp = gsub(/[^a-z0-9 ]/i, "")
-      comp =~ /\b#{string.gsub(/[^a-z0-9 ]/i, "").split(/ +/).map { |s| Regexp.escape(s) }.join(" +")}/i
+      comp =~ /\b#{string.gsub(/[^a-z0-9 ]/i, '').split(/ +/).map { |s| Regexp.escape(s) }.join(' +')}/i
     end
 
     ##
@@ -591,7 +591,7 @@ module SL
     def to_rx_array(separator: " ", start_word: true)
       bound = start_word ? '\b' : ""
       str = gsub(/(#{separator})+/, separator)
-      str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, ".?")}/i }
+      str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, '.?')}/i }
     end
 
     ##

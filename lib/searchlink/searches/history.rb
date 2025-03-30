@@ -45,12 +45,11 @@ module SL
           ],
           config: [
             {
-              description:
-                ["Remove or comment (with #) history searches you don't want",
-                 "performed by `!h`. You can force-enable them per search, e.g.",
-                 "`!hsh` (Safari History only), `!hcb` (Chrome Bookmarks only)",
-                 "etc. Multiple types can be strung together: !hshcb (Safari",
-                 "History and Chrome bookmarks)"].join(" "),
+              description: ["Remove or comment (with #) history searches you don't want",
+                            "performed by `!h`. You can force-enable them per search, e.g.",
+                            "`!hsh` (Safari History only), `!hcb` (Chrome Bookmarks only)",
+                            "etc. Multiple types can be strung together: !hshcb (Safari",
+                            "History and Chrome bookmarks)"].join(" "),
               required: false,
               key: "history_types",
               value: %w[
