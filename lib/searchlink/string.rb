@@ -53,6 +53,32 @@ module SL
       [known_queries, string]
     end
 
+    # Extract a shortner from a string
+    def extract_shortener
+      return self unless self =~ /_[ibt]$/i
+
+      shortener = split(/_/).last
+      SL.shortener = case shortener
+        when /i/i
+          :isgd
+        when /b/i
+          :bitly
+        when /t/i
+          :tinyurl
+        else
+          :none
+        end
+
+      sub(/_[ibt]$/i, "")
+    end
+
+    # Destructive version of #extract_shortener
+    # @see #extract_shortener
+    # @return     [String] The string without the shortener
+    def extract_shortener!
+      replace extract_shortener
+    end
+
     # Format and append a query string
     #
     # @return     [String] The formatted query string

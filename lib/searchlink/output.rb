@@ -3,7 +3,8 @@
 module SL
   class << self
     attr_writer :titleize, :clipboard, :output, :footer, :line_num,
-                :match_column, :match_length, :originput, :errors, :report, :printout
+                :match_column, :match_length, :originput, :errors, :report, :printout,
+                :shortener
 
     # Whether or not to add a title to the output
     def titleize
@@ -60,9 +61,14 @@ module SL
       @errors ||= {}
     end
 
-    # Stories query parameters
+    # Stores query parameters
     def query
       @query ||= {}
+    end
+
+    # The shortener to use
+    def shortener
+      @shortener ||= :none
     end
 
     # Posts macOS notifications
@@ -108,6 +114,17 @@ module SL
       title = title.gsub(/[ \t]+/, " ")
 
       url.add_query_string!
+
+      url = case SL.shortener
+        when :isgd
+          SL::IsgdSearch.shorten(url)
+        when :tinyurl
+          SL::TinyurlSearch.shorten(url)
+        when :bitly
+          SL::BitlySearch.shorten(url)
+        else
+          url
+        end
 
       case type.to_sym
       when :ref_title

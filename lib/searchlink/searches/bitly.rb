@@ -49,7 +49,6 @@ module SL
         return false unless bitly_config?
 
         domain = SL.config.key?("bitly_domain") ? SL.config["bitly_domain"] : "bit.ly"
-        url.dup
 
         headers = {
           "Content-Type" => "application/json",
