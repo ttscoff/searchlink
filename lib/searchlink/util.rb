@@ -56,9 +56,10 @@ module SL
       ## @return     [Array] url, title, link_text
       ##
       def search_with_timeout(search, timeout)
-        url = nil
-        title = nil
-        link_text = nil
+        if SL.config["skip_timeout"] || SL.config["confirm"]
+          url, title, link_text = search.call
+          return [url, title, link_text]
+        end
 
         begin
           Timeout.timeout(timeout) do

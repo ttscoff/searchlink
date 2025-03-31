@@ -82,6 +82,11 @@ module SL
           # E.g. [](!g Search Text)
           empty_uses_page_title: false
 
+          # If confirm is true, then a popup dialog will be displayed
+          # showing the destination of each found link. Hitting cancel
+          # will leave the link unchanged.
+          confirm: false
+
           # To create custom abbreviations for Google Site Searches,
           # add to (or replace) the hash below.
           # "abbreviation" => "site.url",
@@ -168,6 +173,9 @@ module SL
       #    amazon_partner: "bretttercom-20"
       config["amazon_partner"] ||= ""
 
+      # display a popup dialog confirmation
+      config["confirm"] ||= false
+
       # To create custom abbreviations for Google Site Searches,
       # add to (or replace) the hash below.
       # "abbreviation" => "site.url",
@@ -176,7 +184,7 @@ module SL
       # hash can override existing search triggers.
       config["custom_site_searches"] ||= {
         "bt" => "brettterpstra.com",
-        "imdb" => "imdb.com"
+        "imdb" => "imdb.com",
       }
 
       # confirm existence of links generated from custom search replacements

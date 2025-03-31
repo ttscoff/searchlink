@@ -90,7 +90,7 @@ module Curl
           tag: tag,
           source: tag_source,
           attrs: attrs,
-          content: contents
+          content: contents,
         }
       end
 
@@ -147,7 +147,7 @@ module Curl
         output << {
           type: "opengraph",
           attrs: nil,
-          src: @meta[src]
+          src: @meta[src],
         }
       end
       images = tags(%w[img source])
@@ -162,21 +162,21 @@ module Curl
                 image, media = s.split(/ /)
                 srcset << {
                   src: image,
-                  media: media
+                  media: media,
                 }
               end
             end
             output << {
               type: "srcset",
               attrs: img[:attrs],
-              images: srcset
+              images: srcset,
             }
           end
         when /img/
           output << {
             type: "img",
             src: img[:attrs].filter { |a| a[:key] =~ /src/i }.first[:value],
-            attrs: img[:attrs]
+            attrs: img[:attrs],
           }
         end
       end
@@ -189,7 +189,7 @@ module Curl
       links = @links.nil? ? 0 : @links.count
       [
         %(<HTMLCurl: @code="#{@code}" @url="#{@url}" @title="#{@title}"),
-        %(@description=#{@description} @headers:#{headers} @meta:#{meta} @links:#{links}>)
+        %(@description=#{@description} @headers:#{headers} @meta:#{meta} @links:#{links}>),
       ].join(" ")
     end
 
@@ -253,14 +253,22 @@ module Curl
           attrs = tag["attrs"].strip.to_enum(:scan, /(?ix)
                                              (?<key>[@a-z0-9-]+)(?:=(?<quot>["'])
                                              (?<value>[^"']+)\k<quot>|[ >])?/i).map { Regexp.last_match }
-          attrs.map! { |a| { key: a["key"], value: a["key"] =~ /^(class|rel)$/ ? a["value"].split(/ /) : a["value"] } }
+
+          attrs.map! do |a|
+            val = if a["key"] =~ /^(class|rel)$/
+                a["value"].nil? ? "" : a["value"].split(/ /)
+              else
+                a["value"]
+              end
+            { key: a["key"], value: val }
+          end
         end
         {
           tag: tag["tag"],
           source: tag.to_s,
           attrs: attrs,
           content: tag["content"],
-          tags: content_tags(tag["content"])
+          tags: content_tags(tag["content"]),
         }
       end
     end
@@ -351,7 +359,7 @@ module Curl
           title: title,
           rel: rel,
           text: text,
-          class: link_class
+          class: link_class,
         }
         links << link
       end

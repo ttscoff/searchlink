@@ -2,6 +2,14 @@
 
 module SL
   class SearchLink
+    # Confirm a URL with a popup if requested
+    def confirmed?(url)
+      return true unless SL.config["confirm"]
+
+      SL::Shortener.confirm?(url)
+    end
+
+    # Parse the input string and perform searches
     def parse(input)
       SL.output = []
       return false if input.empty?
@@ -283,6 +291,13 @@ module SL
                 end
 
                 if @url
+                  res = confirmed?(@url)
+                  if !res
+                    return match
+                  else
+                    @url = res if res.is_a?(String) && SL::URL.url?(res)
+                  end
+
                   title = SL::URL.title(@url) if SL.titleize && title == ""
 
                   @link_text = title if @link_text == "" && title
@@ -473,16 +488,28 @@ module SL
         end
 
         if @url
-          if type =~ /sp(ell)?/
-            SL.add_output(@url)
-          elsif link_only
-            SL.add_output(@url)
-          elsif @url == "embed"
-            SL.add_output(title)
-          else
-            type = reference_link ? :ref_title : :inline
+          res = confirmed?(@url)
+          if res
+            if res.is_a?(String) && SL::URL.url?(res)
+              @url = res
+              title = SL::URL.title(@url) unless title == ""
+            end
 
-            SL.add_output SL.make_link(type, @link_text, @url, title: title, force_title: false)
+            if type =~ /sp(ell)?/
+              SL.add_output(@url)
+            elsif link_only
+              SL.add_output(@url)
+            elsif @url == "embed"
+              SL.add_output(title)
+            else
+              type = reference_link ? :ref_title : :inline
+
+              SL.add_output SL.make_link(type, @link_text, @url, title: title, force_title: false)
+              SL.print_errors
+            end
+          else
+            SL.add_error("Canceled", "User canceled result #{@url}")
+            SL.add_output SL.originput.chomp
             SL.print_errors
           end
         else
@@ -555,7 +582,7 @@ module SL
 
       input.parse_flags! unless skip_flags
 
-      options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links complete_bare]
+      options = %w[debug country_code inline prefix_random include_titles remove_seo validate_links complete_bare confirm]
       options.each do |o|
         if input =~ /^ *#{o}:\s+(\S+)$/
           val = Regexp.last_match(1).strip

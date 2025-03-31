@@ -43,9 +43,9 @@ module SL
       #
       def available_searches_html
         searches = plugins[:search]
-                   .flat_map { |_, plugin| plugin[:searches] }
-                   .reject { |s| s[1].nil? }
-                   .sort_by { |s| s[0].is_a?(Array) ? s[0][0] : s[0] }
+          .flat_map { |_, plugin| plugin[:searches] }
+          .reject { |s| s[1].nil? }
+          .sort_by { |s| s[0].is_a?(Array) ? s[0][0] : s[0] }
         out = ['<table id="searches">',
                "<thead><td>Shortcut</td><td>Search Type</td></thead>",
                "<tbody>"]
@@ -53,7 +53,7 @@ module SL
         searches.each do |s|
           out << "<tr>
           <td>
-          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(',')})" : s[0]}
+          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(",")})" : s[0]}
           </code>
           </td><td>#{s[1]}</td></tr>"
         end
@@ -72,10 +72,10 @@ module SL
 
         searches.each do |s|
           shortcut = if s[0].is_a?(Array)
-                       "#{s[0][0]} (#{s[0][1..].join(',')})"
-                     else
-                       s[0]
-                     end
+              "#{s[0][0]} (#{s[0][1..].join(",")})"
+            else
+              s[0]
+            end
 
           out << "!#{shortcut}#{shortcut.spacer}#{s[1]}"
         end
@@ -95,7 +95,7 @@ module SL
 
       def did_you_mean(term)
         matches = best_search_match(term)
-        matches.empty? ? "" : ", did you mean #{matches.map { |m| "!#{m}" }.join(', ')}?"
+        matches.empty? ? "" : ", did you mean #{matches.map { |m| "!#{m}" }.join(", ")}?"
       end
 
       def valid_searches
@@ -106,7 +106,7 @@ module SL
 
       def valid_search?(term)
         valid = false
-        valid = true if term =~ /^(#{valid_searches.join('|')})$/
+        valid = true if term =~ /^(#{valid_searches.join("|")})$/
         valid = true if SL.config["custom_site_searches"].keys.include? term
         # SL.notify("Invalid search#{did_you_mean(term)}", term) unless valid
         valid
@@ -124,7 +124,7 @@ module SL
           trigger: settings.fetch(:trigger, title).normalize_trigger,
           searches: settings[:searches],
           config: settings[:config],
-          class: klass
+          class: klass,
         }
       end
 
@@ -155,11 +155,11 @@ module SL
           config = IO.read(file)
 
           cfg = case ext
-                when /^y/i
-                  YAML.safe_load(config)
-                else
-                  JSON.parse(config)
-                end
+            when /^y/i
+              YAML.safe_load(config)
+            else
+              JSON.parse(config)
+            end
           cfg["filename"] = File.basename(file)
           cfg["path"] = file.shorten_path
           SL::ScriptSearch.new(cfg)
@@ -169,10 +169,12 @@ module SL
       def do_search(search_type, search_terms, link_text, timeout: SL.config["timeout"])
         plugins[:search].each_value do |plugin|
           trigger = plugin[:trigger].gsub(/(^\^|\$$)/, "")
-          if search_type =~ /^#{trigger}$/
-            search = proc { plugin[:class].search(search_type, search_terms, link_text) }
-            return SL::Util.search_with_timeout(search, timeout)
-          end
+          next unless search_type =~ /^#{trigger}$/
+
+          search = proc { plugin[:class].search(search_type, search_terms, link_text) }
+          SL.config["skip_timeout"] = true if trigger =~ /^pop/
+
+          return SL::Util.search_with_timeout(search, timeout)
         end
       end
     end
@@ -188,8 +190,8 @@ require_relative "searches/itunes"
 # import
 require_relative "searches/amazon"
 
-# import
-require_relative "searches/bitly"
+#import
+require_relative "searches/shortener"
 
 # import
 require_relative "searches/definition"
@@ -210,13 +212,13 @@ require_relative "searches/history"
 require_relative "searches/hook"
 
 # import
-require_relative "searches/isgd"
-
-# import
 require_relative "searches/lastfm"
 
 # import
 require_relative "searches/pinboard"
+
+# import
+require_relative "searches/popup"
 
 # import
 require_relative "searches/setapp"
@@ -247,9 +249,6 @@ require_relative "searches/youtube"
 
 # import
 require_relative "searches/stackoverflow"
-
-# import
-require_relative "searches/tinyurl"
 
 # import
 require_relative "searches/linkding"

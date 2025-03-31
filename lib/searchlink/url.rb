@@ -146,6 +146,8 @@ module SL
         # end
 
         begin
+          return File.basename(url) if url =~ /\.(gif|jpe?g|png|web[mp]|bmp|svg|tiff?|pdf|avif)$/i
+
           if url =~ %r{https://(amzn.to|(www\.)?amazon\.com)/}
             final_url = follow_redirects(url)
             m = final_url.match(%r{https://www.amazon.com/(.*?)/dp/})

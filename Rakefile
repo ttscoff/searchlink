@@ -53,9 +53,9 @@ task :ver do
   cver = IO.read(File.join(File.dirname(__FILE__), "CHANGELOG.md")).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
-  puts "#{pastel.yellow('git tag:')} #{pastel.green(gver)}"
-  puts "#{pastel.yellow('version.rb:')} #{pastel.green(version)}"
-  puts "#{pastel.yellow('changelog:')} #{pastel.green(cver)}"
+  puts "#{pastel.yellow("git tag:")} #{pastel.green(gver)}"
+  puts "#{pastel.yellow("version.rb:")} #{pastel.green(version)}"
+  puts "#{pastel.yellow("changelog:")} #{pastel.green(cver)}"
 end
 
 desc "Git version check"
@@ -153,7 +153,7 @@ class Workflow
     error = pastel.red.bold.detach
     warning = pastel.yellow.detach
     success = pastel.green.detach
-    services = ["SearchLink", "SearchLink File", "Jump to SearchLink Error"]
+    services = ["SearchLink", "SearchLink File", "Preview URL"]
     FileUtils.mkdir_p("SearchLink Services/")
     target = File.expand_path("./SearchLink Services/")
     services.each do |service|
@@ -200,6 +200,11 @@ class Workflow
   end
 
   def update_script
+    updateable = ["SearchLink", "SearchLink File"]
+    unless updateable.include?(File.basename(@workflow, ".workflow"))
+      return "No update for #{File.basename(@workflow)}"
+    end
+
     wflow = File.join(File.expand_path(@workflow), "Contents/document.wflow")
     script = Workflow.compile
     workflow = IO.read(wflow)
@@ -222,7 +227,7 @@ task :compile do
   pastel = Pastel.new
   source = Workflow.compile
   File.open("searchlink.rb", "w") { |f| f.puts source }
-  puts "#{pastel.green.bold('Compiled standalone script to')} #{pastel.yellow.bold('searchlink.rb')}"
+  puts "#{pastel.green.bold("Compiled standalone script to")} #{pastel.yellow.bold("searchlink.rb")}"
 end
 
 desc "Alias for compile"
@@ -243,8 +248,6 @@ task :services do
     puts error.call("FAILED")
     Process.exit(1)
   end
-
-  workflows = Dir.glob("SearchLink Services/*.workflow")
 
   Workflow.copy_services
 
