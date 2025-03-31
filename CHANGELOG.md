@@ -1,3 +1,28 @@
+### 2.3.86
+
+2025-03-31 08:53
+
+#### CHANGED
+
+- Remove Jump to SearchLink Error Service for the time being, no longer functioning properly
+
+#### NEW
+
+- Confirmation dialog to ensure you have the right url, with optional preview. Especially handy with URL shortening base on a search
+- Preview URL Service included in distribution, and can be used for confirmation and popup searches
+- !pop (*,g,a,w) searches to search with a quick popup, inserting the final URL
+- Config option `confirm: true` to always confirm links using a dialog/preview
+- --confirm (++c) flag for searches that will force a confirm dialog for that link
+
+#### IMPROVED
+
+- Don't use a search timeout when implementing a dialog
+
+#### FIXED
+
+- Attribute error breaking !img searches
+- Don attempt to get a title from image links
+
 ### 2.3.85
 
 2025-03-30 08:36
