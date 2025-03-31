@@ -75,7 +75,7 @@ SearchLink can also be installed via Homebrew, thanks to [@TomBen](https://githu
 <!--JEKYLL[Latest release on GitHub](https://github.com/ttscoff/searchlink/releases/latest/){:.btn.btn--alt}-->
 
 <!--GITHUB-->
-[Download SearchLink <!--VER-->2.3.85<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
+[Download SearchLink <!--VER-->2.3.86<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
 <!--END GITHUB-->
 
 If you're interested in installing SearchLink as a command line tool, [see the wiki](https://github.com/ttscoff/searchlink/wiki/Using-From-The-Command-Line).
