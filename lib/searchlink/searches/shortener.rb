@@ -23,14 +23,12 @@ module SL
 
           res = `#{cmd}`.strip
 
-          if res =~ /Preview/
-            path = File.expand_path("~/Library/Services/Preview URL.workflow")
-            res = `automator -i "#{url}" "#{path}"`.strip
+          return res =~ /Confirm/ unless res =~ /Preview/
 
-            return res.empty? ? false : res
-          else
-            return res =~ /Confirm/
-          end
+          path = File.expand_path("~/Library/Services/Preview URL.workflow")
+          res = `automator -i "#{url}" "#{path}"`.strip
+
+          return res.empty? ? false : res
         end
 
         res = system(%(osascript -e "display dialog \"#{url}\" with title \"#{title}\" buttons {\"Cancel\", \"Confirm\"}"))
@@ -55,12 +53,14 @@ module SL
         known_shorteners = %i[tinyurl bitly isgd]
         return url unless known_shorteners.include?(shortener)
 
-        # Confirm shortening the URL
-        res = SL::Shortener.confirm?(url)
+        unless NO_CONFIRM
+          # Confirm shortening the URL
+          res = SL::Shortener.confirm?(url, title: "Shorten URL?")
 
-        return url unless res
+          return url unless res
 
-        url = res if res.is_a?(String)
+          url = res if res.is_a?(String)
+        end
 
         return url unless SL::URL.url?(url)
 

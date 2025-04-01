@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-SILENT = ENV['SL_SILENT'] =~ /false/i ? false : true
-$LOAD_PATH.unshift File.join(__dir__, '..')
+SILENT = ENV["SL_SILENT"] =~ /false/i ? false : true
+NO_CONFIRM = ENV["SL_NO_CONFIRM"] =~ /true/i ? true : false
+$LOAD_PATH.unshift File.join(__dir__, "..")
 
 # import
-require 'lib/searchlink'
+require "lib/searchlink"
 
 if RUBY_VERSION.to_f > 1.9
   Encoding.default_external = Encoding::UTF_8
@@ -20,7 +21,7 @@ SL::Searches.load_custom
 # SL::Searches.load_searches
 
 overwrite = true
-backup = SL.config['backup']
+backup = SL.config["backup"]
 
 if !ARGV.empty?
   files = []
@@ -30,7 +31,7 @@ if !ARGV.empty?
       print SL.version_check
       puts
       sl.help_cli
-      $stdout.puts 'See https://github.com/ttscoff/searchlink/wiki for help'
+      $stdout.puts "See https://github.com/ttscoff/searchlink/wiki for help"
       Process.exit 0
     when /^(--?)?v(er(s(ion)?)?)?$/
       print SL.version_check
@@ -55,12 +56,12 @@ if !ARGV.empty?
       FileUtils.cp(file, backup_file) if backup && overwrite
 
       sl.parse(input)
-      output = SL.output&.join('')
+      output = SL.output&.join("")
 
       next unless output
 
       if overwrite
-        File.open(file, 'w') do |f|
+        File.open(file, "w") do |f|
           f.puts output
         end
       else
@@ -73,7 +74,7 @@ if !ARGV.empty?
 else
   input = $stdin.read.scrubup
   sl.parse(input)
-  output = SL.output&.join('')
+  output = SL.output&.join("")
 
   if SL.clipboard
     print input

@@ -11,7 +11,7 @@ module SL
             ["popa", "Popup Amazon Search"],
             ["popg", "Popup Google Search"],
             ["popw", "Popup Wikipedia Search"]
-          ],
+          ]
         }
       end
 
@@ -20,17 +20,17 @@ module SL
 
         term = search_terms.url_encode
         url = case type
-          when /g$/
-            "https://www.google.com/search?hl=en&q=#{term}"
-          when /a$/
-            "https://www.amazon.com/s?k=#{term}"
-          when /b$/
-            "https://www.bing.com/search?q=#{term}"
-          when /w$/
-            "https://en.wikipedia.org/w/index.php?search=#{term}&title=Special%3ASearch&ns0=1"
-          else
-            "https://duckduckgo.com/?q=#{term}&ia=web"
-          end
+              when /g$/
+                "https://www.google.com/search?hl=en&q=#{term}"
+              when /a$/
+                "https://www.amazon.com/s?k=#{term}"
+              when /b$/
+                "https://www.bing.com/search?q=#{term}"
+              when /w$/
+                "https://en.wikipedia.org/w/index.php?search=#{term}&title=Special%3ASearch&ns0=1"
+              else
+                "https://duckduckgo.com/?q=#{term}&ia=web"
+              end
 
         path = File.expand_path("~/Library/Services/Preview URL.workflow")
         res = `automator -i "#{url}" "#{path}"`.strip

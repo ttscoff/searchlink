@@ -90,7 +90,7 @@ module Curl
           tag: tag,
           source: tag_source,
           attrs: attrs,
-          content: contents,
+          content: contents
         }
       end
 
@@ -147,7 +147,7 @@ module Curl
         output << {
           type: "opengraph",
           attrs: nil,
-          src: @meta[src],
+          src: @meta[src]
         }
       end
       images = tags(%w[img source])
@@ -162,21 +162,21 @@ module Curl
                 image, media = s.split(/ /)
                 srcset << {
                   src: image,
-                  media: media,
+                  media: media
                 }
               end
             end
             output << {
               type: "srcset",
               attrs: img[:attrs],
-              images: srcset,
+              images: srcset
             }
           end
         when /img/
           output << {
             type: "img",
             src: img[:attrs].filter { |a| a[:key] =~ /src/i }.first[:value],
-            attrs: img[:attrs],
+            attrs: img[:attrs]
           }
         end
       end
@@ -189,7 +189,7 @@ module Curl
       links = @links.nil? ? 0 : @links.count
       [
         %(<HTMLCurl: @code="#{@code}" @url="#{@url}" @title="#{@title}"),
-        %(@description=#{@description} @headers:#{headers} @meta:#{meta} @links:#{links}>),
+        %(@description=#{@description} @headers:#{headers} @meta:#{meta} @links:#{links}>)
       ].join(" ")
     end
 
@@ -202,11 +202,13 @@ module Curl
     ##
     def h(level = '\d')
       res = []
-      headlines = @body.to_enum(:scan, %r{<h(?<level>#{level})(?<tag> .*?)?>(?<text>.*?)</h#{level}>}i).map { Regexp.last_match }
+      headlines = @body.to_enum(:scan, %r{<h(?<level>#{level})(?<tag> .*?)?>(?<text>.*?)</h#{level}>}i).map do
+        Regexp.last_match
+      end
       headlines.each do |m|
         headline = { level: m["level"] }
         if m["tag"].nil?
-          attrs = nil
+          nil
         else
           attrs = m["tag"].to_enum(:scan, /(?<attr>\w+)=(?<quot>["'])(?<content>.*?)\k<quot>/).map { Regexp.last_match }
           attrs.each { |a| headline[a["attr"].to_sym] = a["content"] }
@@ -256,10 +258,10 @@ module Curl
 
           attrs.map! do |a|
             val = if a["key"] =~ /^(class|rel)$/
-                a["value"].nil? ? "" : a["value"].split(/ /)
-              else
-                a["value"]
-              end
+                    a["value"].nil? ? "" : a["value"].split(/ /)
+                  else
+                    a["value"]
+                  end
             { key: a["key"], value: val }
           end
         end
@@ -268,7 +270,7 @@ module Curl
           source: tag.to_s,
           attrs: attrs,
           content: tag["content"],
-          tags: content_tags(tag["content"]),
+          tags: content_tags(tag["content"])
         }
       end
     end
@@ -359,7 +361,7 @@ module Curl
           title: title,
           rel: rel,
           text: text,
-          class: link_class,
+          class: link_class
         }
         links << link
       end
@@ -425,18 +427,21 @@ module Curl
       end
 
       if headers["content-type"] =~ /json/
-        return { url: url, code: code, headers: headers, meta: nil, links: nil, head: nil, body: source.strip, source: source.strip, body_links: nil, body_images: nil }
+        return { url: url, code: code, headers: headers, meta: nil, links: nil, head: nil, body: source.strip,
+                 source: source.strip, body_links: nil, body_images: nil }
       end
 
       head = source.match(%r{(?<=<head>)(.*?)(?=</head>)}mi)
 
       if head.nil?
-        { url: url, code: code, headers: headers, meta: nil, links: nil, head: nil, body: source.strip, source: source.strip, body_links: nil, body_images: nil }
+        { url: url, code: code, headers: headers, meta: nil, links: nil, head: nil, body: source.strip,
+          source: source.strip, body_links: nil, body_images: nil }
       else
         meta = meta_tags(head[1])
         links = link_tags(head[1])
         body = source.match(%r{<body.*?>(.*?)</body>}mi)[1]
-        { url: url, code: code, headers: headers, meta: meta, links: links, head: head[1], body: body, source: source.strip, body_links: body_links, body_images: body_images }
+        { url: url, code: code, headers: headers, meta: meta, links: links, head: head[1], body: body,
+          source: source.strip, body_links: body_links, body_images: body_images }
       end
     end
 

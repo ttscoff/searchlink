@@ -14,6 +14,7 @@ require "time"
 require "json"
 require "erb"
 require "English"
+require "plist"
 
 # import
 require_relative "tokens" if File.exist?("tokens.rb")
@@ -41,9 +42,6 @@ require_relative "searchlink/array"
 
 # import
 require_relative "searchlink/string"
-
-# import
-require_relative "searchlink/plist"
 
 # import
 require_relative "searchlink/config"

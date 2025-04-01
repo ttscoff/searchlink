@@ -38,13 +38,14 @@ describe "CLI" do
     # TinyURL modifier
     ["* A tinyurl shortened link from modifier [%](!g_t https://brettterpstra.com)", "https://tinyurl"],
     # DuckDuckGo/Google
-    ["* A DuckDuckGo search [brett terpstra](!ddg +the lab ++t)", '[brett terpstra](https://brettterpstra.com/ "BrettTerpstra.com")'],
+    ["* A DuckDuckGo search [brett terpstra](!ddg +the lab ++t)",
+     '[brett terpstra](https://brettterpstra.com/ "BrettTerpstra.com")'],
     ["* A search for specified text: [Marked](!g Marked 2 mac app store).", "https://apps.apple.com/us/app/marked-2-markdown-preview/id890031187?mt=12"],
     ["* A simple google search [](!g wikipedia <neat neat neat>)", "https://en.wikipedia.org/wiki/Neat_Neat_Neat"],
     # definition
     ["* This will put the definition of [ambiguous](!def) in the title field of a link to the dictionary entry.", "https://www.wordnik.com/words/ambiguous"],
     # spotlight
-    ["* [%](!file filename:brettterpstra.com header template filename:.afphoto)", %r{BrettTerpstra\.com.*?\.afphoto}],
+    ["* [%](!file filename:brettterpstra.com header template filename:.afphoto)", /BrettTerpstra\.com.*?\.afphoto/],
     # GitHub
     ["* A GitHub search with user and repo [%](!gh ttscoff searchlink)", "https://github.com/ttscoff/searchlink"],
     ["* A GitHub search with specifiers [%](!gh u:ttscoff searchlink)", "https://github.com/ttscoff/searchlink"],
@@ -92,14 +93,14 @@ describe "CLI" do
      "https://brettterpstra.com/2011/11/10/the-keys-that-bind-keybinding-madness-part-2/"],
     # DuckDuckGo
     ["* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)",
-     "the-keys-that-bind-keybinding-madness-part-2/"],
+     "the-keys-that-bind-keybinding-madness-part-2/"]
   ]
 
   searches.each.with_index do |search, i|
     describe "executes search" do
       context "(#{i + 1}/#{searches.count}) when given the text '#{search[0]}'" do
         it "returns #{search[1]}" do
-          execute_script("bin/searchlink", use_bundler: true, stdin_data: search[0])
+          execute_script("NO_CONFIRM=true bin/searchlink", use_bundler: true, stdin_data: search[0])
           expect(last_execution).to be_successful
 
           result = search[1].is_a?(Regexp) ? search[1] : /#{Regexp.escape(search[1])}/

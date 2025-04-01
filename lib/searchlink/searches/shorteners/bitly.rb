@@ -58,7 +58,8 @@ module SL
           "long_url" => url,
           "domain" => domain
         }
-        data = Curl::Json.new("https://api-ssl.bitly.com/v4/shorten", data: data_obj.to_json, headers: headers, symbolize_names: true)
+        data = Curl::Json.new("https://api-ssl.bitly.com/v4/shorten", data: data_obj.to_json, headers: headers,
+                                                                      symbolize_names: true)
 
         return false unless data.json.key?(:link)
 

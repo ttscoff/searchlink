@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SL
-  VERSION = '2.3.87'
+  VERSION = "2.3.87"
 end
 
 # Main module
@@ -29,9 +29,11 @@ module SL
       latest = SemVer.new(latest_tag)
       current = SemVer.new(SL::VERSION)
 
-      File.open(cachefile, "w") { |f| f.puts("#{last_time.strftime("%c")}|#{latest}") }
+      File.open(cachefile, "w") { |f| f.puts("#{last_time.strftime('%c')}|#{latest}") }
 
-      return "SearchLink v#{current}, #{latest} available. Run \"update\" to download." if latest_tag && current.older_than(latest)
+      if latest_tag && current.older_than(latest)
+        return "SearchLink v#{current}, #{latest} available. Run \"update\" to download."
+      end
 
       "SearchLink v#{current}"
     end
@@ -42,12 +44,12 @@ module SL
     def new_version?
       headers = {
         "Accept" => "application/vnd.github+json",
-        "X-GitHub-Api-Version" => "2022-11-28",
+        "X-GitHub-Api-Version" => "2022-11-28"
       }
       if defined? Secrets::GH_AUTH_TOKEN
         headers["Authorization"] = "Bearer #{Secrets::GH_AUTH_TOKEN}"
       elsif SL.config["github_token"]
-        headers["Authorization"] = "Bearer #{SL.config["github_token"]}"
+        headers["Authorization"] = "Bearer #{SL.config['github_token']}"
       end
 
       url = "https://api.github.com/repos/ttscoff/searchlink/releases/latest"

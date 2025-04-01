@@ -67,7 +67,9 @@ module SL
 
       if SL.config["custom_site_searches"]
         text += "\n-- [Custom Searches] ----------------------\n"
-        SL.config["custom_site_searches"].sort_by { |l, _s| l }.each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
+        SL.config["custom_site_searches"].sort_by do |l, _s|
+          l
+        end.each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
       end
       text
     end
@@ -80,7 +82,9 @@ module SL
       out << '<table id="custom">'
       out << "<thead><td>Shortcut</td><td>Search Type</td></thead>"
       out << "<tbody>"
-      SL.config["custom_site_searches"].each { |label, site| out << "<tr><td><code>!#{label}</code></td><td>#{site}</td></tr>" }
+      SL.config["custom_site_searches"].each do |label, site|
+        out << "<tr><td><code>!#{label}</code></td><td>#{site}</td></tr>"
+      end
       out << "</tbody>"
       out << "</table>"
       out.join("\n")

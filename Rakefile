@@ -201,13 +201,10 @@ class Workflow
 
   def update_script
     updateable = ["SearchLink", "SearchLink File"]
-    unless updateable.include?(File.basename(@workflow, ".workflow"))
-      return "No update for #{File.basename(@workflow)}"
-    end
+    return "No update for #{File.basename(@workflow)}" unless updateable.include?(File.basename(@workflow, ".workflow"))
 
     wflow = File.join(File.expand_path(@workflow), "Contents/document.wflow")
     script = Workflow.compile
-    workflow = IO.read(wflow)
 
     plist = Plist.parse_xml(wflow)
     plist["actions"].each_with_index do |action, idx|

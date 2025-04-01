@@ -65,7 +65,9 @@ module SL
       end
 
       def process_link(link, search_terms, link_text)
-        SL::URL.valid_link?(link, 2) && [link, search_terms, link_text] || SL.ddg("site:setapp.com #{search_terms}", link_text)
+        SL::URL.valid_link?(link,
+                            2) && [link, search_terms,
+                                   link_text] || SL.ddg("site:setapp.com #{search_terms}", link_text)
       end
 
       def process_search_type(search_type, link, title, link_text)

@@ -248,10 +248,10 @@ module SL
 
       out = ""
       inline = if SL.originput.split(/\n/).length > 1
-          false
-        else
-          SL.config["inline"] || SL.originput.split(/\n/).length == 1
-        end
+                 false
+               else
+                 SL.config["inline"] || SL.originput.split(/\n/).length == 1
+               end
 
       SL.errors.each do |k, v|
         next if v.empty?
@@ -259,10 +259,10 @@ module SL
         v.each_with_index do |err, i|
           out += "(#{k}) #{err}"
           out += if inline
-              i == v.length - 1 ? " | " : ", "
-            else
-              "\n"
-            end
+                   i == v.length - 1 ? " | " : ", "
+                 else
+                   "\n"
+                 end
         end
       end
 

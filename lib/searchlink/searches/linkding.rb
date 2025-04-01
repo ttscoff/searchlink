@@ -46,7 +46,7 @@ module SL
       end
 
       def get_linkding_bookmarks
-        curl = TTY::Which.which("curl")
+        TTY::Which.which("curl")
         call = "/api/bookmarks/?limit=8000&format=json"
 
         json = get_json(call)
@@ -101,7 +101,7 @@ module SL
             cache = linkding_bookmarks
             save_linkding_cache(cache)
           end
-          curl = TTY::Which.which("curl")
+          TTY::Which.which("curl")
           updated = get_json("/api/bookmarks/?limit=1&format=json")["results"][0]
           last_bookmark = Time.parse(updated["date_modified"])
           if cache&.key?("update_time")

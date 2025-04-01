@@ -41,7 +41,7 @@ module SL
             ["heh", "Edge History Search"],
             ["heb", "Edge Bookmark Search"],
             ["hehb", nil],
-            ["hebh", nil]
+            ["hebh", nil],
           ],
           config: [
             {
@@ -65,9 +65,9 @@ module SL
                 brave_history
                 arc_history
                 arc_bookmarks
-              ]
-            }
-          ]
+              ],
+            },
+          ],
         }
       end
 
@@ -156,7 +156,7 @@ module SL
         end
 
         url, title = search_history(search_terms, types)
-        link_text = title if link_text == "" || link_text == search_terms
+        link_text = title if link_text == ""
         [url, title, link_text]
       end
 

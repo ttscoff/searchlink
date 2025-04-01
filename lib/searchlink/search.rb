@@ -5,8 +5,6 @@ module SL
   include URL
 
   class SearchLink
-    include Plist
-
     attr_reader :originput, :output, :clipboard
 
     private

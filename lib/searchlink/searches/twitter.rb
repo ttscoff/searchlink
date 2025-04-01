@@ -26,19 +26,18 @@ module SL
 
       def twitter_embed(tweet)
         res = `curl -sSL 'https://publish.twitter.com/oembed?url=#{tweet.url_encode}'`.strip
-        if res
-          begin
-            json = JSON.parse(res)
-            url = "embed"
-            title = json["html"]
-          rescue StandardError
-            SL.add_error("Tweet Error", "Error retrieving tweet")
-            url = false
-            title = tweet
-          end
-        else
-          return [false, "Error retrieving tweet"]
+        return [false, "Error retrieving tweet"] unless res
+
+        begin
+          json = JSON.parse(res)
+          url = "embed"
+          title = json["html"]
+        rescue StandardError
+          SL.add_error("Tweet Error", "Error retrieving tweet")
+          url = false
+          title = tweet
         end
+
         [url, title]
       end
     end

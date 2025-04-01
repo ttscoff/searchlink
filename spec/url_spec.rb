@@ -62,7 +62,8 @@ describe SL::URL do
   describe "#url_to_link" do
     context "when given a url" do
       it "creates a title and url for url" do
-        expect(url.url_to_link("https://brettterpstra.com", :inline)).to eq(["https://brettterpstra.com", "BrettTerpstra.com"])
+        expect(url.url_to_link("https://brettterpstra.com",
+                               :inline)).to eq(["https://brettterpstra.com", "BrettTerpstra.com"])
       end
     end
   end

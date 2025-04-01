@@ -44,7 +44,8 @@ module SL
         data_obj = {
           "url" => url
         }
-        data = Curl::Json.new("https://tinyurl.ph/api/url/add", data: data_obj.to_json, headers: headers, symbolize_names: true)
+        data = Curl::Json.new("https://tinyurl.ph/api/url/add", data: data_obj.to_json, headers: headers,
+                                                                symbolize_names: true)
 
         if data.json[:error].positive?
           SL.add_error("Error creating tinyurl", data.json[:error])

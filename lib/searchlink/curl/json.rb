@@ -28,10 +28,10 @@ module Curl
       target = json
       parts.each do |part|
         target = if part =~ /(?<key>[^\[]+)\[(?<int>\d+)\]/
-            target[key][int.to_i]
-          else
-            target[part]
-          end
+                   target[key][int.to_i]
+                 else
+                   target[part]
+                 end
       end
 
       target

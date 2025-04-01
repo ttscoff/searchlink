@@ -11,7 +11,7 @@ module SL
             ["@f", "Facebook Handle"],
             ["@i", "Instagram Handle"],
             ["@l", "LinkedIn Handle"],
-            ["@m", "Mastodon Handle"],
+            ["@m", "Mastodon Handle"]
           ],
           config: [
             description: "Formatting for social links, use %service%, %user%, and %url%
@@ -27,33 +27,42 @@ module SL
 
       def search(search_type, search_terms, link_text = "")
         type = case search_type
-          when /^@t/ # twitter-ify username
-            unless search_terms.strip =~ /^@?[0-9a-z_$]+$/i
-              return [false, "#{search_terms} is not a valid Twitter handle", link_text]
-            end
+               when /^@t/ # twitter-ify username
+                 unless search_terms.strip =~ /^@?[0-9a-z_$]+$/i
+                   return [false, "#{search_terms} is not a valid Twitter handle", link_text]
+                 end
 
-            "t"
-          when /^@fb?/ # fb-ify username
-            return [false, "#{search_terms} is not a valid Facebook username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                 "t"
+               when /^@fb?/ # fb-ify username
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                   return [false, "#{search_terms} is not a valid Facebook username",
+                           link_text]
+                 end
 
-            "f"
-          when /^@i/ # intagramify username
-            return [false, "#{search_terms} is not a valid Instagram username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                 "f"
+               when /^@i/ # intagramify username
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                   return [false, "#{search_terms} is not a valid Instagram username",
+                           link_text]
+                 end
 
-            "i"
-          when /^@l/ # linked-inify username
-            unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
-              return [false, "#{search_terms} is not a valid LinkedIn username", link_text]
-            end
+                 "i"
+               when /^@l/ # linked-inify username
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+$/i
+                   return [false, "#{search_terms} is not a valid LinkedIn username", link_text]
+                 end
 
-            "l"
-          when /^@m/ # mastodonify username
-            return [false, "#{search_terms} is not a valid Mastodon username", link_text] unless search_terms.strip =~ /^@?[0-9a-z_]+@[0-9a-z_.]+$/i
+                 "l"
+               when /^@m/ # mastodonify username
+                 unless search_terms.strip =~ /^@?[0-9a-z_]+@[0-9a-z_.]+$/i
+                   return [false, "#{search_terms} is not a valid Mastodon username",
+                           link_text]
+                 end
 
-            "m"
-          else
-            "t"
-          end
+                 "m"
+               else
+                 "t"
+               end
 
         url, title = social_handle(type, search_terms)
         link_text = title if link_text == ""
