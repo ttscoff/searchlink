@@ -29,7 +29,7 @@ describe "CLI" do
 
   searches.each.with_index do |search, i|
     describe "executes search" do
-      context "(#{i + 1}/#{searches.count}) when given the text '#{search[0]}'" do
+      context "when given the text '#{search[0]}' (#{i + 1}/#{searches.count})" do
         it "returns #{search[1]}" do
           execute_script("bin/searchlink", use_bundler: true, stdin_data: search[0])
           expect(last_execution).to be_successful

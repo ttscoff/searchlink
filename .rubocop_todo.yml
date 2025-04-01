@@ -15,11 +15,6 @@ Layout/MultilineArrayBraceLayout:
     - 'lib/searchlink/string.rb'
 
 # Offense count: 1
-Lint/ShadowingOuterLocalVariable:
-  Exclude:
-    - 'lib/searchlink/searches/helpers/firefox.rb'
-
-# Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AutoCorrect, AllowUnusedKeywordArguments, IgnoreEmptyMethods, IgnoreNotImplementedMethods, NotImplementedExceptions.
 # NotImplementedExceptions: NotImplementedError

@@ -19,7 +19,7 @@ module SL
 
       parse_commands(input)
 
-      SL.config["inline"] = true if input.scan(/\]\(/).length == 1 && input.split(/\n/).length == 1
+      SL.config["inline"] = true if input.scan("](").length == 1 && input.split("\n").length == 1
       SL.errors = {}
       SL.report = []
       SL.shortener = :none
@@ -41,14 +41,14 @@ module SL
       input.scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| @links[match[1].strip] = match[0] }
 
       @prefix = if SL.config["prefix_random"]
-          if input =~ /\[(\d{4}-)\d+\]: \S+/
-            Regexp.last_match(1)
-          else
-            format("%04d-", rand(9999))
-          end
-        else
-          ""
-        end
+                  if input =~ /\[(\d{4}-)\d+\]: \S+/
+                    Regexp.last_match(1)
+                  else
+                    format("%04d-", rand(9999))
+                  end
+                else
+                  ""
+                end
 
       @highest_marker = 0
       input.scan(/^\s{,3}\[(?:#{@prefix})?(\d+)\]: /).each do
@@ -65,7 +65,7 @@ module SL
       if SL.config["complete_bare"]
         rx = %r{(?ix-m)(?<!\(|:\s|<)(?:
                 (?:https?://)(?:[\da-z.-]+)\.(?:[a-z.]{2,6})
-                (?:[/\w\d.\-()_/+=?&%]*?(?=[\s\n]|$))
+                (?:[/\w\d.\-()_+=?&%]*?(?=[\s\n]|$))
               )}
         input.gsub!(rx) do
           url_match = Regexp.last_match
@@ -76,17 +76,17 @@ module SL
       if input =~ /\[\n(.*?\n)+\]\((.*?)?\)/
         input.gsub!(/\[\n(((\s*(?:[-+*]|\d+\.)?\s+)*(!\S+ +)?(.*?))\n)+\]\((!\S+.*?)?\)/) do
           m = Regexp.last_match
-          lines = m[0].split(/\n/)
+          lines = m[0].split("\n")
           lines = lines[1..-2]
           lines.map do |l|
             el_rx = /(\s*(?:[-+*]|\d+\.)?\s+)?(!\S+ )?(\w.*?)$/
             if l =~ el_rx
               els = l.match(el_rx)
               search = if els[2]
-                  els[2].strip
-                else
-                  m[6] || "!g"
-                end
+                         els[2].strip
+                       else
+                         m[6] || "!g"
+                       end
               "#{els[1]}[#{els[3].strip}](#{search})"
             else
               l
@@ -97,7 +97,7 @@ module SL
 
       # Handle links in the form of [text](url) or [text](url "title")
       if input =~ /\[(.*?)\]\((.*?)\)/
-        lines = input.split(/\n/)
+        lines = input.split("\n")
         out = []
 
         total_links = input.scan(/\[(.*?)\]\((.*?)\)/).length
@@ -209,10 +209,10 @@ module SL
                 m = Regexp.last_match
 
                 search_type = if m[1].nil?
-                    SL::GoogleSearch.api_key? ? "gg" : "g"
-                  else
-                    m[1]
-                  end
+                                SL::GoogleSearch.api_key? ? "gg" : "g"
+                              else
+                                m[1]
+                              end
 
                 search_type.extract_shortener!
 
@@ -229,7 +229,7 @@ module SL
 
                 # if the input starts with a +, append it to the link text as the search terms
                 if search_terms.strip =~ /^\+[^+]/
-                  search_terms = "#{@link_text} #{search_terms.strip.sub(/^\+\s*/, "")}"
+                  search_terms = "#{@link_text} #{search_terms.strip.sub(/^\+\s*/, '')}"
                 end
 
                 # if the end of input contain "^", copy to clipboard instead of STDOUT
@@ -296,7 +296,7 @@ module SL
 
                   @url = res if res.is_a?(String) && SL::URL.url?(res)
 
-                  title = SL::URL.title(@url) if SL.titleize && title == ""
+                  title = SL::URL.title(@url) if SL.titleize && (title.nil? || title.empty?)
 
                   @link_text = title if @link_text == "" && title
                   force_title = search_type =~ /def/ ? true : false
@@ -359,7 +359,7 @@ module SL
         elsif SL.footer.empty?
           SL.add_output input
         else
-          last_line = input.strip.split(/\n/)[-1]
+          last_line = input.strip.split("\n")[-1]
           case last_line
           when /^\[.*?\]: http/
             SL.add_output "#{input.rstrip}\n"
@@ -471,10 +471,10 @@ module SL
         when /^([tfilm])?@(\S+)\s*$/
           type = Regexp.last_match(1)
           type ||= if Regexp.last_match(2) =~ /[a-z0-9_]@[a-z0-9_.]+/i
-              "m"
-            else
-              "t"
-            end
+                     "m"
+                   else
+                     "t"
+                   end
           @link_text = input.sub(/^[tfilm]/, "")
           SL.add_query(query) if query
           @url, title = SL::SocialSearch.social_handle(type, @link_text)
@@ -490,7 +490,7 @@ module SL
           if res
             if res.is_a?(String) && SL::URL.url?(res)
               @url = res
-              title = SL::URL.title(@url) unless title == ""
+              title = SL::URL.title(@url) if SL.titleize && title == ""
             end
 
             if type =~ /sp(ell)?/
@@ -647,10 +647,10 @@ module SL
         note = mtch[1].strip
         @footnote_counter += 1
         ref = if !@link_text.empty? && @link_text.scan(/\s/).empty?
-            @link_text
-          else
-            format("%<p>sfn%<c>04d", p: @prefix, c: @footnote_counter)
-          end
+                @link_text
+              else
+                format("%<p>sfn%<c>04d", p: @prefix, c: @footnote_counter)
+              end
         SL.add_footer "[^#{ref}]: #{note}"
         res = "[^#{ref}]"
         @cursor_difference += (SL.match_length - res.length)
@@ -674,7 +674,13 @@ module SL
           search_type = "r"
           tokens = v.scan(/\$term\d+[ds]?/).sort.uniq
 
-          if !tokens.empty?
+          if tokens.empty?
+            search_terms = v.gsub(/\$term[ds]?/i) do |mtch|
+              search_terms.downcase! if mtch =~ /d$/i
+              search_terms.slugify! if mtch =~ /s$/i
+              search_terms.url_encode
+            end
+          else
             highest_token = 0
             tokens.each do |token|
               if token =~ /(\d+)[ds]?$/ && Regexp.last_match(1).to_i > highest_token
@@ -705,12 +711,6 @@ module SL
               v.gsub!(/#{Regexp.escape(t) + re_down}/, replacement.url_encode)
             end
             search_terms = v
-          else
-            search_terms = v.gsub(/\$term[ds]?/i) do |mtch|
-              search_terms.downcase! if mtch =~ /d$/i
-              search_terms.slugify! if mtch =~ /s$/i
-              search_terms.url_encode
-            end
           end
         else
           search_type = SL::GoogleSearch.api_key? ? "gg" : "g"

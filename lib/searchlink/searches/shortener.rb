@@ -18,20 +18,20 @@ module SL
       # @return [Boolean] True if the user confirms, false otherwise.
       #
       def confirm?(url, title: "Confirm URL?")
-        if File.exist?(File.expand_path("~/Library/Services/Preview URL.workflow"))
-          cmd = %(osascript -e "display dialog \\"#{url}\\" with title \\"#{title}\\" buttons {\\"Cancel\\", \\"Confirm\\", \\"Preview\\"}")
+
+        if SL::Util.popup_path
+          cmd = %(osascript -e 'display dialog "#{url}" with title "#{title}" buttons {"Cancel", "Confirm", "Preview"}')
 
           res = `#{cmd}`.strip
 
           return res =~ /Confirm/ unless res =~ /Preview/
 
-          path = File.expand_path("~/Library/Services/Preview URL.workflow")
-          res = `automator -i "#{url}" "#{path}"`.strip
+          res = `automator -i "#{url}" "#{SL::Util.popup_path}"`.strip
 
           return res.empty? ? false : res
         end
 
-        res = system(%(osascript -e "display dialog \"#{url}\" with title \"#{title}\" buttons {\"Cancel\", \"Confirm\"}"))
+        res = system(%(osascript -e 'display dialog "#{url}" with title "#{title}" buttons {"Cancel", "Confirm"}'))
 
         res == 0
       end

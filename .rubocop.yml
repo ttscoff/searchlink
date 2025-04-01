@@ -10,6 +10,7 @@ AllCops:
   Exclude:
     - 'searchlink.rb'
     - pkg/**/*.rb
+  NewCops: enable
 
 plugins:
   - rubocop-rspec

@@ -93,14 +93,15 @@ describe "CLI" do
      "https://brettterpstra.com/2011/11/10/the-keys-that-bind-keybinding-madness-part-2/"],
     # DuckDuckGo
     ["* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)",
-     "the-keys-that-bind-keybinding-madness-part-2/"]
+     "the-keys-that-bind-keybinding-madness-part-2/"],
   ]
 
   searches.each.with_index do |search, i|
     describe "executes search" do
       context "(#{i + 1}/#{searches.count}) when given the text '#{search[0]}'" do
         it "returns #{search[1]}" do
-          execute_script("NO_CONFIRM=true bin/searchlink", use_bundler: true, stdin_data: search[0])
+          ENV["SL_NO_CONFIRM"] = "true"
+          execute_script("bin/searchlink", use_bundler: true, stdin_data: search[0])
           expect(last_execution).to be_successful
 
           result = search[1].is_a?(Regexp) ? search[1] : /#{Regexp.escape(search[1])}/

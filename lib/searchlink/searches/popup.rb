@@ -32,8 +32,7 @@ module SL
                 "https://duckduckgo.com/?q=#{term}&ia=web"
               end
 
-        path = File.expand_path("~/Library/Services/Preview URL.workflow")
-        res = `automator -i "#{url}" "#{path}"`.strip
+        res = `automator -i "#{url}" "#{SL::Util.popup_path}"`.strip
 
         begin
           if res.empty?
@@ -54,7 +53,7 @@ module SL
       private
 
       def workflow_exist?
-        unless File.exist?(File.expand_path("~/Library/Services/Preview URL.workflow"))
+        unless SL::Util.popup_path
           SL.add_error("Missing Service", "Preview URL Service not installed")
           return false
         end

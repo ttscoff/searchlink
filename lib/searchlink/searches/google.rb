@@ -44,7 +44,7 @@ module SL
         end
 
         url = "https://customsearch.googleapis.com/customsearch/v1?cx=338419ee5ac894523&q=#{ERB::Util.url_encode(search_terms.gsub(
-                                                                                                                   /%22/, '"'
+                                                                                                                   '%22', '"'
                                                                                                                  ))}&num=1&key=#{@api_key}"
         json = Curl::Json.new(url).json
 

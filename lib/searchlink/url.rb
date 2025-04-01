@@ -66,7 +66,7 @@ module SL
       end
 
       def only_url?(input)
-        input =~ %r{(?i)^((http|https)://)?([\w\-_]+(\.[\w\-_]+)+)([\w\-.,@?^=%&amp;:/~+#]*[\w\-@^=%&amp;/~+#])?$}
+        input =~ %r{(?i)^(https?://)?([\w-]+(\.[\w-]+)+)([\w\-.,@?^=%&amp;:/~+#]*[\w\-@^=%&amp;/~+#])?$}
       end
 
       def ref_title_for_url(url)
@@ -74,10 +74,10 @@ module SL
 
         parts = url.hostname.split(/\./)
         domain = if parts.count > 1
-                   parts.slice(-2, 1).join("")
-                 else
-                   parts.join("")
-                 end
+            parts.slice(-2, 1).join("")
+          else
+            parts.join("")
+          end
 
         path = url.path.split(%r{/}).last
         if path
@@ -97,10 +97,10 @@ module SL
           url = URI.parse(input.downcase)
 
           title = if type == :ref_title
-                    ref_title_for_url(url)
-                  else
-                    title(url.to_s) || input.sub(%r{^https?://}, "")
-                  end
+              ref_title_for_url(url)
+            else
+              title(url.to_s) || input.sub(%r{^https?://}, "")
+            end
 
           return [url.to_s, title] if url.hostname
         end
@@ -155,10 +155,10 @@ module SL
             final_url = follow_redirects(url)
             m = final_url.match(%r{https://www.amazon.com/(.*?)/dp/})
             title = if m
-                      m[1].gsub(/-/, " ")
-                    else
-                      url.remove_protocol
-                    end
+                m[1].gsub(/-/, " ")
+              else
+                url.remove_protocol
+              end
             return title
           end
 

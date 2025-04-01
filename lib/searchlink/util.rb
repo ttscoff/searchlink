@@ -86,6 +86,15 @@ module SL
         FileUtils.mkdir_p(cache_folder) unless File.directory?(cache_folder)
         File.join(cache_folder, filename.sub(/(\.cache)?$/, ".cache"))
       end
+
+      # Checks if the Preview URL.workflow exists, return path if it does.
+      def popup_path
+        path = File.expand_path(File.join(__dir__, "../../helpers/Preview URL.workflow"))
+        path = File.expand_path("~/Library/Services/Preview URL.workflow") unless File.exist?(path)
+        return false unless File.exist?(path)
+
+        path
+      end
     end
   end
 end
