@@ -5,7 +5,7 @@
 
 module TTY
   module Which
-    VERSION = '0.5.0'
+    VERSION = "0.5.0"
   end
 end
 
@@ -84,7 +84,7 @@ module TTY
       #   the array of paths to search
       #
       # @api private
-      def search_paths(path = ENV['PATH'])
+      def search_paths(path = ENV["PATH"])
         paths = if path && !path.empty?
                   path.split(::File::PATH_SEPARATOR)
                 else
@@ -106,10 +106,10 @@ module TTY
       #   an array with valid file extensions
       #
       # @api private
-      def extensions(path_ext = ENV['PATHEXT'])
-        return [''] unless path_ext
+      def extensions(path_ext = ENV["PATHEXT"])
+        return [""] unless path_ext
 
-        path_ext.split(::File::PATH_SEPARATOR).select { |part| part.include?('.') }
+        path_ext.split(::File::PATH_SEPARATOR).select { |part| part.include?(".") }
       end
 
       # Determines if filename is an executable file

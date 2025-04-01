@@ -12,12 +12,12 @@ module SL
       #
       def settings
         {
-          trigger: '(?:g|ddg|z|ddgimg)',
+          trigger: "(?:g|ddg|z|ddgimg)",
           searches: [
-            ['g', 'Google/DuckDuckGo Search'],
-            ['ddg', 'DuckDuckGo Search'],
-            ['z', 'DDG Zero Click Search'],
-            ['ddgimg', 'Return the first image from the destination page']
+            ["g", "Google/DuckDuckGo Search"],
+            ["ddg", "DuckDuckGo Search"],
+            ["z", "DDG Zero Click Search"],
+            ["ddgimg", "Return the first image from the destination page"]
           ]
         }
       end
@@ -41,13 +41,15 @@ module SL
         terms = "%5C#{search_terms.url_encode}"
         page = Curl::Html.new("https://duckduckgo.com/?q=#{terms}", compressed: true)
 
-        locs = page.meta['refresh'].match(%r{/l/\?uddg=(.*?)$})
+        return false if page.meta["refresh"].nil?
+
+        locs = page.meta["refresh"].match(%r{/l/\?uddg=(.*?)$})
         locs = page.body.match(%r{/l/\?uddg=(.*?)'}) if locs.nil?
         locs = page.body.match(/url=(.*?)'/) if locs.nil?
 
         return false if locs.nil?
 
-        url = locs[1].url_decode.sub(/&rut=\w+/, '')
+        url = locs[1].url_decode.sub(/&rut=\w+/, "")
 
         result = url.strip.url_decode || false
         return false unless result
@@ -57,10 +59,10 @@ module SL
         # output_url = CGI.unescape(result)
         output_url = result
 
-        output_title = if SL.config['include_titles'] || SL.titleize
-                         SL::URL.title(output_url) || ''
+        output_title = if SL.config["include_titles"] || SL.titleize
+                         SL::URL.title(output_url) || ""
                        else
-                         ''
+                         ""
                        end
 
         output_url = SL.first_image(output_url) if search_type =~ /img$/
@@ -83,11 +85,15 @@ module SL
       #
       def zero_click(search_terms, link_text, disambiguate: false)
         search_terms.gsub!(/%22/, '"')
-        d = disambiguate ? '0' : '1'
-        url = "http://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}"
-        result = Curl::Json.new(url, symbolize_names: true).json
-        return SL.ddg(terms, link_text) unless result
-
+        d = disambiguate ? "0" : "1"
+        url = "https://api.duckduckgo.com/?q=#{search_terms.url_encode}&format=json&no_redirect=1&no_html=1&skip_disambig=#{d}"
+        begin
+          result = Curl::Json.new(url, symbolize_names: true).json
+          return SL.ddg(terms, link_text) unless result
+        rescue StandardError => e
+          SL.add_error("Invalid response", "Search for #{terms}: (#{e})")
+          return false
+        end
         wiki_link = result[:AbstractURL] || result[:Redirect]
         title = result[:Heading] || false
 
@@ -107,7 +113,7 @@ module SL
     # @param      type   [Symbol] the type of search to
     #                    perform
     # @param      klass  [Class] the class to register
-    SL::Searches.register 'duckduckgo', :search, self
+    SL::Searches.register "duckduckgo", :search, self
   end
 end
 
@@ -121,13 +127,13 @@ module SL
     # @param      link_text     [String] The link text
     # @param      timeout       [Integer] The timeout
     #
-    def google(search_terms, link_text = nil, timeout: SL.config['timeout'], image: false)
+    def google(search_terms, link_text = nil, timeout: SL.config["timeout"], image: false)
       if SL::GoogleSearch.api_key?
-        s_class = 'google'
-        s_type = image ? 'img' : 'gg'
+        s_class = "google"
+        s_type = image ? "img" : "gg"
       else
-        s_class = 'duckduckgo'
-        s_type = image ? 'ddgimg' : 'g'
+        s_class = "duckduckgo"
+        s_type = image ? "ddgimg" : "g"
       end
       search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
       SL::Util.search_with_timeout(search, timeout)
@@ -144,13 +150,13 @@ module SL
     # @param      image         [Boolean] Image search
     # @return     [SL::Searches::Result] The search result
     #
-    def ddg(search_terms, link_text = nil, timeout: SL.config['timeout'], google: true, image: false)
+    def ddg(search_terms, link_text = nil, timeout: SL.config["timeout"], google: true, image: false)
       if google && SL::GoogleSearch.api_key?
-        s_class = 'google'
-        s_type = image ? 'img' : 'gg'
+        s_class = "google"
+        s_type = image ? "img" : "gg"
       else
-        s_class = 'duckduckgo'
-        s_type = image ? 'ddgimg' : 'g'
+        s_class = "duckduckgo"
+        s_type = image ? "ddgimg" : "g"
       end
 
       search = proc { SL::Searches.plugins[:search][s_class][:class].search(s_type, search_terms, link_text) }
@@ -170,7 +176,7 @@ module SL
 
     def first_image(url)
       images = Curl::Html.new(url).images
-      images.filter { |img| img[:type] == 'img' }.first[:src]
+      images.filter { |img| img[:type] == "img" }.first[:src]
     end
   end
 end

@@ -12,13 +12,13 @@ module SL
     ## @return     [SemVer] SemVer object
     ##
     def initialize(version_string)
-      raise VersionError.new("Invalid semantic version number: #{version_string}") unless version_string.valid_version?
+      raise VersionError, "Invalid semantic version number: #{version_string}" unless version_string.valid_version?
 
       @maj, @min, @patch = version_string.split(/\./)
       @pre = nil
       if @patch =~ /(-?[^0-9]+\d*)$/
-        @pre = Regexp.last_match(1).sub(/^-/, '')
-        @patch = @patch.sub(/(-?[^0-9]+\d*)$/, '')
+        @pre = Regexp.last_match(1).sub(/^-/, "")
+        @patch = @patch.sub(/(-?[^0-9]+\d*)$/, "")
       end
 
       @maj = @maj.to_i
@@ -135,7 +135,7 @@ module SL
     end
 
     def to_s
-      ver = [@maj, @min, @patch].join('.')
+      ver = [@maj, @min, @patch].join(".")
       @pre.nil? ? ver : "#{ver}-#{@pre}"
     end
   end

@@ -26,9 +26,9 @@ module SL
     class << self
       def settings
         {
-          trigger: 'hook',
+          trigger: "hook",
           searches: [
-            ['hook', 'Hookmark Bookmark Search']
+            ["hook", "Hookmark Bookmark Search"]
           ]
         }
       end
@@ -63,8 +63,8 @@ module SL
       # Search bookmark paths and addresses. Return array of bookmark hashes.
       def search_hook(search)
         types = %w[name path address]
-        query = search.strip.split(' ').map { |s| types.map { |t| %(#{t} contains "#{s}") }.join(' or ') }
-        query = query.map { |q| "(#{q})" }.join(' and ')
+        query = search.strip.split(" ").map { |s| types.map { |t| %(#{t} contains "#{s}") }.join(" or ") }
+        query = query.map { |q| "(#{q})" }.join(" and ")
         path_matches = run_query(query)
 
         top_match = path_matches.uniq.first
@@ -74,6 +74,6 @@ module SL
       end
     end
 
-    SL::Searches.register 'hook', :search, self
+    SL::Searches.register "hook", :search, self
   end
 end

@@ -5,9 +5,9 @@ module SL
     class << self
       def settings
         {
-          trigger: 'wiki',
+          trigger: "wiki",
           searches: [
-            ['wiki', 'Wikipedia Search']
+            ["wiki", "Wikipedia Search"]
           ]
         }
       end
@@ -17,7 +17,7 @@ module SL
         body = `/usr/bin/curl -sSL 'https://en.wikipedia.org/wiki/Special:Search?search=#{search_terms.url_encode}&go=Go'`
         return false unless body
 
-        body = body.force_encoding('utf-8') if RUBY_VERSION.to_f > 1.9
+        body = body.force_encoding("utf-8") if RUBY_VERSION.to_f > 1.9
 
         begin
           title = body.match(/"wgTitle":"(.*?)"/)[1]
@@ -30,6 +30,6 @@ module SL
       end
     end
 
-    SL::Searches.register 'wikipedia', :search, self
+    SL::Searches.register "wikipedia", :search, self
   end
 end

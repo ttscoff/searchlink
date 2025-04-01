@@ -5,43 +5,59 @@ module SL
   # URL module
   module URL
     class << self
+      def follow_redirects(url, limit = 5)
+        return url if limit.zero?
+
+        uri = URI.parse(url)
+        response = Net::HTTP.get_response(uri)
+
+        case response
+        when Net::HTTPSuccess
+          response.uri.to_s
+        when Net::HTTPRedirection
+          follow_redirects(response["location"], limit - 1)
+        else
+          url
+        end
+      end
+
       # Validates that a link exists and returns 200
       def valid_link?(uri_str, limit = 5)
         return false unless uri_str
 
-        SL.notify('Validating', uri_str)
+        SL.notify("Validating", uri_str)
         return false if limit.zero?
 
         url = URI(uri_str)
         return true unless url.scheme
 
-        url.path = '/' if url.path == ''
+        url.path = "/" if url.path == ""
         # response = Net::HTTP.get_response(URI(uri_str))
         response = false
 
-        Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == 'https') do |http|
+        Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == "https") do |http|
           response = http.request_head(url.path)
         end
 
         case response
         when Net::HTTPMethodNotAllowed, Net::HTTPServiceUnavailable
           unless /amazon\.com/ =~ url.host
-            SL.add_error('link validation', "Validation blocked: #{uri_str} (#{e})")
+            SL.add_error("link validation", "Validation blocked: #{uri_str} (#{e})")
           end
-          SL.notify('Error validating', uri_str)
+          SL.notify("Error validating", uri_str)
           true
         when Net::HTTPSuccess
           true
         when Net::HTTPRedirection
-          location = response['location']
+          location = response["location"]
           valid_link?(location, limit - 1)
         else
-          SL.notify('Error validating', uri_str)
+          SL.notify("Error validating", uri_str)
           false
         end
       rescue StandardError => e
-        SL.notify('Error validating', uri_str)
-        SL.add_error('link validation', "Possibly invalid => #{uri_str} (#{e})")
+        SL.notify("Error validating", uri_str)
+        SL.add_error("link validation", "Possibly invalid => #{uri_str} (#{e})")
         true
       end
 
@@ -58,14 +74,14 @@ module SL
 
         parts = url.hostname.split(/\./)
         domain = if parts.count > 1
-                   parts.slice(-2, 1).join('')
-                 else
-                   parts.join('')
-                 end
+            parts.slice(-2, 1).join("")
+          else
+            parts.join("")
+          end
 
         path = url.path.split(%r{/}).last
         if path
-          path.gsub!(/-/, ' ').gsub!(/\.\w{2-4}$/, '')
+          path.gsub!(/-/, " ").gsub!(/\.\w{2-4}$/, "")
         else
           path = domain
         end
@@ -81,10 +97,10 @@ module SL
           url = URI.parse(input.downcase)
 
           title = if type == :ref_title
-                    ref_title_for_url(url)
-                  else
-                    title(url.to_s) || input.sub(%r{^https?://}, '')
-                  end
+              ref_title_for_url(url)
+            else
+              title(url.to_s) || input.sub(%r{^https?://}, "")
+            end
 
           return [url.to_s, title] if url.hostname
         end
@@ -94,15 +110,13 @@ module SL
       def amazon_affiliatize(url, amazon_partner)
         return url if amazon_partner.nil? || amazon_partner.empty?
 
-        unless url =~ %r{https?://(?<subdomain>.*?)amazon.com/(?:(?<title>.*?)/)?(?<type>[dg])p/(?<id>[^?]+)}
-          return [url, '']
-        end
+        return [url, ""] unless url =~ %r{https?://(?<subdomain>.*?)amazon.com/(?:(?<title>.*?)/)?(?<type>[dg])p/(?<id>[^?]+)}
 
         m = Regexp.last_match
-        sd = m['subdomain']
-        title = m['title'].gsub(/-/, ' ')
-        t = m['type']
-        id = m['id']
+        sd = m["subdomain"]
+        title = m["title"].gsub(/-/, " ")
+        t = m["type"]
+        id = m["id"]
         ["https://#{sd}amazon.com/#{t}p/#{id}/?ref=as_li_ss_tl&ie=UTF8&linkCode=sl1&tag=#{amazon_partner}", title]
       end
 
@@ -132,23 +146,35 @@ module SL
         # end
 
         begin
+          return File.basename(url) if url =~ /\.(gif|jpe?g|png|web[mp]|bmp|svg|tiff?|pdf|avif)$/i
+
+          if url =~ %r{https://(amzn.to|(www\.)?amazon\.com)/}
+            final_url = follow_redirects(url)
+            m = final_url.match(%r{https://www.amazon.com/(.*?)/dp/})
+            title = if m
+                m[1].gsub(/-/, " ")
+              else
+                url.remove_protocol
+              end
+            return title
+          end
+
           page = Curl::Html.new(url)
 
           title = page.title || nil
 
           if title.nil? || title =~ /^\s*$/
-            SL.add_error('Title not found', "Warning: missing title for #{url.strip}")
-            title = url.gsub(%r{(^https?://|/.*$)}, '').gsub(/-/, ' ').strip
+            SL.add_error("Title not found", "Warning: missing title for #{url.strip}")
+            title = url.gsub(%r{(^https?://|/.*$)}, "").gsub(/-/, " ").strip
           else
-            title = title.gsub(/\n/, ' ').gsub(/\s+/, ' ').strip # .sub(/[^a-z]*$/i,'')
-            title.remove_seo!(url) if SL.config['remove_seo']
+            title = title.gsub(/\n/, " ").gsub(/\s+/, " ").strip # .sub(/[^a-z]*$/i,'')
+            title.remove_seo!(url) if SL.config["remove_seo"]
           end
-          title.gsub!(/\|/, '—')
-          title.remove_seo!(url.strip) if SL.config['remove_seo']
+          title.gsub!(/\|/, "—")
+          title.remove_seo!(url.strip) if SL.config["remove_seo"]
           title.remove_protocol
         rescue StandardError
-          SL.add_error('Error retrieving title', "Error determining title for #{url.strip}")
-          warn "Error retrieving title for #{url.strip}"
+          SL.add_error("Error retrieving title", "Error determining title for #{url.strip}")
           url.remove_protocol
         end
       end

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 # https://github.com/thoiberg/cli-test
-describe 'CLI' do
+describe "CLI" do
   include CliTest
 
-  describe 'completes bare URLs' do
-    it 'Adds markup and titles, leaving non-bare urls alone' do
+  describe "completes bare URLs" do
+    it "Adds markup and titles, leaving non-bare urls alone" do
       input = <<~EOINPUT
         complete_bare: true
 
@@ -18,7 +18,7 @@ describe 'CLI' do
         [ref]: https://itunes.apple.com/au/app/guitartoolkit/id284962368?mt=8
       EOINPUT
 
-      execute_script('bin/searchlink', use_bundler: true, stdin_data: input)
+      execute_script("bin/searchlink", use_bundler: true, stdin_data: input)
       expect(last_execution).to be_successful
 
       result_markup = /#{Regexp.escape('[The Strata (Original Soundtrack), by Mark R. Healy]')}/

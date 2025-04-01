@@ -1,6 +1,4 @@
-require:
-  - rubocop-rspec
-  - rubocop-rake
+inherit_from: .rubocop_todo.yml
 
 AllCops:
   Include:
@@ -13,42 +11,23 @@ AllCops:
     - 'searchlink.rb'
     - pkg/**/*.rb
 
-require:
+plugins:
   - rubocop-rspec
   - rubocop-rake
 
 Style/StringLiterals:
   Enabled: true
-  EnforcedStyle: single_quotes
+  EnforcedStyle: double_quotes
 
 Style/StringLiteralsInInterpolation:
   Enabled: true
   EnforcedStyle: single_quotes
 
-Layout/LineLength:
-  Max: 120
-
-Metrics/MethodLength:
-  Max: 45
-
 Metrics/BlockLength:
-  Max: 45
   Exclude:
     - Rakefile
     - bin/howzit
-    - lib/*.rb
-
-Metrics/ClassLength:
-  Max: 300
-
-Metrics/PerceivedComplexity:
-  Max: 30
-
-Metrics/AbcSize:
-  Max: 45
-
-Metrics/CyclomaticComplexity:
-  Max: 20
+    - lib/**/*.rb
 
 Style/RegexpLiteral:
   Exclude:

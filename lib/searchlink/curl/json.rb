@@ -14,9 +14,9 @@ module Curl
     ##
     ## @return     [Curl::Json] Curl::Json object with url, code, parsed json, and response headers
     ##
-    def initialize(url, headers: nil, compressed: false, symbolize_names: false)
-      @curl = TTY::Which.which('curl')
-      page = curl_json(url, headers: headers, compressed: compressed, symbolize_names: symbolize_names)
+    def initialize(url, data: nil, headers: nil, compressed: false, symbolize_names: false)
+      @curl = TTY::Which.which("curl")
+      page = curl_json(url, data: data, headers: headers, compressed: compressed, symbolize_names: symbolize_names)
       @url = page[:url]
       @code = page[:code]
       @json = page[:json]
@@ -28,10 +28,10 @@ module Curl
       target = json
       parts.each do |part|
         target = if part =~ /(?<key>[^\[]+)\[(?<int>\d+)\]/
-                   target[key][int.to_i]
-                 else
-                   target[part]
-                 end
+            target[key][int.to_i]
+          else
+            target[part]
+          end
       end
 
       target
@@ -48,14 +48,16 @@ module Curl
     ##
     ## @return     [Hash] hash of url, code, headers, and parsed json
     ##
-    def curl_json(url, headers: nil, compressed: false, symbolize_names: false)
-      flags = 'SsLi'
-      agent = ['Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us)',
-               'AppleWebKit/533.17.9 (KHTML, like Gecko)',
-               'Version/5.0.2 Mobile/8J2 Safari/6533.18.5'].join(' ')
-      headers = headers.nil? ? '' : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(' ')
-      compress = compressed ? '--compressed' : ''
-      source = `#{@curl} -#{flags} #{compress} #{headers} '#{url}' 2>/dev/null`
+    def curl_json(url, data: nil, headers: nil, compressed: false, symbolize_names: false)
+      flags = "SsLi"
+      agent = ["Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us)",
+               "AppleWebKit/533.17.9 (KHTML, like Gecko)",
+               "Version/5.0.2 Mobile/8J2 Safari/6533.18.5"].join(" ")
+      headers = headers.nil? ? "" : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(" ")
+      data = data.nil? ? "" : %(-d '#{data}')
+      compress = compressed ? "--compressed" : ""
+
+      source = `#{@curl} -#{flags} #{compress} #{headers} #{data} "#{url}" 2>/dev/null`
       if source.nil? || source.empty?
         source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null`
       end
@@ -73,14 +75,14 @@ module Curl
           m = Regexp.last_match
           headers[m[1]] = m[2]
         else
-          source = lines[idx..-1].join("\n")
+          source = lines[idx..].join("\n")
           break
         end
       end
 
-      json = source.strip.force_encoding('utf-8')
+      json = source.strip.force_encoding("utf-8")
 
-      json.gsub!(/[\u{1F600}-\u{1F6FF}]/, '')
+      json.gsub!(/[\u{1F600}-\u{1F6FF}]/, "")
 
       { url: url, code: code, headers: headers, json: JSON.parse(json, symbolize_names: symbolize_names) }
     rescue StandardError => e

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-unless ENV['CI'] == 'true'
+unless ENV["CI"] == "true"
   # SimpleCov::Formatter::Codecov # For CI
-  require 'simplecov'
+  require "simplecov"
   SimpleCov.formatter = SimpleCov::Formatter::HTMLFormatter
   SimpleCov.start
 end
 
-require 'searchlink'
-require 'cli-test'
+require "searchlink"
+require "cli-test"
 
 RSpec.configure do |c|
   c.expect_with(:rspec) { |e| e.syntax = :expect }

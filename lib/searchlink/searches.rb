@@ -53,7 +53,7 @@ module SL
         searches.each do |s|
           out << "<tr>
           <td>
-          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..-1].join(",")})" : s[0]}
+          <code>!#{s[0].is_a?(Array) ? "#{s[0][0]} (#{s[0][1..].join(",")})" : s[0]}
           </code>
           </td><td>#{s[1]}</td></tr>"
         end
@@ -72,7 +72,7 @@ module SL
 
         searches.each do |s|
           shortcut = if s[0].is_a?(Array)
-              "#{s[0][0]} (#{s[0][1..-1].join(",")})"
+              "#{s[0][0]} (#{s[0][1..].join(",")})"
             else
               s[0]
             end
@@ -100,7 +100,7 @@ module SL
 
       def valid_searches
         searches = []
-        plugins[:search].each { |_, plugin| searches.push(plugin[:trigger]) }
+        plugins[:search].each_value { |plugin| searches.push(plugin[:trigger]) }
         searches
       end
 
@@ -123,6 +123,7 @@ module SL
         plugins[type][title] = {
           trigger: settings.fetch(:trigger, title).normalize_trigger,
           searches: settings[:searches],
+          config: settings[:config],
           class: klass,
         }
       end
@@ -166,12 +167,14 @@ module SL
       end
 
       def do_search(search_type, search_terms, link_text, timeout: SL.config["timeout"])
-        plugins[:search].each do |_title, plugin|
+        plugins[:search].each_value do |plugin|
           trigger = plugin[:trigger].gsub(/(^\^|\$$)/, "")
-          if search_type =~ /^#{trigger}$/
-            search = proc { plugin[:class].search(search_type, search_terms, link_text) }
-            return SL::Util.search_with_timeout(search, timeout)
-          end
+          next unless search_type =~ /^#{trigger}$/
+
+          search = proc { plugin[:class].search(search_type, search_terms, link_text) }
+          SL.config["skip_timeout"] = true if trigger =~ /^pop/
+
+          return SL::Util.search_with_timeout(search, timeout)
         end
       end
     end
@@ -187,8 +190,8 @@ require_relative "searches/itunes"
 # import
 require_relative "searches/amazon"
 
-# import
-require_relative "searches/bitly"
+#import
+require_relative "searches/shortener"
 
 # import
 require_relative "searches/definition"
@@ -213,6 +216,12 @@ require_relative "searches/lastfm"
 
 # import
 require_relative "searches/pinboard"
+
+# import
+require_relative "searches/popup"
+
+# import
+require_relative "searches/setapp"
 
 # import
 require_relative "searches/social"
@@ -241,5 +250,5 @@ require_relative "searches/youtube"
 # import
 require_relative "searches/stackoverflow"
 
-#import
+# import
 require_relative "searches/linkding"

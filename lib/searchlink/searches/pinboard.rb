@@ -2,34 +2,41 @@
 
 module SL
   class PinboardSearch
-    PINBOARD_CACHE = SL::Util.cache_file_for('pinboard')
+    PINBOARD_CACHE = SL::Util.cache_file_for("pinboard")
 
     class << self
       def settings
         {
-          trigger: 'pb',
+          trigger: "pb",
           searches: [
-            ['pb', 'Pinboard Bookmark Search']
+            ["pb", "Pinboard Bookmark Search"]
+          ],
+          config: [
+            {
+              description: "Pinboard API key.\nYou can find your api key here: https://pinboard.in/settings/password",
+              key: "pinboard_api_key",
+              value: "''",
+              required: true
+            }
           ]
         }
       end
 
       def pinboard_bookmarks
-        curl = TTY::Which.which('curl')
-        bookmarks = `#{curl} -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{SL.config['pinboard_api_key']}&format=json"`
-        bookmarks = bookmarks.force_encoding('utf-8')
+        curl = TTY::Which.which("curl")
+        bookmarks = `#{curl} -sSL "https://api.pinboard.in/v1/posts/all?auth_token=#{SL.config["pinboard_api_key"]}&format=json"`
+        bookmarks = bookmarks.force_encoding("utf-8")
         bookmarks.gsub!(/[^[:ascii:]]/) do |non_ascii|
-          non_ascii.force_encoding('utf-8')
-                   .encode('utf-16be')
-                   .unpack('H*')
+          non_ascii.force_encoding("utf-8")
+                   .encode("utf-16be")
+                   .unpack("H*")
                    .gsub(/(....)/, '\u\1')
         end
 
-        bookmarks.gsub!(/[\u{1F600}-\u{1F6FF}]/, '')
-
+        bookmarks.gsub!(/[\u{1F600}-\u{1F6FF}]/, "")
         bookmarks = JSON.parse(bookmarks)
         updated = Time.now
-        { 'update_time' => updated, 'bookmarks' => bookmarks }
+        { "update_time" => updated, "bookmarks" => bookmarks }
       end
 
       def save_pinboard_cache(cache)
@@ -38,9 +45,9 @@ module SL
         # file = File.new(cachefile,'w')
         # file = Zlib::GzipWriter.new(File.new(cachefile,'w'))
         begin
-          File.open(cachefile, 'wb') { |f| f.write(Marshal.dump(cache)) }
+          File.open(cachefile, "wb") { |f| f.write(Marshal.dump(cache)) }
         rescue IOError
-          SL.add_error('Pinboard cache error', 'Failed to write stash to disk')
+          SL.add_error("Pinboard cache error", "Failed to write stash to disk")
           return false
         end
         true
@@ -57,19 +64,19 @@ module SL
             cache = Marshal.load(File.binread(cachefile))
             # file.close
           rescue IOError # Zlib::GzipFile::Error
-            SL.add_error('Error loading pinboard cache', "IOError reading #{cachefile}")
+            SL.add_error("Error loading pinboard cache", "IOError reading #{cachefile}")
             cache = pinboard_bookmarks
             save_pinboard_cache(cache)
           rescue StandardError
-            SL.add_error('Error loading pinboard cache', "StandardError reading #{cachefile}")
+            SL.add_error("Error loading pinboard cache", "StandardError reading #{cachefile}")
             cache = pinboard_bookmarks
             save_pinboard_cache(cache)
           end
-          curl = TTY::Which.which('curl')
-          updated = JSON.parse(`#{curl} -SsL 'https://api.pinboard.in/v1/posts/update?auth_token=#{SL.config['pinboard_api_key']}&format=json'`)
-          last_bookmark = Time.parse(updated['update_time'])
-          if cache&.key?('update_time')
-            last_update = cache['update_time']
+          curl = TTY::Which.which("curl")
+          updated = JSON.parse(`#{curl} -SsL 'https://api.pinboard.in/v1/posts/update?auth_token=#{SL.config["pinboard_api_key"]}&format=json'`)
+          last_bookmark = Time.parse(updated["update_time"])
+          if cache&.key?("update_time")
+            last_update = cache["update_time"]
             refresh_cache = true if last_update < last_bookmark
           else
             refresh_cache = true
@@ -98,10 +105,10 @@ module SL
       #
       # Exact matching is case and punctuation insensitive
       def search(_, search_terms, link_text)
-        unless SL.config['pinboard_api_key']
-          SL.add_error('Missing Pinboard API token',
-                       'Find your api key at https://pinboard.in/settings/password and add it
-                        to your configuration (pinboard_api_key: YOURKEY)')
+        unless SL.config["pinboard_api_key"]
+          SL.add_error("Missing Pinboard API token",
+                       "Find your api key at https://pinboard.in/settings/password and add it
+                        to your configuration (pinboard_api_key: YOURKEY)")
           return false
         end
 
@@ -112,21 +119,21 @@ module SL
         case search_terms
         when /^ *'/
           exact_match = true
-          search_terms.gsub!(/(^ *'+|'+ *$)/, '')
+          search_terms.gsub!(/(^ *'+|'+ *$)/, "")
         when /%22(.*?)%22/
           match_phrases = search_terms.scan(/%22(\S.*?\S)%22/)
-          search_terms.gsub!(/%22(\S.*?\S)%22/, '')
+          search_terms.gsub!(/%22(\S.*?\S)%22/, "")
         end
 
         cache = load_pinboard_cache
         # cache = pinboard_bookmarks
-        bookmarks = cache['bookmarks']
+        bookmarks = cache["bookmarks"]
 
         if exact_match
           bookmarks.each do |bm|
-            text = [bm['description'], bm['extended'], bm['tags']].join(' ')
+            text = [bm["description"], bm["extended"], bm["tags"]].join(" ")
 
-            return [bm['href'], bm['description']] if text.matches_exact(search_terms)
+            return [bm["href"], bm["description"], link_text] if text.matches_exact(search_terms)
           end
 
           return false
@@ -135,7 +142,7 @@ module SL
         unless match_phrases.empty?
           bookmarks.delete_if do |bm|
             matched = tru
-            full_text = [bm['description'], bm['extended'], bm['tags']].join(' ')
+            full_text = [bm["description"], bm["extended"], bm["tags"]].join(" ")
             match_phrases.each do |phrase|
               matched = false unless full_text.matches_exact(phrase)
             end
@@ -145,8 +152,8 @@ module SL
 
         matches = []
         bookmarks.each do |bm|
-          title_tags = [bm['description'], bm['tags']].join(' ')
-          full_text = [bm['description'], bm['extended'], bm['tags']].join(' ')
+          title_tags = [bm["description"], bm["tags"]].join(" ")
+          full_text = [bm["description"], bm["extended"], bm["tags"]].join(" ")
 
           score = if title_tags.matches_exact(search_terms)
                     14.0
@@ -158,15 +165,15 @@ module SL
                     0
                   end
 
-          return [bm['href'], bm['description']] if score == 14
+          return [bm["href"], bm["description"], link_text] if score == 14
 
           next unless score.positive?
 
           matches.push({
                          score: score,
-                         href: bm['href'],
-                         title: bm['description'],
-                         date: bm['time']
+                         href: bm["href"],
+                         title: bm["description"],
+                         date: bm["time"]
                        })
         end
 
@@ -180,6 +187,6 @@ module SL
       end
     end
 
-    SL::Searches.register 'pinboard', :search, self
+    SL::Searches.register "pinboard", :search, self
   end
 end

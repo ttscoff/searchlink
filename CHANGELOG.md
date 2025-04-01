@@ -1,3 +1,152 @@
+### 2.3.86
+
+2025-03-31 08:54
+
+#### CHANGED
+
+- Remove Jump to SearchLink Error Service for the time being, no longer functioning properly
+
+#### NEW
+
+- Confirmation dialog to ensure you have the right url, with optional preview. Especially handy with URL shortening base on a search
+- Preview URL Service included in distribution, and can be used for confirmation and popup searches
+- !pop (*,g,a,w) searches to search with a quick popup, inserting the final URL
+- Config option `confirm: true` to always confirm links using a dialog/preview
+- --confirm (++c) flag for searches that will force a confirm dialog for that link
+
+#### IMPROVED
+
+- Don't use a search timeout when implementing a dialog
+
+#### FIXED
+
+- Attribute error breaking !img searches
+- Don attempt to get a title from image links
+
+### 2.3.85
+
+2025-03-30 08:36
+
+#### NEW
+
+- Add ?key=value strings to search string to append query parameters to output url. Can accept multiple instances, or one "?key=value&key2=value2" string.
+- TinyURL shortener !tiny
+- Setapp search with affiliate linking and url shortening
+- Add _i, _b, or _t to a search type (e.g. !g_b) to shorten result with is.gd, bit.ly, or tinyurl
+
+#### IMPROVED
+
+- Code cleanup
+
+### 2.3.84
+
+2025-03-27 08:39
+
+#### NEW
+
+- Add Setapp search type, includes Bit.ly and is.gd shortening
+
+#### FIXED
+
+- Handle No Results for gist search
+- Add config options for bit.ly and linkding plugins
+- Bad handling of github_token config
+- Handle No Results for gist search
+
+### 2.3.83
+
+2025-03-26 13:12
+
+#### FIXED
+
+- Debugging leftovers
+
+### 2.3.82
+
+2025-01-06 08:55
+
+#### NEW
+
+- Plugins can optionally have a config: key that allows adding to the default config file when it's created. Format `config: [ ["key", "default value", required(true|false), "optional comment"] ]` (an array of arrays)
+- Plugin configuration options that don't exist in user config are added, allowing new plugins to add optional/required config to default file for user editing
+
+#### IMPROVED
+
+- Start adding config options to default plugins
+- Improve plugin config handling, make config a keyed hash
+- Add config example to lyrics.rb (which serves as an example plugin)
+
+#### FIXED
+
+- Stop pinboard plugin from replacing link text
+
+### 2.3.81
+
+2025-01-05 07:55
+
+#### NEW
+
+- Multiline bracket syntax (see wiki)
+
+#### IMPROVED
+
+- Redirect handling
+- Special handling for amazon link titles
+- Code cleanup
+
+### 2.3.80
+
+2024-12-19 14:15
+
+#### FIXED
+
+- Debug output on iTunes search
+
+### 2.3.79
+
+2024-12-19 08:20
+
+#### NEW
+
+- Is.gd link shortening
+
+### 2.3.78
+
+2024-12-19 08:18
+
+### 2.3.77
+
+2024-12-18 06:17
+
+#### FIXED
+
+- Subsequent urls in bulk match were repeating first url match
+
+### 2.3.76
+
+2024-12-06 08:58
+
+#### FIXED
+
+- Put off some rubocop errors
+- Errant debug output
+
+### 2.3.75
+
+2024-12-06 08:33
+
+#### IMPROVED
+
+- Allow data: option for Curl::Json
+
+#### FIXED
+
+- Update itunes search urls to https
+- Handle nil results better
+- Fix duckduckgo zero results url
+- Fix token require for compiled script
+- Reference English gem with capital E
+
 ### 2.3.74
 
 2024-11-01 08:57

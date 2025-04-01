@@ -4,7 +4,7 @@ module SL
   # Custom Semantic Versioning error
   class VersionError < StandardError
     def initialize(msg)
-      msg = msg ? ": #{msg}" : ''
+      msg = msg ? ": #{msg}" : ""
       puts "Versioning error#{msg}"
 
       super()
@@ -17,7 +17,7 @@ module SL
   class PluginError < StandardError
     def initialize(msg = nil, plugin: nil)
       plugin = %("#{plugin}") if plugin
-      plugin ||= 'plugin'
+      plugin ||= "plugin"
       msg = ": #{msg}" if msg
       puts "Error in #{plugin}#{msg}"
 

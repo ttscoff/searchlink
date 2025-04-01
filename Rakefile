@@ -10,6 +10,7 @@ require "rspec/core/rake_task"
 require "rubocop/rake_task"
 require "yard"
 require "tty-spinner"
+require "pastel"
 
 task default: %i[test yard]
 
@@ -47,21 +48,29 @@ YARD::Rake::YardocTask.new
 
 desc "Development version check"
 task :ver do
+  pastel = Pastel.new
   gver = `git ver`
   cver = IO.read(File.join(File.dirname(__FILE__), "CHANGELOG.md")).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
-  puts "git tag: #{gver}"
-  puts "version.rb: #{version}"
-  puts "changelog: #{cver}"
+  puts "#{pastel.yellow("git tag:")} #{pastel.green(gver)}"
+  puts "#{pastel.yellow("version.rb:")} #{pastel.green(version)}"
+  puts "#{pastel.yellow("changelog:")} #{pastel.green(cver)}"
 end
 
-desc "Get Script Version"
+desc "Git version check"
+task :gver do
+  puts `git ver`
+end
+
+desc "Get Script (version.rb) Version"
 task :sver do
   res = `grep VERSION lib/searchlink/version.rb`
   version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
   print version
 end
+
+task vver: :sver
 
 desc "Changelog version check"
 task :cver do
@@ -73,7 +82,7 @@ task :bump, :type do |_, args|
   args.with_defaults(type: "inc")
   version_file = "lib/searchlink/version.rb"
   content = IO.read(version_file)
-  content.sub!(/VERSION = '(?<major>\d+)\.(?<minor>\d+)\.(?<inc>\d+)(?<pre>\S+)?'/) do
+  content.sub!(/VERSION = (?<quote>["'])(?<major>\d+)\.(?<minor>\d+)\.(?<inc>\d+)(?<pre>\S+)?\k<quote>/) do
     m = Regexp.last_match
     major = m["major"].to_i
     minor = m["minor"].to_i
@@ -140,15 +149,28 @@ class Workflow
   end
 
   def self.copy_services
-    services = ["SearchLink", "SearchLink File", "Jump to SearchLink Error"]
-    target = File.expand_path("./SearchLink Services")
+    pastel = Pastel.new
+    error = pastel.red.bold.detach
+    warning = pastel.yellow.detach
+    success = pastel.green.detach
+    services = ["SearchLink", "SearchLink File", "Preview URL"]
+    FileUtils.mkdir_p("SearchLink Services/")
+    target = File.expand_path("./SearchLink Services/")
     services.each do |service|
       source = File.join(File.expand_path("~/Library/Services"), "#{service}.workflow")
+      print warning.call("Copying #{service}.workflow... ")
       FileUtils.cp_r(source, target)
+      if File.directory?(File.join(target, "#{service}.workflow"))
+        `xattr -cr #{Shellwords.escape(File.join(target, "#{service}.workflow"))}`
+        puts success.call("done")
+      else
+        puts error.call("FAILED")
+        Process.exit(1)
+      end
     end
   end
 
-  def compile
+  def self.compile
     source_file = File.expand_path("bin/searchlink")
     source = IO.read(source_file)
 
@@ -168,6 +190,7 @@ class Workflow
       "--timestamp",
       Shellwords.escape(@workflow),
     ].join(" ")
+    `xattr -cr #{Shellwords.escape(@workflow)}`
     res = `#{cmd} 2>&1`
 
     return true if res =~ /signed bundle/
@@ -177,8 +200,13 @@ class Workflow
   end
 
   def update_script
+    updateable = ["SearchLink", "SearchLink File"]
+    unless updateable.include?(File.basename(@workflow, ".workflow"))
+      return "No update for #{File.basename(@workflow)}"
+    end
+
     wflow = File.join(File.expand_path(@workflow), "Contents/document.wflow")
-    script = compile
+    script = Workflow.compile
     workflow = IO.read(wflow)
 
     plist = Plist.parse_xml(wflow)
@@ -194,16 +222,42 @@ class Workflow
   end
 end
 
+desc "Compile standalone script"
+task :compile do
+  pastel = Pastel.new
+  source = Workflow.compile
+  File.open("searchlink.rb", "w") { |f| f.puts source }
+  puts "#{pastel.green.bold("Compiled standalone script to")} #{pastel.yellow.bold("searchlink.rb")}"
+end
+
+desc "Alias for compile"
+task script: :compile
+
 desc "Update and sign Services"
 task :services do
-  workflows = Dir.glob("SearchLink Services/*.workflow")
-  if workflows.count < 3
-    Workflow.copy_services
+  pastel = Pastel.new
+  error = pastel.red.bold.detach
+  warning = pastel.yellow.detach
+  success = pastel.green.detach
+
+  print warning.call("Removing existing services...")
+  FileUtils.rm_rf("SearchLink Services/")
+  if Dir.glob("SearchLink Services/*").empty?
+    puts success.call("done")
+  else
+    puts error.call("FAILED")
+    Process.exit(1)
   end
+
+  Workflow.copy_services
+
+  workflows = Dir.glob("SearchLink Services/*.workflow")
+
+  puts warning.call("Updating and signing services...")
 
   workflows.each do |service|
     wf = Workflow.new(service)
-    print wf.update_script
-    puts wf.sign ? "... and signed" : "... and FAILED to sign"
+    print warning.call(wf.update_script)
+    puts wf.sign ? success.call("... and signed") : error.call("... and FAILED to sign")
   end
 end

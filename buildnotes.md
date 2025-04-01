@@ -15,7 +15,7 @@ Tag releases with `gh release create --title TITLE -n "NOTE"`. Run `git pull` af
 
 ## Edit
 
-Main source is in `bin/searchlink`, with the code split between files in `lib` (gem configuration). 
+Main source is in `bin/searchlink`, with the code split between files in `lib` (gem configuration).
 
 Before deploying, run `compile.rb` to gather all sources into a single file for use in the Services. (This is handled by the Prepare Deploy topic.)
 
@@ -118,7 +118,7 @@ git push
 - Stage git release
 - Copy and sign 3 services
 - Compress 3 services to SearchLink.zip
-- Create a git release for X.X.X 
+- Create a git release for X.X.X
 - Upload zip to release
 - Update blog project and downloads
 
@@ -130,7 +130,7 @@ git push
 #!/usr/bin/env ruby
 result = true
 
-['SearchLink.workflow', 'SearchLink File.workflow', 'Jump to SearchLink Error.workflow'].each { |f| result = false unless File.exist?(File.join('SearchLink Services', f)) }
+['SearchLink.workflow', 'SearchLink File.workflow', 'Preview URL.workflow'].each { |f| result = false unless File.exist?(File.join('SearchLink Services', f)) }
 
 raise "Missing one or more Services" unless result
 ```

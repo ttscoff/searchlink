@@ -65,36 +65,36 @@ module SL
         #{SL::Searches.available_searches}
       EOHELP
 
-      if SL.config['custom_site_searches']
+      if SL.config["custom_site_searches"]
         text += "\n-- [Custom Searches] ----------------------\n"
-        SL.config['custom_site_searches'].sort_by { |l, _s| l }.each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
+        SL.config["custom_site_searches"].sort_by { |l, _s| l }.each { |label, site| text += "!#{label}#{label.spacer} #{site}\n" }
       end
       text
     end
 
     def help_html
       out = ['<input type="text" id="filter" onkeyup="filterTable()" placeholder="Filter searches">']
-      out << '<h2>Available Searches</h2>'
+      out << "<h2>Available Searches</h2>"
       out << SL::Searches.available_searches_html
-      out << '<h2>Custom Searches</h2>'
+      out << "<h2>Custom Searches</h2>"
       out << '<table id="custom">'
-      out << '<thead><td>Shortcut</td><td>Search Type</td></thead>'
-      out << '<tbody>'
-      SL.config['custom_site_searches'].each { |label, site| out << "<tr><td><code>!#{label}</code></td><td>#{site}</td></tr>" }
-      out << '</tbody>'
-      out << '</table>'
+      out << "<thead><td>Shortcut</td><td>Search Type</td></thead>"
+      out << "<tbody>"
+      SL.config["custom_site_searches"].each { |label, site| out << "<tr><td><code>!#{label}</code></td><td>#{site}</td></tr>" }
+      out << "</tbody>"
+      out << "</table>"
       out.join("\n")
     end
 
     def help_dialog
       text = ["<html><head><style>#{help_css}</style><script>#{help_js}</script></head><body>"]
-      text << '<h1>SearchLink Help</h1>'
+      text << "<h1>SearchLink Help</h1>"
       text << "<p>[#{SL.version_check}] [<a href='https://github.com/ttscoff/searchlink/wiki'>Wiki</a>]</p>"
       text << help_html
       text << '<p><a href="https://github.com/ttscoff/searchlink/wiki">Visit the wiki</a> for additional information</p>'
-      text << '</body>'
-      html_file = File.expand_path('~/.searchlink_searches.html')
-      File.open(html_file, 'w') { |f| f.puts text.join("\n") }
+      text << "</body>"
+      html_file = File.expand_path("~/.searchlink_searches.html")
+      File.open(html_file, "w") { |f| f.puts text.join("\n") }
       `open #{html_file}`
     end
 

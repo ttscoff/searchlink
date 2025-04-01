@@ -5,9 +5,9 @@ module SL
     class << self
       def settings
         {
-          trigger: 'te',
+          trigger: "te",
           searches: [
-            ['te', 'Twitter Embed']
+            ["te", "Twitter Embed"]
           ]
         }
       end
@@ -16,7 +16,7 @@ module SL
         if SL::URL.url?(search_terms) && search_terms =~ %r{^https://twitter.com/}
           url, title = twitter_embed(search_terms)
         else
-          SL.add_error('Invalid Tweet URL', "#{search_terms} is not a valid link to a tweet or timeline")
+          SL.add_error("Invalid Tweet URL", "#{search_terms} is not a valid link to a tweet or timeline")
           url = false
           title = false
         end
@@ -29,20 +29,20 @@ module SL
         if res
           begin
             json = JSON.parse(res)
-            url = 'embed'
-            title = json['html']
+            url = "embed"
+            title = json["html"]
           rescue StandardError
-            SL.add_error('Tweet Error', 'Error retrieving tweet')
+            SL.add_error("Tweet Error", "Error retrieving tweet")
             url = false
             title = tweet
           end
         else
-          return [false, 'Error retrieving tweet']
+          return [false, "Error retrieving tweet"]
         end
         [url, title]
       end
     end
 
-    SL::Searches.register 'twitter', :search, self
+    SL::Searches.register "twitter", :search, self
   end
 end

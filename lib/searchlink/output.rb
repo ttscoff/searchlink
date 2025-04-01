@@ -3,7 +3,8 @@
 module SL
   class << self
     attr_writer :titleize, :clipboard, :output, :footer, :line_num,
-                :match_column, :match_length, :originput, :errors, :report, :printout
+                :match_column, :match_length, :originput, :errors, :report, :printout,
+                :shortener
 
     # Whether or not to add a title to the output
     def titleize
@@ -52,12 +53,22 @@ module SL
 
     # Stores the original input
     def originput
-      @originput ||= ''
+      @originput ||= ""
     end
 
     # Stores generated errors
     def errors
       @errors ||= {}
+    end
+
+    # Stores query parameters
+    def query
+      @query ||= {}
+    end
+
+    # The shortener to use
+    def shortener
+      @shortener ||= :none
     end
 
     # Posts macOS notifications
@@ -66,7 +77,7 @@ module SL
     # @param      subtitle  [String]   The text of the notification
     #
     def notify(title, subtitle)
-      return unless SL.config['notifications']
+      return unless SL.config["notifications"]
 
       title = title.gsub(/"/, '\\"')
       subtitle = subtitle.gsub(/"/, '\\"')
@@ -95,12 +106,16 @@ module SL
     # @return     [String] The link.
     #
     def make_link(type, text, url, title: false, force_title: false)
-      title = title.gsub(/\P{Print}|\p{Cf}/, '') if title
+      title = title.gsub(/\P{Print}|\p{Cf}/, "") if title
       text = title || SL::URL.title(url) if SL.titleize && (!text || text.strip.empty?)
       text = text ? text.strip : title
-      title = title && (SL.config['include_titles'] || force_title) ? %( "#{title.clean}") : ''
+      title = title && (SL.config["include_titles"] || force_title) ? %( "#{title.clean}") : ""
 
-      title = title.gsub(/[ \t]+/, ' ')
+      title = title.gsub(/[ \t]+/, " ")
+
+      url.add_query_string!
+
+      url = SL::Shortener.shorten(url, SL.shortener)
 
       case type.to_sym
       when :ref_title
@@ -108,7 +123,7 @@ module SL
       when :ref_link
         %([#{text}][#{url}])
       when :inline
-        image = url =~ /\.(gif|jpe?g|png|webp)$/ ? '!' : ''
+        image = url =~ /\.(gif|jpe?g|png|webp)$/ ? "!" : ""
         %(#{image}[#{text}](#{url}#{title}))
       end
     end
@@ -141,7 +156,6 @@ module SL
     #
     def print_footer
       unless SL.footer.empty?
-
         footnotes = []
         SL.footer.delete_if do |note|
           note.strip!
@@ -162,7 +176,7 @@ module SL
         return output.gsub(/\n{3,}/, "\n\n")
       end
 
-      ''
+      ""
     end
 
     # Adds the given string to the report.
@@ -172,12 +186,12 @@ module SL
     # @return     [nil]
     #
     def add_report(str)
-      return unless SL.config['report']
+      return unless SL.config["report"]
 
       unless SL.line_num.nil?
         position = "#{SL.line_num}:"
-        position += SL.match_column.nil? ? '0:' : "#{SL.match_column}:"
-        position += SL.match_length.nil? ? '0' : SL.match_length.to_s
+        position += SL.match_column.nil? ? "0:" : "#{SL.match_column}:"
+        position += SL.match_length.nil? ? "0" : SL.match_length.to_s
       end
       SL.report.push("(#{position}): #{str}")
       warn "(#{position}): #{str}" unless SILENT
@@ -191,15 +205,23 @@ module SL
     # @return     [nil]
     #
     def add_error(type, str)
-      return unless SL.config['debug']
+      return unless SL.config["debug"]
 
       unless SL.line_num.nil?
         position = "#{SL.line_num}:"
-        position += SL.match_column.nil? ? '0:' : "#{SL.match_column}:"
-        position += SL.match_length.nil? ? '0' : SL.match_length.to_s
+        position += SL.match_column.nil? ? "0:" : "#{SL.match_column}:"
+        position += SL.match_length.nil? ? "0" : SL.match_length.to_s
       end
       SL.errors[type] ||= []
       SL.errors[type].push("(#{position}): #{str}")
+    end
+
+    # Add to query string
+    # @param      hsh   [Hash] The queries to add
+    # @return     [nil]
+    def add_query(hsh)
+      SL.query ||= {}
+      SL.query.merge!(hsh)
     end
 
     # Prints the report.
@@ -207,7 +229,7 @@ module SL
     # @return     [String] The report.
     #
     def print_report
-      return if (SL.config['inline'] && SL.originput.split(/\n/).length == 1) || SL.clipboard
+      return if (SL.config["inline"] && SL.originput.split(/\n/).length == 1) || SL.clipboard
 
       return if SL.report.empty?
 
@@ -221,15 +243,15 @@ module SL
     #
     # @return     [String] The errors.
     #
-    def print_errors(type = 'Errors')
+    def print_errors(type = "Errors")
       return if SL.errors.empty?
 
-      out = ''
+      out = ""
       inline = if SL.originput.split(/\n/).length > 1
-                 false
-               else
-                 SL.config['inline'] || SL.originput.split(/\n/).length == 1
-               end
+          false
+        else
+          SL.config["inline"] || SL.originput.split(/\n/).length == 1
+        end
 
       SL.errors.each do |k, v|
         next if v.empty?
@@ -237,16 +259,16 @@ module SL
         v.each_with_index do |err, i|
           out += "(#{k}) #{err}"
           out += if inline
-                   i == v.length - 1 ? ' | ' : ', '
-                 else
-                   "\n"
-                 end
+              i == v.length - 1 ? " | " : ", "
+            else
+              "\n"
+            end
         end
       end
 
-      unless out == ''
-        sep = inline ? ' ' : "\n"
-        out.sub!(/\| /, '')
+      unless out == ""
+        sep = inline ? " " : "\n"
+        out.sub!(/\| /, "")
         out = "#{sep}<!-- #{type}:#{sep}#{out}-->#{sep}"
       end
       if SL.clipboard

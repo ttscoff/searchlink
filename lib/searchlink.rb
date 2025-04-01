@@ -2,74 +2,74 @@
 
 # SearchLink by Brett Terpstra 2015 <http://brettterpstra.com/projects/searchlink/>
 # MIT License, please maintain attribution
-require 'net/https'
-require 'uri'
-require 'shellwords'
-require 'yaml'
-require 'cgi'
-require 'fileutils'
-require 'tempfile'
-require 'zlib'
-require 'time'
-require 'json'
-require 'erb'
-require 'english'
+require "net/https"
+require "uri"
+require "shellwords"
+require "yaml"
+require "cgi"
+require "fileutils"
+require "tempfile"
+require "zlib"
+require "time"
+require "json"
+require "erb"
+require "English"
 
 # import
-require 'tokens' if File.exist?('lib/tokens.rb')
+require_relative "tokens" if File.exist?("tokens.rb")
 
 # import
-require 'searchlink/exceptions'
+require_relative "searchlink/exceptions"
 
 # import
-require 'searchlink/number'
+require_relative "searchlink/number"
 
 # import
-require 'searchlink/util'
+require_relative "searchlink/util"
 
 # import
-require 'searchlink/curl'
+require_relative "searchlink/curl"
 
 # import
-require 'searchlink/semver'
+require_relative "searchlink/semver"
 
 # import
-require 'searchlink/version'
+require_relative "searchlink/version"
 
 # import
-require 'searchlink/array'
+require_relative "searchlink/array"
 
 # import
-require 'searchlink/string'
+require_relative "searchlink/string"
 
 # import
-require 'searchlink/plist'
+require_relative "searchlink/plist"
 
 # import
-require 'searchlink/config'
+require_relative "searchlink/config"
 
 # import
-require 'searchlink/searches'
+require_relative "searchlink/searches"
 
 # import
-require 'searchlink/url'
+require_relative "searchlink/url"
 
 # import
-require 'searchlink/search'
+require_relative "searchlink/search"
 
 # import
-require 'searchlink/help'
+require_relative "searchlink/help"
 
 # import
-require 'searchlink/parse'
+require_relative "searchlink/parse"
 
 # import
-require 'searchlink/output'
+require_relative "searchlink/output"
 
 # import
-require 'searchlink/which'
+require_relative "searchlink/which"
 
 # import
-require 'searchlink/script_plugin'
+require_relative "searchlink/script_plugin"
 
 module Secrets; end

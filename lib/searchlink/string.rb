@@ -3,14 +3,105 @@
 module SL
   # String helpers
   class ::String
+    # Quote a YAML value if needed
+    def yaml_val
+      yaml = YAML.safe_load("key: '#{self}'")
+      YAML.dump(yaml).match(/key: (.*?)$/)[1]
+    end
+
+    # Word wrap a string not exceeding max width.
+    # CREDIT: Gavin Kistner, Dayne Broderson
+    #
+    def word_wrap!(col_width = 60, prefix = "")
+      replace dup.word_wrap(col_width, prefix)
+    end
+
+    # As with #word_wrap, but modifies the string in place.
+    #
+    # CREDIT: Gavin Kistner, Dayne Broderson
+    #
+    def word_wrap(col_width = 60, prefix = "")
+      str = dup
+      str.gsub!(/(\S{#{col_width}})(?=\S)/, "#{prefix}\\1")
+      str.gsub!(/(.{1,#{col_width}})(?:\s+|$)/, "#{prefix}\\1\n")
+      str
+    end
+
     # Scrub invalid characters from string
     def scrubup
-      encode('utf-16', invalid: :replace).encode('utf-8').gsub(/\u00A0/, ' ')
+      encode("utf-16", invalid: :replace).encode("utf-8").gsub(/\u00A0/, " ")
     end
 
     # @see #scrub
     def scrubup!
       replace scrub
+    end
+
+    # Extract query string from search string
+    def extract_query(known_queries = {})
+      string = gsub(/\?((\S+?)=(\S+?)(?=&|$|\s))+/) do |mtch|
+        tokens = mtch.sub(/^\?/, "").split("&")
+        tokens.each do |token|
+          key, value = token.split("=")
+
+          known_queries[key] = value
+        end
+
+        ""
+      end.gsub(/ +/, " ").strip
+
+      [known_queries, string]
+    end
+
+    # Extract a shortner from a string
+    def extract_shortener
+      return self unless self =~ /_[ibt]$/i
+
+      shortener = split(/_/).last
+      SL.shortener = case shortener
+        when /i/i
+          :isgd
+        when /b/i
+          :bitly
+        when /t/i
+          :tinyurl
+        else
+          :none
+        end
+
+      sub(/_[ibt]$/i, "")
+    end
+
+    # Destructive version of #extract_shortener
+    # @see #extract_shortener
+    # @return     [String] The string without the shortener
+    def extract_shortener!
+      replace extract_shortener
+    end
+
+    # Format and append a query string
+    #
+    # @return     [String] The formatted query string
+    #
+    def add_query_string
+      return self if SL.query.empty?
+
+      query = SL.query.map { |k, v| "#{k}=#{v}" }.join("&")
+
+      query = if self =~ /\?[^= ]+=\S+/
+          "&#{query}"
+        else
+          "?#{query}"
+        end
+
+      "#{self}#{query}"
+    end
+
+    # Destructive version of #add_query_string
+    # @see #add_query_string
+    # @return     [String] The formatted query string
+    def add_query_string!
+      replace add_query_string
     end
 
     # URL Encode string
@@ -32,7 +123,7 @@ module SL
     ## @return     [String] modified regular expression
     ##
     def normalize_trigger
-      gsub(/\((?!\?:)/, '(?:').gsub(/(^(\^|\\A)|(\$|\\Z)$)/, '').downcase
+      gsub(/\((?!\?:)/, "(?:").gsub(/(^(\^|\\A)|(\$|\\Z)$)/, "").downcase
     end
 
     ##
@@ -54,31 +145,33 @@ module SL
 
     # parse command line flags into long options
     def parse_flags
-      gsub(/(\+\+|--)([dirtvs]+)\b/) do
+      gsub(/(\+\+|--)([dirtvsc]+)\b/) do
         m = Regexp.last_match
-        bool = m[1] == '++' ? '' : 'no-'
-        output = ' '
-        m[2].split('').each do |arg|
+        bool = m[1] == "++" ? "" : "no-"
+        output = " "
+        m[2].split("").each do |arg|
           output += case arg
-                    when 'd'
-                      "--#{bool}debug "
-                    when 'i'
-                      "--#{bool}inline "
-                    when 'r'
-                      "--#{bool}prefix_random "
-                    when 't'
-                      "--#{bool}include_titles "
-                    when 'v'
-                      "--#{bool}validate_links "
-                    when 's'
-                      "--#{bool}remove_seo "
-                    else
-                      ''
-                    end
+            when "c"
+              "--#{bool}confirm"
+            when "d"
+              "--#{bool}debug "
+            when "i"
+              "--#{bool}inline "
+            when "r"
+              "--#{bool}prefix_random "
+            when "t"
+              "--#{bool}include_titles "
+            when "v"
+              "--#{bool}validate_links "
+            when "s"
+              "--#{bool}remove_seo "
+            else
+              ""
+            end
         end
 
         output
-      end.gsub(/ +/, ' ')
+      end.gsub(/ +/, " ")
     end
 
     def parse_flags!
@@ -91,7 +184,7 @@ module SL
     ## @return     { description_of_the_return_value }
     ##
     def fix_gist_file
-      sub(/^file-/, '').sub(/-([^\-]+)$/, '.\1')
+      sub(/^file-/, "").sub(/-([^-]+)$/, '.\1')
     end
 
     # Turn a string into a slug, removing spaces and
@@ -100,7 +193,7 @@ module SL
     # @return     [String] slugified string
     #
     def slugify
-      downcase.gsub(/[^a-z0-9_]/i, '-').gsub(/-+/, '-').sub(/-?$/, '')
+      downcase.gsub(/[^a-z0-9_]/i, "-").gsub(/-+/, "-").sub(/-?$/, "")
     end
 
     # Destructive slugify
@@ -116,11 +209,11 @@ module SL
     ## @return     [String] cleaned URL/String
     ##
     def clean
-      gsub(/\n+/, ' ')
-        .gsub(/"/, '&quot')
-        .gsub(/\|/, '-')
+      gsub(/\n+/, " ")
+        .gsub(/"/, "&quot")
+        .gsub(/\|/, "-")
         .gsub(/([&?]utm_[scm].+=[^&\s!,.)\]]++?)+(&.*)/, '\2')
-        .sub(/\?&/, '').strip
+        .sub(/\?&/, "").strip
     end
 
     # convert itunes to apple music link
@@ -128,9 +221,33 @@ module SL
     # @return [String] apple music link
     def to_am
       input = dup
-      input.sub!(%r{/itunes\.apple\.com}, 'geo.itunes.apple.com')
-      append = input =~ %r{\?[^/]+=} ? '&app=music' : '?app=music'
+      input.sub!(%r{/itunes\.apple\.com}, "geo.itunes.apple.com")
+      append = input =~ %r{\?[^/]+=} ? "&app=music" : "?app=music"
       input + append
+    end
+
+    ##
+    ## Append an affiliate string to a URL
+    ##
+    ## @param      aff_string   [String]  The affiliate string
+    ## @return     [String]  The URL with the affiliate string
+    ##
+    ## @see        #append_affiliate_string!
+    ##
+    def append_affiliate_string(aff_string)
+      separator = self =~ /\?/ ? "&" : "?"
+      "#{self}#{aff_string.sub(/^[?&]?/, separator)}"
+    end
+
+    ## Destructively append an affiliate string to a URL
+    ##
+    ## @param      aff_string   [String]  The affiliate string
+    ## @return     [String]  The URL with the affiliate string
+    ##
+    ## @see        #append_affiliate_string
+    ##
+    def append_affiliate_string!(aff_string)
+      replace append_affiliate_string(aff_string)
     end
 
     ##
@@ -139,7 +256,7 @@ module SL
     ## @return     [String] just hostname and path of URL
     ##
     def remove_protocol
-      sub(%r{^(https?|s?ftp|file)://}, '')
+      sub(%r{^(https?|s?ftp|file)://}, "")
     end
 
     ##
@@ -158,11 +275,11 @@ module SL
     def path_elements
       path = url_path
       # force trailing slash
-      path.sub!(%r{/?$}, '/')
+      path.sub!(%r{/?$}, "/")
       # remove last path element
-      path.sub!(%r{/[^/]+[.\-][^/]+/$}, '')
+      path.sub!(%r{/[^/]+[.-][^/]+/$}, "")
       # remove starting/ending slashes
-      path.gsub!(%r{(^/|/$)}, '')
+      path.gsub!(%r{(^/|/$)}, "")
       # split at slashes, delete sections that are shorter
       # than 5 characters or only consist of numbers
       path.split(%r{/}).delete_if { |section| section =~ /^\d+$/ || section.length < 5 }
@@ -189,11 +306,11 @@ module SL
       words = split(/\s+/)
 
       punct_chars = {
-        '“' => '”',
-        '‘' => '’',
-        '[' => ']',
-        '(' => ')',
-        '<' => '>'
+        "“" => "”",
+        "‘" => "’",
+        "[" => "]",
+        "(" => ")",
+        "<" => ">",
       }
 
       left_punct = []
@@ -205,10 +322,10 @@ module SL
         end
       end
 
-      tail = ''
+      tail = ""
       left_punct.reverse.each { |c| tail += punct_chars[c] }
 
-      gsub(/[^a-z)\]’”.…]+$/i, '...').strip + tail
+      gsub(/[^a-z)\]’”.…]+$/i, "...").strip + tail
     end
 
     ##
@@ -235,22 +352,21 @@ module SL
       url = URI.parse(url)
       host = url.hostname
       unless host
-        return self unless SL.config['debug']
+        return self unless SL.config["debug"]
 
-        SL.add_error('Invalid URL', "Could not remove SEO for #{url}")
+        SL.add_error("Invalid URL", "Could not remove SEO for #{url}")
         return self
-
       end
 
       path = url.path
       root_page = path =~ %r{^/?$} ? true : false
 
-      title.gsub!(/\s*(&ndash;|&mdash;)\s*/, ' - ')
+      title.gsub!(/\s*(&ndash;|&mdash;)\s*/, " - ")
       title.gsub!(/&[lr]dquo;/, '"')
       title.gsub!(/&[lr]dquo;/, "'")
-      title.gsub!(/&#8211;/, ' — ')
+      title.gsub!(/&#8211;/, " — ")
       title = CGI.unescapeHTML(title)
-      title.gsub!(/ +/, ' ')
+      title.gsub!(/ +/, " ")
 
       seo_title_separators = %w[| » « — – - · :]
 
@@ -258,18 +374,17 @@ module SL
         re_parts = []
 
         host_parts = host.sub(/(?:www\.)?(.*?)\.[^.]+$/, '\1').split(/\./).delete_if { |p| p.length < 3 }
-        h_re = !host_parts.empty? ? host_parts.map { |seg| seg.downcase.split(//).join('.?') }.join('|') : ''
+        h_re = !host_parts.empty? ? host_parts.map { |seg| seg.downcase.split(//).join(".?") }.join("|") : ""
         re_parts.push(h_re) unless h_re.empty?
 
         # p_re = path.path_elements.map{|seg| seg.downcase.split(//).join('.?') }.join('|')
         # re_parts.push(p_re) if p_re.length > 0
 
-        site_re = "(#{re_parts.join('|')})"
+        site_re = "(#{re_parts.join("|")})"
 
         dead_switch = 0
 
-        while title.downcase.gsub(/[^a-z]/i, '') =~ /#{site_re}/i
-
+        while title.downcase.gsub(/[^a-z]/i, "") =~ /#{site_re}/i
           break if dead_switch > 5
 
           seo_title_separators.each_with_index do |sep, i|
@@ -277,44 +392,44 @@ module SL
 
             next if parts.length == 1
 
-            remaining_separators = seo_title_separators[i..-1].map { |s| Regexp.escape(s) }.join('')
+            remaining_separators = seo_title_separators[i..].map { |s| Regexp.escape(s) }.join("")
             seps = Regexp.new("^[^#{remaining_separators}]+$")
 
             longest = parts.longest_element.strip
 
             unless parts.empty?
               parts.delete_if do |pt|
-                compressed = pt.strip.downcase.gsub(/[^a-z]/i, '')
+                compressed = pt.strip.downcase.gsub(/[^a-z]/i, "")
                 compressed =~ /#{site_re}/ && pt =~ seps ? !root_page : false
               end
             end
 
             title = if parts.empty?
-                      longest
-                    elsif parts.length < 2
-                      parts.join(sep)
-                    elsif parts.length > 2
-                      parts.longest_element.strip
-                    else
-                      parts.join(sep)
-                    end
+                longest
+              elsif parts.length < 2
+                parts.join(sep)
+              elsif parts.length > 2
+                parts.longest_element.strip
+              else
+                parts.join(sep)
+              end
           end
           dead_switch += 1
         end
       rescue StandardError => e
-        return self unless SL.config['debug']
+        return self unless SL.config["debug"]
 
         SL.add_error("Error SEO processing title for #{url}", e)
         return self
       end
 
-      seps = Regexp.new(" *[#{seo_title_separators.map { |s| Regexp.escape(s) }.join('')}] +")
+      seps = Regexp.new(" *[#{seo_title_separators.map { |s| Regexp.escape(s) }.join("")}] +")
       if title =~ seps
         seo_parts = title.split(seps)
         title = seo_parts.longest_element.strip if seo_parts.length.positive?
       end
 
-      title && title.length > 5 ? title.gsub(/\s+/, ' ') : CGI.unescapeHTML(self)
+      title && title.length > 5 ? title.gsub(/\s+/, " ") : CGI.unescapeHTML(self)
     end
 
     ##
@@ -340,12 +455,12 @@ module SL
 
       words = split(/\s+/)
       words.each do |word|
-        break unless trunc_title.join(' ').length.close_punctuation + word.length <= max
+        break unless trunc_title.join(" ").length.close_punctuation + word.length <= max
 
         trunc_title << word
       end
 
-      trunc_title.empty? ? words[0] : trunc_title.join(' ')
+      trunc_title.empty? ? words[0] : trunc_title.join(" ")
     end
 
     ##
@@ -370,7 +485,7 @@ module SL
     ## @param      start_word  [Boolean] Require match to be
     ##                         at beginning of word
     ##
-    def matches_score(terms, separator: ' ', start_word: true)
+    def matches_score(terms, separator: " ", start_word: true)
       matched = 0
       regexes = terms.to_rx_array(separator: separator, start_word: start_word)
 
@@ -383,7 +498,7 @@ module SL
       ((matched / regexes.count.to_f) * 10).round(3)
     end
 
-    def matches_fuzzy(terms, separator: ' ', start_word: true, threshhold: 5)
+    def matches_fuzzy(terms, separator: " ", start_word: true, threshhold: 5)
       sources = split(/(#{separator})+/)
       words = terms.split(/(#{separator})+/)
       matches = 0
@@ -411,13 +526,13 @@ module SL
       (1..n).each do |j|
         (1..m).each do |i|
           d[i][j] = if s[i - 1] == t[j - 1] # adjust index into string
-                      d[i - 1][j - 1]       # no operation required
-                    else
-                      [d[i - 1][j] + 1, # deletion
-                       d[i][j - 1] + 1, # insertion
-                       d[i - 1][j - 1] + 1 # substitution
+              d[i - 1][j - 1] # no operation required
+            else
+              [d[i - 1][j] + 1, # deletion
+               d[i][j - 1] + 1, # insertion
+               d[i - 1][j - 1] + 1 # substitution
 ].min
-                    end
+            end
         end
       end
       d[m][n]
@@ -429,8 +544,8 @@ module SL
     ## @param      string [String] The string to match
     ##
     def matches_exact(string)
-      comp = gsub(/[^a-z0-9 ]/i, '')
-      comp =~ /\b#{string.gsub(/[^a-z0-9 ]/i, '').split(/ +/).map { |s| Regexp.escape(s) }.join(' +')}/i
+      comp = gsub(/[^a-z0-9 ]/i, "")
+      comp =~ /\b#{string.gsub(/[^a-z0-9 ]/i, "").split(/ +/).map { |s| Regexp.escape(s) }.join(" +")}/i
     end
 
     ##
@@ -440,7 +555,7 @@ module SL
     ##
     def matches_none(terms)
       rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
-      rx_terms.each { |rx| return false if gsub(/[^a-z0-9 ]/i, '') =~ rx }
+      rx_terms.each { |rx| return false if gsub(/[^a-z0-9 ]/i, "") =~ rx }
       true
     end
 
@@ -451,7 +566,7 @@ module SL
     ##
     def matches_any(terms)
       rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
-      rx_terms.each { |rx| return true if gsub(/[^a-z0-9 ]/i, '') =~ rx }
+      rx_terms.each { |rx| return true if gsub(/[^a-z0-9 ]/i, "") =~ rx }
       false
     end
 
@@ -462,7 +577,7 @@ module SL
     ##
     def matches_all(terms)
       rx_terms = terms.is_a?(String) ? terms.to_rx_array : terms
-      rx_terms.each { |rx| return false unless gsub(/[^a-z0-9 ]/i, '') =~ rx }
+      rx_terms.each { |rx| return false unless gsub(/[^a-z0-9 ]/i, "") =~ rx }
       true
     end
 
@@ -475,10 +590,10 @@ module SL
     ##
     ## @return     [Array] array of regular expressions
     ##
-    def to_rx_array(separator: ' ', start_word: true)
-      bound = start_word ? '\b' : ''
+    def to_rx_array(separator: " ", start_word: true)
+      bound = start_word ? '\b' : ""
       str = gsub(/(#{separator})+/, separator)
-      str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, '.?')}/i }
+      str.split(/#{separator}/).map { |arg| /#{bound}#{arg.gsub(/[^a-z0-9]/i, ".?")}/i }
     end
 
     ##
@@ -493,8 +608,8 @@ module SL
     ## Shorten path by adding ~ for home directory
     ##
     def shorten_path
-      home_directory = ENV['HOME']
-      sub(home_directory, '~')
+      home_directory = ENV["HOME"]
+      sub(home_directory, "~")
     end
   end
 end

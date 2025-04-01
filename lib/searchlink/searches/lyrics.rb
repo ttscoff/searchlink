@@ -11,16 +11,35 @@ module SL
           # `trigger` is A regular expression that will trigger this plugin
           # when used with a bang. The one below will trigger on !lyrics or
           # !lyricse.
-          trigger: 'lyrics?(e|e?js)?',
+          trigger: "lyrics?(e|e?js)?",
           # Every search that the plugin should execute should be individually
           # listed and described in the searches array. This is used for
           # completion and help generation. Do not include the bang (!) in the
           # search keyword.
           searches: [
-            ['lyric', 'Song Lyrics Search'],
-            ['lyrice', 'Song Lyrics Embed'],
-            ['lyricjs', 'Song Lyrics JS Embed']
+            ["lyric", "Song Lyrics Search"],
+            ["lyrice", "Song Lyrics Embed"],
+            ["lyricjs", "Song Lyrics JS Embed"]
           ]
+          #
+          # # The config block is optional, but can be used to define any
+          # # configuration options that the plugin requires. New configuration
+          # # options that don't exist in current config will be appended
+          # config: [
+          #   {
+          #     # Description that will appear above the option in config.yaml
+          #     description: "Genius API"
+          #     # the configuration key
+          #     key: "genius_token",
+          #     # the default value
+          #     value: "''",
+          #     # whether the configuration is required. If
+          #     # false (meaning optional), it will be added
+          #     # with a # in front of the key in the config
+          #     # file, making it a comment.
+          #     required: false
+          #   }
+          # ]
         }
       end
 
@@ -41,20 +60,20 @@ module SL
             # To return an embed, set url (first parameter in the return
             # array) to 'embed', and put the embed contents in the second
             # parameter.
-            title ? ['embed', title, link_text] : false
+            title ? ["embed", title, link_text] : false
           else
             # Use `SL#add_error(title, text)` to add errors to the HTML
             # report. The report will only be shown if errors have been added.
-            SL.add_error('No lyrics found', "Song lyrics for #{search_terms} not found")
+            SL.add_error("No lyrics found", "Song lyrics for #{search_terms} not found")
             false
           end
         when /js$/
           url, title = SL.ddg("site:genius.com #{search_terms}", link_text)
           if url
             title = js_embed(url)
-            title ? ['embed', title, link_text] : false
+            title ? ["embed", title, link_text] : false
           else
-            SL.add_error('No lyrics found', "Song lyrics for #{search_terms} not found")
+            SL.add_error("No lyrics found", "Song lyrics for #{search_terms} not found")
             false
           end
         else
@@ -96,13 +115,13 @@ module SL
           # `curl -SsL` is faster and easier. Curl::Html.new(url) returns a
           # new object containing :body
           body = Curl::Html.new(url).body
-          title = body.match(/_sf_async_config.title = '(.*?) \| Genius Lyrics'/)[1].gsub(/\\/, '').sub(/ Lyrics$/, '')
+          title = body.match(/_sf_async_config.title = '(.*?) \| Genius Lyrics'/)[1].gsub(/\\/, "").sub(/ Lyrics$/, "")
           matches = body.scan(%r{class="Lyrics__Container-.*?>(.*?)</div><div class="LyricsFooter})
 
           lyrics = matches.join("\n")
 
           if lyrics
-            lyrics = CGI.unescape(lyrics).gsub(%r{<br/?>}, "  \n").gsub(%r{</?.*?>}, '').gsub(/&#x27;/, "'")
+            lyrics = CGI.unescape(lyrics).gsub(%r{<br/?>}, "  \n").gsub(%r{</?.*?>}, "").gsub(/&#x27;/, "'")
             "#{title}\n\n#{lyrics.code_indent}\n"
           else
             false
@@ -117,6 +136,6 @@ module SL
     # method takes a title, a type (:search for a search plugin), and the
     # unique class. When running #register within the search class itself,
     # you can just use `self`.
-    SL::Searches.register 'lyrics', :search, self
+    SL::Searches.register "lyrics", :search, self
   end
 end

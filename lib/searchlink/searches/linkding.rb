@@ -9,8 +9,22 @@ module SL
         {
           trigger: "(ld|ding)",
           searches: [
-            [["ld", "ding"], "Linkding Bookmark Search"],
+            [%w[ld ding], "Linkding Bookmark Search"]
           ],
+          config: [
+            {
+              description: "Linkding server URL.",
+              key: "linkding_server",
+              value: "''",
+              required: true
+            },
+            {
+              description: "Linkding API key.\nYou can find your api key here: https://your_server/settings/integrations",
+              key: "linkding_api_key",
+              value: "''",
+              required: true
+            }
+          ]
         }
       end
 
@@ -21,9 +35,9 @@ module SL
         bookmarks = bookmarks.force_encoding("utf-8")
         bookmarks.gsub!(/[^[:ascii:]]/) do |non_ascii|
           non_ascii.force_encoding("utf-8")
-            .encode("utf-16be")
-            .unpack("H*")[0]
-            .gsub(/(....)/, '\u\1')
+                   .encode("utf-16be")
+                   .unpack1("H*")
+                   .gsub(/(....)/, '\u\1')
         end
 
         bookmarks.gsub!(/[\u{1F600}-\u{1F6FF}]/, "")
@@ -108,7 +122,7 @@ module SL
         cache
       end
 
-      # Search pinboard bookmarks
+      # Search linkding bookmarks
       # Begin query with '' to force exact matching (including description text)
       # Regular matching searches for each word of query and scores the bookmarks
       # exact matches in title get highest score
@@ -120,13 +134,13 @@ module SL
       #
       # Exact matching is case and punctuation insensitive
       def search(_, search_terms, link_text)
-        unless SL.config["linkding_server"]
+        unless SL.config["linkding_server"] && !SL.config["linkding_server"].empty?
           SL.add_error("Missing Linkding server",
                        "add it to your configuration (linkding_server: https://YOUR_SERVER)")
           return false
         end
 
-        unless SL.config["linkding_api_key"]
+        unless SL.config["linkding_api_key"] && !SL.config["linkding_api_key"].empty?
           SL.add_error("Missing Linkding API token",
                        "Find your api key at https://your_server/settings/integrations and add it
                         to your configuration (linkding_api_key: YOURKEY)")
@@ -177,14 +191,14 @@ module SL
           full_text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
 
           score = if title_tags.matches_exact(search_terms)
-              14.0
-            elsif full_text.matches_exact(search_terms)
-              13.0
-            elsif full_text.matches_any(search_terms)
-              full_text.matches_score(search_terms)
-            else
-              0
-            end
+                    14.0
+                  elsif full_text.matches_exact(search_terms)
+                    13.0
+                  elsif full_text.matches_any(search_terms)
+                    full_text.matches_score(search_terms)
+                  else
+                    0
+                  end
 
           return [bm["url"], bm["title"]] if score == 14
 
@@ -194,7 +208,7 @@ module SL
                          score: score,
                          href: bm["url"],
                          title: bm["title"],
-                         date: bm["date_added"],
+                         date: bm["date_added"]
                        })
         end
 
