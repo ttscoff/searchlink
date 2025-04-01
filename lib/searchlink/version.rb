@@ -31,9 +31,7 @@ module SL
 
       File.open(cachefile, "w") { |f| f.puts("#{last_time.strftime('%c')}|#{latest}") }
 
-      if latest_tag && current.older_than(latest)
-        return "SearchLink v#{current}, #{latest} available. Run \"update\" to download."
-      end
+      return "SearchLink v#{current}, #{latest} available. Run \"update\" to download." if latest_tag && current.older_than(latest)
 
       "SearchLink v#{current}"
     end

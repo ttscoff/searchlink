@@ -35,9 +35,7 @@ module SL
       else
         case search_type
         when /^r$/ # simple replacement
-          if SL.config["validate_links"] && !SL::URL.valid_link?(search_terms)
-            return [false, "Link not valid: #{search_terms}", link_text]
-          end
+          return [false, "Link not valid: #{search_terms}", link_text] if SL.config["validate_links"] && !SL::URL.valid_link?(search_terms)
 
           title = SL::URL.title(search_terms) || search_terms
 

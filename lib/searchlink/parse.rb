@@ -26,9 +26,7 @@ module SL
 
       # Check for new version
       latest_version = SL.new_version?
-      if latest_version
-        SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->")
-      end
+      SL.add_output("<!-- v#{latest_version} available, run SearchLink on the word 'update' to install. -->") if latest_version
 
       @links = {}
       SL.footer = []
@@ -146,9 +144,7 @@ module SL
             end
 
             counter_links += 1
-            unless SILENT
-              $stderr.print("\033[0K\rProcessed: #{counter_links} of #{total_links}, #{counter_errors} errors. ")
-            end
+            $stderr.print("\033[0K\rProcessed: #{counter_links} of #{total_links}, #{counter_errors} errors. ") unless SILENT
 
             @link_text = this_match[1] || ""
             link_info = parse_arguments(this_match[2].strip).strip || ""
@@ -228,9 +224,7 @@ module SL
                 search_terms = @link_text if search_terms == ""
 
                 # if the input starts with a +, append it to the link text as the search terms
-                if search_terms.strip =~ /^\+[^+]/
-                  search_terms = "#{@link_text} #{search_terms.strip.sub(/^\+\s*/, '')}"
-                end
+                search_terms = "#{@link_text} #{search_terms.strip.sub(/^\+\s*/, '')}" if search_terms.strip =~ /^\+[^+]/
 
                 # if the end of input contain "^", copy to clipboard instead of STDOUT
                 SL.clipboard = true if search_terms =~ /(!!)?\^(!!)?$/
@@ -270,9 +264,7 @@ module SL
                 search_terms = false
               end
 
-              if search_type && !search_terms.empty?
-                search_type, search_terms = custom_search(search_type, search_terms)
-              end
+              search_type, search_terms = custom_search(search_type, search_terms) if search_type && !search_terms.empty?
 
               SL.add_query(query) if query
 
@@ -683,9 +675,7 @@ module SL
           else
             highest_token = 0
             tokens.each do |token|
-              if token =~ /(\d+)[ds]?$/ && Regexp.last_match(1).to_i > highest_token
-                highest_token = Regexp.last_match(1).to_i
-              end
+              highest_token = Regexp.last_match(1).to_i if token =~ /(\d+)[ds]?$/ && Regexp.last_match(1).to_i > highest_token
             end
             terms_p = search_terms.split(/ +/)
             if terms_p.length > highest_token

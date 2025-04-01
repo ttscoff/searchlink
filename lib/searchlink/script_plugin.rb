@@ -55,9 +55,7 @@ module SL
           end
 
           %w[url title link_text].each do |key|
-            unless res.key?(key)
-              raise PluginError.new(%("#{File.basename(@script)}" output missing key "#{key}"), plugin: @filename)
-            end
+            raise PluginError.new(%("#{File.basename(@script)}" output missing key "#{key}"), plugin: @filename) unless res.key?(key)
           end
 
           [res["url"], res["title"], res["link_text"]]

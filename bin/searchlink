@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-SILENT = ENV["SL_SILENT"] =~ /false/i ? false : true
-NO_CONFIRM = ENV["SL_NO_CONFIRM"] =~ /true/i ? true : false
+SILENT = ENV.fetch("SL_SILENT", nil) =~ /false/i ? false : true
+NO_CONFIRM = ENV.fetch("SL_NO_CONFIRM", nil) =~ /true/i ? true : false
 $LOAD_PATH.unshift File.join(__dir__, "..")
 
 # import
@@ -23,7 +23,17 @@ SL::Searches.load_custom
 overwrite = true
 backup = SL.config["backup"]
 
-if !ARGV.empty?
+if ARGV.empty?
+  input = $stdin.read.scrubup
+  sl.parse(input)
+  output = SL.output&.join
+
+  if SL.clipboard
+    print input
+  else
+    print output
+  end
+else
   files = []
   ARGV.each do |arg|
     case arg
@@ -47,7 +57,7 @@ if !ARGV.empty?
 
   files.each do |file|
     if File.exist?(file) && `file -b "#{file}"|grep -c text`.to_i.positive?
-      input = IO.read(file).scrubup
+      input = File.read(file).scrubup
 
       backup_file = "#{file}.bak"
       backup_file = "#{file}.bak 1" if File.exist?(backup_file)
@@ -56,7 +66,7 @@ if !ARGV.empty?
       FileUtils.cp(file, backup_file) if backup && overwrite
 
       sl.parse(input)
-      output = SL.output&.join("")
+      output = SL.output&.join
 
       next unless output
 
@@ -70,15 +80,5 @@ if !ARGV.empty?
     else
       warn "Error reading #{file}"
     end
-  end
-else
-  input = $stdin.read.scrubup
-  sl.parse(input)
-  output = SL.output&.join("")
-
-  if SL.clipboard
-    print input
-  else
-    print output
   end
 end

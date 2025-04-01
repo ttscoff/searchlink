@@ -1,3 +1,14 @@
+### 2.3.87
+
+2025-04-01 10:08
+
+#### FIXED
+
+- Don't use custom plist library, fixes Safari bookmark search
+- Fall back to Library/Services location for Preview URL Service
+- Preview URL Service search not working in Service because __dir__ not defined
+- Import official Plist gem into compiled script
+
 ### 2.3.86
 
 2025-03-31 08:54

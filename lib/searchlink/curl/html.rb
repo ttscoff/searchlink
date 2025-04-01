@@ -404,9 +404,7 @@ module Curl
       headers = headers.nil? ? "" : headers.map { |h, v| %(-H "#{h}: #{v}") }.join(" ")
       compress = compressed ? "--compressed" : ""
       source = `#{@curl} -#{flags} #{compress} #{headers} '#{url}' 2>/dev/null`
-      if source.nil? || source.empty?
-        source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null`
-      end
+      source = `#{@curl} -#{flags} #{compress} -A "#{agent}" #{headers} '#{url}' 2>/dev/null` if source.nil? || source.empty?
 
       return false if source.nil? || source.empty?
 
