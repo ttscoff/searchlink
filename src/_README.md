@@ -5,7 +5,6 @@ A macOS Service for Markdown writers that allows you to add hyperlinks while wri
 <!--README-->
 ### Introduction
 
-<!--JEKYLL{% img alignright /uploads/2023/01/searchlink-text-short-400.jpg 400 142 "searchlink-text-short-400.jpg" %}-->
 
 <!--GITHUB-->
 ![](images/searchlink-text-short-400.jpg)
@@ -14,6 +13,8 @@ A macOS Service for Markdown writers that allows you to add hyperlinks while wri
 SearchLink is a System Service (Quick Action) for macOS which searches multiple web sources and automatically generates Markdown links for text. It allows you to write without leaving your editor to run web searches for the items you want to link to. It's great for blogging, and excellent for creating podcast show notes, among other things.
 
 It works in a few ways:
+
+<!--JEKYLL{% img alignright /uploads/2023/01/searchlink-text-short-400.jpg 400 142 "searchlink-text-short-400.jpg" %}-->
 
 - Run a quick search on a single selection, and have the selection replaced with the resulting url (and optional title) as a Markdown inline link, a Markdown reference, or just a plain url.
 - Run a single search and have the results put on your clipboard, perfect for using from scripts and launchers (e.g. LaunchBar or Alfred).
@@ -75,7 +76,7 @@ SearchLink can also be installed via Homebrew, thanks to [@TomBen](https://githu
 <!--JEKYLL[Latest release on GitHub](https://github.com/ttscoff/searchlink/releases/latest/){:.btn.btn--alt}-->
 
 <!--GITHUB-->
-[Download SearchLink <!--VER-->2.3.73<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
+[Download SearchLink <!--VER-->2.3.74<!--END VER-->](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
 <!--END GITHUB-->
 
 If you're interested in installing SearchLink as a command line tool, [see the wiki](https://github.com/ttscoff/searchlink/wiki/Using-From-The-Command-Line).
