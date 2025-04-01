@@ -176,7 +176,7 @@ class Workflow
 
     source.import_markers!(File.join(File.dirname(source_file), ".."))
 
-    source.sub(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, '..')))}/, "")
+    source.sub(/#{Regexp.escape(%($LOAD_PATH.unshift File.join(__dir__, "..")))}/, "")
   end
 
   def sign

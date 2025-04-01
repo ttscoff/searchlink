@@ -89,8 +89,12 @@ module SL
 
       # Checks if the Preview URL.workflow exists, return path if it does.
       def popup_path
-        path = File.expand_path(File.join(__dir__, "../../helpers/Preview URL.workflow"))
-        path = File.expand_path("~/Library/Services/Preview URL.workflow") unless File.exist?(path)
+        begin
+          path = File.expand_path(File.join(__dir__, "../../helpers/Preview URL.workflow"))
+          path = File.expand_path("~/Library/Services/Preview URL.workflow") unless File.exist?(path)
+        rescue
+          path = File.expand_path("~/Library/Services/Preview URL.workflow")
+        end
         return false unless File.exist?(path)
 
         path
