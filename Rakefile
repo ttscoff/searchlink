@@ -18,7 +18,6 @@ desc "Alias for build"
 task package: :build
 
 desc "Run test suite"
-# task test: %i[rubocop spec]
 task test: %i[rubocop spec]
 
 RSpec::Core::RakeTask.new

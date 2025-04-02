@@ -67,7 +67,7 @@ module SL
         output_title = result["title"]
         output_title.remove_seo!(output_url) if SL.config["remove_seo"]
 
-        output_url = SL.first_image if search_type =~ /img$/
+        output_url = SL.first_image(output_url) if search_type =~ /img$/
 
         [output_url, output_title, link_text]
       rescue StandardError

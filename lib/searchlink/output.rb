@@ -3,12 +3,17 @@
 module SL
   class << self
     attr_writer :titleize, :clipboard, :output, :footer, :line_num,
-                :match_column, :match_length, :originput, :errors, :report, :printout,
-                :shortener
+                :match_column, :match_length, :originput, :errors, :error_count,
+                :report, :printout, :shortener
 
     # Whether or not to add a title to the output
     def titleize
       @titleize ||= false
+    end
+
+    # Count of errors
+    def error_count
+      @error_count ||= 0
     end
 
     # Whether or not to copy results to clipbpard
@@ -106,11 +111,16 @@ module SL
     # @return     [String] The link.
     #
     def make_link(type, text, url, title: false, force_title: false)
-      title = title.gsub(/\P{Print}|\p{Cf}/, "") if title
-      text = title || SL::URL.title(url) if SL.titleize && (!text || text.strip.empty?)
-      text = text ? text.strip : title
+      is_image = url =~ /(gif|jpe?g|png|webp)(?:\?.*?)?$/ ? true : false
+      if is_image
+        title = text || File.basename(url).sub(/\?.*$/, "")
+        text = title if text.nil? || text.strip.empty?
+      else
+        title = title.gsub(/\P{Print}|\p{Cf}/, "") if title
+        text = title || SL::URL.title(url) if SL.titleize && (!text || text.strip.empty?)
+        text = text ? text.strip : title
+      end
       title = title && (SL.config["include_titles"] || force_title) ? %( "#{title.clean}") : ""
-
       title = title.gsub(/[ \t]+/, " ")
 
       url.add_query_string!
@@ -123,8 +133,7 @@ module SL
       when :ref_link
         %([#{text}][#{url}])
       when :inline
-        image = url =~ /\.(gif|jpe?g|png|webp)$/ ? "!" : ""
-        %(#{image}[#{text}](#{url}#{title}))
+        %(#{is_image ? '!' : ''}[#{text}](#{url}#{title}))
       end
     end
 
@@ -214,6 +223,8 @@ module SL
       end
       SL.errors[type] ||= []
       SL.errors[type].push("(#{position}): #{str}")
+      SL.error_count ||= 0
+      SL.error_count += 1
     end
 
     # Add to query string

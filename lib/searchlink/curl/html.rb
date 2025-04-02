@@ -142,7 +142,7 @@ module Curl
     def images
       output = []
       %w[og:image twitter:image].each do |src|
-        next unless @meta.key?(src)
+        next unless @meta&.key?(src)
 
         output << {
           type: "opengraph",

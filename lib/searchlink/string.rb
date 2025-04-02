@@ -3,6 +3,32 @@
 module SL
   # String helpers
   class ::String
+    # Scan a string for links
+    # @return     [Hash] Hash of links
+    def scan_links
+      links = {}
+      scan(/\[(.*?)\]:\s+(.*?)\n/).each { |match| links[match[1].strip] = match[0] }
+      links
+    end
+
+    # Count the indent level of a string
+    # @return     [Integer] The indent level
+    def indent_level
+      return 0 if empty?
+
+      gsub!(/^    /, "\t") while self =~ /^    /
+      indent = match(/^\t+/)
+      return 0 unless indent
+
+      indent[0].length
+    end
+
+    # Count the links in a string
+    # @return     [Integer] The number of links
+    def count_links
+      scan(/\[(.*?)\]\((.*?)\)/).length
+    end
+
     # Quote a YAML value if needed
     def yaml_val
       yaml = YAML.safe_load("key: '#{self}'")
