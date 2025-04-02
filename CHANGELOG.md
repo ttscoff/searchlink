@@ -1,3 +1,13 @@
+### 2.3.88
+
+2025-04-02 07:55
+
+#### FIXED
+
+- Image search fixes
+- Recognize indented paragraphs in lists, compensate for indented code blocks
+- Force https:// for urls without protocol
+
 ### 2.3.87
 
 2025-04-01 10:08
