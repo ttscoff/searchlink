@@ -176,7 +176,8 @@ module SL
 
     def first_image(url)
       images = Curl::Html.new(url).images
-      images.filter { |img| img[:type] == "img" }&.first[:src]
+      images.filter! { |img| img[:type] == "img" }
+      images.first[:src] if images.any?
     end
   end
 end

@@ -111,6 +111,7 @@ module SL
     # @return     [String] The link.
     #
     def make_link(type, text, url, title: false, force_title: false)
+      url.sub!(%r{^//}, "https://")
       is_image = url =~ /(gif|jpe?g|png|webp)(?:\?.*?)?$/ ? true : false
       if is_image
         title = text || File.basename(url).sub(/\?.*$/, "")
