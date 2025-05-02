@@ -65,7 +65,7 @@ module SL
 
     # Extract query string from search string
     def extract_query(known_queries = {})
-      string = gsub(/\?((\S+?)=(\S+?)(?=&|$|\s))+/) do |mtch|
+      string = gsub(/(?<= )\?((\S+?)=(\S+?)(?=&|$|\s))+/) do |mtch|
         tokens = mtch.sub(/^\?/, "").split("&")
         tokens.each do |token|
           key, value = token.split("=")

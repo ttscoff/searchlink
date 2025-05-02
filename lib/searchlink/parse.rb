@@ -689,6 +689,7 @@ module SL
 
         @link_text = search_terms if !SL.titleize && @link_text == ""
         v = parse_arguments(v, { no_restore: true })
+
         query, v = v.extract_query({})
 
         SL.add_query(query)

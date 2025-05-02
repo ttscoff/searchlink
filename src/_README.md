@@ -89,7 +89,9 @@ If you're interested in installing SearchLink as a command line tool, [see the w
 
 All of the [SearchLink searches][searches] are defined using a [plugin architecture][plugins wiki]. You can see more examples and fodder for building your own in the [SearchLink Plugins repository][Plugins].
 
-### Bonus for LaunchBar users
+### Bonus for LaunchBar and Alfred users
+
+#### LaunchBar
 
 With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ⌘C will copy it to your clipboard.
 
@@ -99,5 +101,9 @@ Note that you don't need the normal "!!" at the end of the search string to spec
 <!--GITHUB-->
 [View the Script](https://gist.github.com/ttscoff/9067625)
 <!--END GITHUB-->
+
+#### Alfred
+
+Alfred users should check out [Slink from Stephen Millard](https://www.thoughtasylum.com/alfred/alfred_slink_for_searchlink/)!
 
 <!--END README-->
