@@ -1,3 +1,11 @@
+### 2.3.89
+
+2025-05-02 05:40
+
+#### FIXED
+
+- Custom searches containing ? were being truncated
+
 ### 2.3.88
 
 2025-04-02 07:55
