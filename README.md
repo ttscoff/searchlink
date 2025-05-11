@@ -19,16 +19,13 @@ This has replaced the "Auto-link web search" service in the [Markdown Service To
 
 Here's a video tutorial from Aaron Dowd ([@thepodcastdude](https://twitter.com/thepodcastdude)):
 
-
-
-
-[![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
+- [![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
 
 Also see:
 
 Accurate searches for better results:
 
-[![Accurate searches for better results](http://img.youtube.com/vi/PBIfZh60jOY/0.jpg)](https://youtu.be/PBIfZh60jOY)]
+[![Accurate searches for better results](http://img.youtube.com/vi/PBIfZh60jOY/0.jpg)](https://youtu.be/PBIfZh60jOY)
 
 Browser history, bookmarks, and Pinboard search:
 

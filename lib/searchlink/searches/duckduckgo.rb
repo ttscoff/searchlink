@@ -59,6 +59,14 @@ module SL
         # output_url = CGI.unescape(result)
         output_url = result
 
+        begin
+          uri = URI.parse(output_url)
+          uri.path = URI::DEFAULT_PARSER.escape(uri.path)
+          output_url = uri.to_s
+        rescue URI::InvalidURIError
+          output_url = URI::DEFAULT_PARSER.escape(output_url)
+        end
+
         output_title = if SL.config["include_titles"] || SL.titleize
                          SL::URL.title(output_url) || ""
                        else
