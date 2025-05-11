@@ -1,3 +1,11 @@
+### 2.3.90
+
+2025-05-11 16:07
+
+#### FIXED
+
+- URL escaping when using default DuckDuckGo search
+
 ### 2.3.89
 
 2025-05-02 05:40
