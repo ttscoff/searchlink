@@ -42,17 +42,35 @@ module SL
           "Authorization" => "Bearer #{SL.config['tinyurl_access_token']}"
         }
         data_obj = {
-          "url" => url
+          "url" => url,
+          "domain" => "tinyurl.com"
         }
-        data = Curl::Json.new("https://tinyurl.ph/api/url/add", data: data_obj.to_json, headers: headers,
-                                                                symbolize_names: true)
+        data = Curl::Json.new("https://api.tinyurl.com/create",
+                              data: data_obj.to_json,
+                              headers: headers,
+                              symbolize_names: true)
 
-        if data.json[:error].positive?
-          SL.add_error("Error creating tinyurl", data.json[:error])
-          return false
+        return false unless data && data.json
+
+        json = data.json
+
+        if json.is_a?(Hash)
+          errors = json[:errors]
+          code = json[:code]
+          if (errors.is_a?(Array) && !errors.empty?) || (code && code.to_i != 0)
+            SL.add_error("Error creating tinyurl", errors || code)
+            return false
+          end
+
+          data_hash = json[:data] || {}
+          link = data_hash[:tiny_url]
+        else
+          link = false
         end
 
-        data.json[:shorturl]
+        return false unless link && SL::URL.valid_link?(link)
+
+        link
       end
 
       def tinyurl_config?

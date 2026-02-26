@@ -13,6 +13,90 @@ describe "CLI" do
     end
   end
 
+  describe SL::KagiSearch do
+    let(:link_text) { "Brett Terpstra" }
+    before do
+      allow(SL).to receive(:notify)
+      allow(SL).to receive(:add_error)
+    end
+
+    context "when performing a Kagi search (!k)" do
+      it "falls back to DuckDuckGo when no API key is configured" do
+        allow(described_class).to receive(:api_key?).and_return(false)
+        allow(SL).to receive(:ddg).and_return(["https://example.com", "Example", link_text])
+
+        url, title, text = described_class.search("k", "brett terpstra", link_text)
+
+        expect(SL).to have_received(:ddg).with("brett terpstra", link_text, google: false)
+        expect(url).to eq("https://example.com")
+        expect(title).to eq("Example")
+        expect(text).to eq(link_text)
+      end
+
+      it "returns first Kagi result when API key and response are valid" do
+        described_class.instance_variable_set(:@api_key, "test_kagi_key")
+        allow(described_class).to receive(:api_key?).and_return(true)
+
+        kagi_response = {
+          meta: { id: "id", api_balance: 9.0 },
+          data: [
+            {
+              url: "https://brettterpstra.com/",
+              title: "Brett Terpstra",
+              snippet: "Brett Terpstra is a writer and developer..."
+            }
+          ]
+        }
+        json_double = instance_double(Curl::Json, code: "200", json: kagi_response)
+        allow(Curl::Json).to receive(:new).and_return(json_double)
+
+        url, title, text = described_class.search("k", "brett terpstra", link_text)
+
+        expect(url).to eq("https://brettterpstra.com/")
+        expect(title).to eq("Brett Terpstra")
+        expect(text).to eq(link_text)
+      end
+    end
+
+    context "when performing a FastGPT query (!gpt)" do
+      it "returns an embed with output and references when API key and response are valid" do
+        described_class.instance_variable_set(:@api_key, "test_kagi_key")
+        allow(described_class).to receive(:api_key?).and_return(true)
+
+        fastgpt_response = {
+          meta: { id: "id", api_balance: 9.0 },
+          data: {
+            output: "Brett Terpstra[1] is a writer 【2】 and developer .",
+            references: [
+              { title: "BrettTerpstra.com", snippet: "...", url: "https://brettterpstra.com/" }
+            ]
+          }
+        }
+        json_double = instance_double(Curl::Json, code: "200", json: fastgpt_response)
+        allow(Curl::Json).to receive(:new).and_return(json_double)
+
+        kind, body, text = described_class.search("gpt", "Who is Brett Terpstra", link_text)
+
+        expect(kind).to eq("embed")
+        expect(body).to include("Brett Terpstra is a writer and developer.")
+        expect(body).not_to match(/[\[\u3010]\d+[\]\u3011]/)
+        expect(body).not_to include("developer .")
+        expect(body).to include("https://brettterpstra.com/")
+        expect(text).to eq(link_text)
+      end
+
+      it "returns a fallback embed when Kagi is not configured" do
+        allow(described_class).to receive(:api_key?).and_return(false)
+
+        kind, body, text = described_class.search("gpt", "Who is Brett Terpstra", link_text)
+
+        expect(kind).to eq("embed")
+        expect(body).to include("Kagi FastGPT is not configured")
+        expect(text).to eq(link_text)
+      end
+    end
+  end
+
   # Array of searches and results
   # [[search, expected result],...]
   searches = [
@@ -94,6 +178,8 @@ describe "CLI" do
     # DuckDuckGo
     ["* DuckDuckGo search: [%](!ddg brett terpstra Keybinding madness part 2)",
      "the-keys-that-bind-keybinding-madness-part-2/"],
+    # Kagi (falls back to DDG if not configured)
+    ["* A Kagi search [brett terpstra](!k)", "brettterpstra.com"],
   ]
 
   searches.each.with_index do |search, i|
