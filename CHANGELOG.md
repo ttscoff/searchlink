@@ -6,13 +6,7 @@
 
 - Add Kagi search +fastGPT
 - Search **Zen** history and bookmarks with `!hz`, `!hzh`, and `!hzb`
-
-#### IMPROVED
-
 - **Linkding** `!ld` searches the server, including archived bookmarks, notes, and `#tags`
-
-#### FIXED
-
 - **Firefox** and **Zen** history use the active profile and include recent visits
 - Multi-browser **history** shortcuts work in any order
 - **Linkding** searches keep the original **link text**
