@@ -3,8 +3,11 @@
 A macOS Service for Markdown writers that allows you to add hyperlinks while writing without switching to your browser.
 
 <!--README-->
-### Introduction
+![Gem Version](https://img.shields.io/gem/v/searchlink) [![srchl.ink](https://img.shields.io/badge/Homepage-%2300afb9)](https://srchl.ink) [![Privacy Policy](https://img.shields.io/badge/Privacy-%23fe6d73)](https://srchl.ink/privacy.html) ![MIT License](https://img.shields.io/github/license/ttscoff/searchlink)
 
+[Homepage](https://srchl.ink) | [Privacy Policy](https://srchl.ink/privacy.html)
+
+### Introduction
 
 <!--GITHUB-->
 ![](images/searchlink-text-short-400.jpg)

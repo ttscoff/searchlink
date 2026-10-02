@@ -1,6 +1,5 @@
-![Gem Version](https://img.shields.io/gem/v/searchlink)[![srchl.ink](https://img.shields.io/badge/Homepage-%2300afb9)](https://srchl.ink)[![Privacy Policy](https://img.shields.io/badge/Privacy-%23fe6d73)](https://srchl.ink/privacy.html)![MIT License](https://img.shields.io/github/license/ttscoff/searchlink)
 
-
+![Gem Version](https://img.shields.io/gem/v/searchlink) [![srchl.ink](https://img.shields.io/badge/Homepage-%2300afb9)](https://srchl.ink) [![Privacy Policy](https://img.shields.io/badge/Privacy-%23fe6d73)](https://srchl.ink/privacy.html) ![MIT License](https://img.shields.io/github/license/ttscoff/searchlink)
 
 [Homepage](https://srchl.ink) | [Privacy Policy](https://srchl.ink/privacy.html)
 
@@ -9,9 +8,12 @@
 
 ![](images/searchlink-text-short-400.jpg)
 
+
 SearchLink is a System Service (Quick Action) for macOS which searches multiple web sources and automatically generates Markdown links for text. It allows you to write without leaving your editor to run web searches for the items you want to link to. It's great for blogging, and excellent for creating podcast show notes, among other things.
 
 It works in a few ways:
+
+
 
 - Run a quick search on a single selection, and have the selection replaced with the resulting url (and optional title) as a Markdown inline link, a Markdown reference, or just a plain url.
 - Run a single search and have the results put on your clipboard, perfect for using from scripts and launchers (e.g. LaunchBar or Alfred).
@@ -21,13 +23,16 @@ This has replaced the "Auto-link web search" service in the [Markdown Service To
 
 Here's a video tutorial from Aaron Dowd ([@thepodcastdude](https://twitter.com/thepodcastdude)):
 
-- [![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
+
+
+
+[![Intro to SearchLink on YouTube](http://img.youtube.com/vi/QD-u6JP83us/0.jpg)](http://www.youtube.com/watch?v=QD-u6JP83us "Intro to SearchLink")
 
 Also see:
 
 Accurate searches for better results:
 
-[![Accurate searches for better results](http://img.youtube.com/vi/PBIfZh60jOY/0.jpg)](https://youtu.be/PBIfZh60jOY)
+[![Accurate searches for better results](http://img.youtube.com/vi/PBIfZh60jOY/0.jpg)](https://youtu.be/PBIfZh60jOY)]
 
 Browser history, bookmarks, and Pinboard search:
 
@@ -54,7 +59,7 @@ SearchLink can also be installed via Homebrew, thanks to [@TomBen](https://githu
 
 
 
-[Download SearchLink 2.3.65](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
+[Download SearchLink 2.3.92](https://github.com/ttscoff/searchlink/releases/latest/download/SearchLink.zip).
 
 
 If you're interested in installing SearchLink as a command line tool, [see the wiki](https://github.com/ttscoff/searchlink/wiki/Using-From-The-Command-Line).
@@ -65,9 +70,11 @@ If you're interested in installing SearchLink as a command line tool, [see the w
 [Plugins]: https://github.com/ttscoff/searchlink-plugins
 [searches]: https://github.com/ttscoff/searchlink/tree/main/lib/searchlink/searches
 
-All of [SearchLink's searches][searches] are defined using a [plugin architecture][plugins wiki]. You can see more examples and fodder for building your own in the [SearchLink Plugins repository][Plugins].
+All of the [SearchLink searches][searches] are defined using a [plugin architecture][plugins wiki]. You can see more examples and fodder for building your own in the [SearchLink Plugins repository][Plugins].
 
-### Bonus for LaunchBar users
+### Bonus for LaunchBar and Alfred users
+
+#### LaunchBar
 
 With the AppleScript below saved to `~/Library/Application Support/LaunchBar/Actions/Instant Search.scpt`, you can use SearchLink as a launcher for the web. Load the action in LaunchBar, type Space and enter a SearchLink simple query (just text with optional !arg at the beginning). When you hit Enter it will grab the first link and load it in the Open URL action. Enter again will open it in your browser, ???C will copy it to your clipboard.
 
@@ -77,4 +84,8 @@ Note that you don't need the normal "!!" at the end of the search string to spec
 
 [View the Script](https://gist.github.com/ttscoff/9067625)
 
+
+#### Alfred
+
+Alfred users should check out [Slink from Stephen Millard](https://www.thoughtasylum.com/alfred/alfred_slink_for_searchlink/)!
 
