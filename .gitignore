@@ -74,3 +74,5 @@ searchlink.taskpaper
 **/.DS_Store
 .r_completions~
 *.code-workspace
+.cursor
+.github

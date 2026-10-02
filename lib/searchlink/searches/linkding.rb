@@ -1,8 +1,16 @@
 # frozen_string_literal: true
 
 module SL
+  # Search a Linkding instance.
+  #
+  # Linkding authenticates with an API token and lists bookmarks at
+  # GET /api/bookmarks/. The q parameter uses the same search syntax as the
+  # Linkding UI (words, "phrases", #tags, and/or/not). Results are ranked
+  # the same way as Pinboard: an exact title or tag match wins, then an exact
+  # match in the description or notes, then the newest partial match.
   class LinkdingSearch
-    LINKDING_CACHE = SL::Util.cache_file_for("linkding")
+    PAGE_SIZE = 100
+    MAX_PAGES = 10
 
     class << self
       def settings
@@ -13,13 +21,13 @@ module SL
           ],
           config: [
             {
-              description: "Linkding server URL.",
+              description: "Linkding server URL, for example https://links.example.com",
               key: "linkding_server",
               value: "''",
               required: true
             },
             {
-              description: "Linkding API key.\nYou can find your api key here: https://your_server/settings/integrations",
+              description: "Linkding API token.\nCreate one under Settings, Integrations on your Linkding server.",
               key: "linkding_api_key",
               value: "''",
               required: true
@@ -28,197 +36,157 @@ module SL
         }
       end
 
-      def get_json(call)
-        curl = TTY::Which.which("curl")
-        bookmarks = `#{curl} -SsL -H "Authorization: Token #{SL.config["linkding_api_key"]}" "#{SL.config["linkding_server"]}#{call}"`
-
-        bookmarks = bookmarks.force_encoding("utf-8")
-        bookmarks.gsub!(/[^[:ascii:]]/) do |non_ascii|
-          non_ascii.force_encoding("utf-8")
-                   .encode("utf-16be")
-                   .unpack1("H*")
-                   .gsub(/(....)/, '\u\1')
+      # Search Linkding bookmarks.
+      #
+      # Begin the query with ' to require an exact phrase. Quoted phrases,
+      # #tags, and and/or/not are passed through to Linkding.
+      #
+      # @return [Array, false] [url, title, link_text] or false when nothing matches
+      def search(_, search_terms, link_text)
+        unless server
+          SL.add_error("Missing Linkding server",
+                       "Add your server URL to the configuration (linkding_server: https://YOUR_SERVER)")
+          return false
         end
 
-        bookmarks.gsub!(/[\u{1F600}-\u{1F6FF}]/, "")
+        unless api_key
+          SL.add_error("Missing Linkding API token",
+                       "Create a token under Settings, Integrations and add it to the configuration (linkding_api_key: YOURKEY)")
+          return false
+        end
 
-        JSON.parse(bookmarks)
+        query, exact = normalize_query(search_terms)
+        bookmarks = search_bookmarks(query)
+        return false if bookmarks.nil? || bookmarks.empty?
+
+        best = best_bookmark(bookmarks, query, exact: exact)
+        return false unless best
+
+        [best["url"], bookmark_title(best), link_text]
       end
 
-      def get_linkding_bookmarks
-        TTY::Which.which("curl")
-        call = "/api/bookmarks/?limit=8000&format=json"
+      def server
+        value = configured_value("linkding_server")
+        return nil unless value
 
-        json = get_json(call)
-        bookmarks = json["results"]
+        value.sub(%r{/+\z}, "").sub(%r{/api\z}i, "")
+      end
+
+      def api_key
+        configured_value("linkding_api_key")
+      end
+
+      private
+
+      def configured_value(key)
+        value = SL.config[key].to_s.strip
+        return nil if value.empty? || value == "''"
+
+        value
+      end
+
+      # A leading quote forces an exact phrase, matching Pinboard.
+      # %22 is accepted because some callers hand in an encoded query.
+      def normalize_query(search_terms)
+        terms = search_terms.to_s.gsub("%22", '"').strip
+        if terms =~ /\A'/
+          phrase = terms.gsub(/\A'+|'+\z/, "")
+          [%("#{phrase}"), true]
+        else
+          [terms, false]
+        end
+      end
+
+      def search_bookmarks(query)
+        active = fetch_pages("/api/bookmarks/", query)
+        return nil if active.nil?
+
+        archived = fetch_pages("/api/bookmarks/archived/", query)
+        return nil if archived.nil?
+
+        active + archived
+      end
+
+      # Page with our own offset. Linkding's next URL can point at an
+      # internal hostname, so it is only used as a "more results" flag.
+      def fetch_pages(path, query)
+        bookmarks = []
         offset = 0
 
-        while json["next"]
-          offset += 8000
-          json = get_json(call + "&offset=#{offset}")
-          bookmarks.concat(json["results"])
+        MAX_PAGES.times do
+          json = get_json(path, query, offset)
+          return nil if json.nil?
+
+          page = Array(json["results"])
+          bookmarks.concat(page)
+          offset += PAGE_SIZE
+          break if page.empty? || json["next"].nil? || bookmarks.size >= json["count"].to_i
         end
 
         bookmarks
       end
 
-      def linkding_bookmarks
-        bookmarks = get_linkding_bookmarks
-        updated = Time.now
-        { "update_time" => updated, "bookmarks" => bookmarks }
+      def get_json(path, query, offset)
+        url = "#{server}#{path}?q=#{query.url_encode}&limit=#{PAGE_SIZE}&offset=#{offset}&sort=added_desc"
+        res = Curl::Json.new(url, headers: { "Authorization" => "Token #{api_key}" })
+        return json_error(res) unless res&.code.to_s == "200" && res.json.is_a?(Hash)
+
+        res.json
+      rescue StandardError
+        SL.add_error("Linkding request failed", "Could not search #{server}")
+        nil
       end
 
-      def save_linkding_cache(cache)
-        cachefile = LINKDING_CACHE
-
-        # file = File.new(cachefile,'w')
-        # file = Zlib::GzipWriter.new(File.new(cachefile,'w'))
-        begin
-          File.open(cachefile, "wb") { |f| f.write(Marshal.dump(cache)) }
-        rescue IOError
-          SL.add_error("Linkding cache error", "Failed to write stash to disk")
-          return false
-        end
-        true
+      def json_error(res)
+        detail = res&.json.is_a?(Hash) ? res.json["detail"] : nil
+        SL.add_error("Linkding request failed", detail || "Could not search #{server}")
+        nil
       end
 
-      def linkding_cache
-        refresh_cache = false
-        cachefile = LINKDING_CACHE
+      def best_bookmark(bookmarks, query, exact:)
+        terms = query.gsub(/\A["']+|["']+\z/, "")
+        matches = bookmarks.filter_map { |bm| score_bookmark(bm, terms, exact: exact) }
+        return nil if matches.empty? && exact
 
-        if File.exist?(cachefile)
-          begin
-            # file = IO.read(cachefile) # Zlib::GzipReader.open(cachefile)
-            # cache = Marshal.load file
-            cache = Marshal.load(File.binread(cachefile))
-            # file.close
-          rescue IOError # Zlib::GzipFile::Error
-            SL.add_error("Error loading linkding cache", "IOError reading #{cachefile}")
-            cache = linkding_bookmarks
-            save_linkding_cache(cache)
-          rescue StandardError
-            SL.add_error("Error loading linkding cache", "StandardError reading #{cachefile}")
-            cache = linkding_bookmarks
-            save_linkding_cache(cache)
-          end
-          TTY::Which.which("curl")
-          updated = get_json("/api/bookmarks/?limit=1&format=json")["results"][0]
-          last_bookmark = Time.parse(updated["date_modified"])
-          if cache&.key?("update_time")
-            last_update = cache["update_time"]
-            refresh_cache = true if last_update < last_bookmark
-          else
-            refresh_cache = true
-          end
-        else
-          refresh_cache = true
-        end
-
-        if refresh_cache
-          cache = linkding_bookmarks
-          save_linkding_cache(cache)
-        end
-
-        cache
+        picked = matches.max_by { |match| [match[:score], match[:date]] }
+        picked ? picked[:bookmark] : bookmarks.max_by { |bm| bm["date_added"].to_s }
       end
 
-      # Search linkding bookmarks
-      # Begin query with '' to force exact matching (including description text)
-      # Regular matching searches for each word of query and scores the bookmarks
-      # exact matches in title get highest score
-      # exact matches in description get second highest score
-      # other bookmarks are scored based on the number of words that match
-      #
-      # After sorting by score, bookmarks will be sorted by date and the most recent
-      # will be returned
-      #
-      # Exact matching is case and punctuation insensitive
-      def search(_, search_terms, link_text)
-        unless SL.config["linkding_server"] && !SL.config["linkding_server"].empty?
-          SL.add_error("Missing Linkding server",
-                       "add it to your configuration (linkding_server: https://YOUR_SERVER)")
-          return false
+      def score_bookmark(bookmark, terms, exact:)
+        title_tags = bookmark_text(bookmark, "title", "tag_names")
+        full_text = bookmark_text(bookmark, "title", "description", "notes", "tag_names", "url")
+
+        if exact
+          return nil unless full_text.matches_exact(terms)
+
+          return { score: 14.0, date: bookmark["date_added"].to_s, bookmark: bookmark }
         end
 
-        unless SL.config["linkding_api_key"] && !SL.config["linkding_api_key"].empty?
-          SL.add_error("Missing Linkding API token",
-                       "Find your api key at https://your_server/settings/integrations and add it
-                        to your configuration (linkding_api_key: YOURKEY)")
-          return false
-        end
+        score = if title_tags.matches_exact(terms)
+                  14.0
+                elsif full_text.matches_exact(terms)
+                  13.0
+                elsif full_text.matches_any(terms)
+                  full_text.matches_score(terms)
+                else
+                  0
+                end
+        return nil unless score.positive?
 
-        exact_match = false
-        match_phrases = []
+        { score: score, date: bookmark["date_added"].to_s, bookmark: bookmark }
+      end
 
-        # If search terms start with ''term, only search for exact string matches
-        case search_terms
-        when /^ *'/
-          exact_match = true
-          search_terms.gsub!(/(^ *'+|'+ *$)/, "")
-        when /%22(.*?)%22/
-          match_phrases = search_terms.scan(/%22(\S.*?\S)%22/)
-          search_terms.gsub!(/%22(\S.*?\S)%22/, "")
-        end
+      def bookmark_text(bookmark, *fields)
+        fields.map { |field| field_text(bookmark[field]) }.join(" ")
+      end
 
-        cache = linkding_cache
-        # cache = linkding_bookmarks
-        bookmarks = cache["bookmarks"]
+      def field_text(value)
+        value.is_a?(Array) ? value.join(" ") : value.to_s
+      end
 
-        if exact_match
-          bookmarks.each do |bm|
-            text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
-
-            return [bm["url"], bm["title"]] if text.matches_exact(search_terms)
-          end
-
-          return false
-        end
-
-        unless match_phrases.empty?
-          bookmarks.delete_if do |bm|
-            matched = tru
-            full_text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
-            match_phrases.each do |phrase|
-              matched = false unless full_text.matches_exact(phrase)
-            end
-            !matched
-          end
-        end
-
-        matches = []
-        bookmarks.each do |bm|
-          title_tags = [bm["title"], bm["description"]].join(" ")
-          full_text = [bm["title"], bm["description"], bm["tag_names"].join(" ")].join(" ")
-
-          score = if title_tags.matches_exact(search_terms)
-                    14.0
-                  elsif full_text.matches_exact(search_terms)
-                    13.0
-                  elsif full_text.matches_any(search_terms)
-                    full_text.matches_score(search_terms)
-                  else
-                    0
-                  end
-
-          return [bm["url"], bm["title"]] if score == 14
-
-          next unless score.positive?
-
-          matches.push({
-                         score: score,
-                         href: bm["url"],
-                         title: bm["title"],
-                         date: bm["date_added"]
-                       })
-        end
-
-        return false if matches.empty?
-
-        top = matches.max_by { |bm| [bm[:score], bm[:date]] }
-
-        return false unless top
-
-        [top[:href], top[:title], link_text]
+      def bookmark_title(bookmark)
+        title = bookmark["title"].to_s.strip
+        title.empty? ? bookmark["url"] : title
       end
     end
 

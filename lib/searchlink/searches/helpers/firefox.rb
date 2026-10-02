@@ -1,135 +1,214 @@
 # frozen_string_literal: true
 
+require "open3"
+require "tmpdir"
+
 module SL
   class HistorySearch
+    FIREFOX_DIR = "~/Library/Application Support/Firefox"
+    ZEN_DIR = "~/Library/Application Support/zen"
+
     class << self
+      # Search Firefox history
+      #
+      # @param term [String] the search terms
+      #
+      # @return [Array, false] [url, title, date] or false
+      #
       def search_firefox_history(term)
-        # Firefox history
-        base = File.expand_path("~/Library/Application Support/Firefox/Profiles")
-        Dir.chdir(base)
-        profile = Dir.glob("*default-release")
-        return false unless profile
-
-        src = File.join(base, profile[0], "places.sqlite")
-
-        exact_match = false
-        match_phrases = []
-
-        # If search terms start with ''term, only search for exact string matches
-        case term
-        when /^ *'/
-          exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, "")
-        when /%22(.*?)%22/
-          match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, "")
-        end
-
-        if File.exist?(src)
-          SL.notify("Searching Firefox History", term)
-          tmpfile = "#{src}.tmp"
-          FileUtils.cp(src, tmpfile)
-
-          terms = []
-          terms.push("(moz_places.url NOT LIKE '%search/?%'
-                     AND moz_places.url NOT LIKE '%?q=%'
-                     AND moz_places.url NOT LIKE '%?s=%'
-                     AND moz_places.url NOT LIKE '%duckduckgo.com/?t%')")
-          if exact_match
-            terms.push("(moz_places.url LIKE '%#{term.strip.downcase}%' OR moz_places.title LIKE '%#{term.strip.downcase}%')")
-          else
-            terms.concat(term.split(/\s+/).map do |t|
-              "(moz_places.url LIKE '%#{t.strip.downcase}%' OR moz_places.title LIKE '%#{t.strip.downcase}%')"
-            end)
-            terms.concat(match_phrases.map do |t|
-              "(moz_places.url LIKE '%#{t[0].strip.downcase}%' OR moz_places.title LIKE '%#{t[0].strip.downcase}%')"
-            end)
-          end
-          query = terms.join(" AND ")
-          most_recent = `sqlite3 -json '#{tmpfile}' "select moz_places.title, moz_places.url,
-          datetime(moz_historyvisits.visit_date/1000000, 'unixepoch', 'localtime') as datum
-          from moz_places, moz_historyvisits where moz_places.id = moz_historyvisits.place_id
-          and #{query} order by datum desc limit 1 COLLATE NOCASE;"`.strip
-          FileUtils.rm_f(tmpfile)
-
-          return false if most_recent.strip.empty?
-
-          marks = JSON.parse(most_recent)
-
-          marks.map! do |bm|
-            date = Time.parse(bm["datum"])
-            score = score_mark({ url: bm["url"], title: bm["title"] }, term)
-            { url: bm["url"], title: bm["title"], date: date, score: score }
-          end
-
-          m = marks.max_by { |m| [m[:url].length * -1, m[:score]] }
-
-          [m[:url], m[:title], m[:date]]
-        else
-          false
-        end
+        search_mozilla_history(mozilla_places_db(FIREFOX_DIR), term, "Firefox")
       end
 
+      # Search Firefox bookmarks
+      #
+      # @param term [String] the search terms
+      #
+      # @return [Array, false] [url, title, date, score] or false
+      #
       def search_firefox_bookmarks(term)
-        # Firefox history
-        base = File.expand_path("~/Library/Application Support/Firefox/Profiles")
-        Dir.chdir(base)
-        profile = Dir.glob("*default-release")
-        return false unless profile
+        search_mozilla_bookmarks(mozilla_places_db(FIREFOX_DIR), term, "Firefox")
+      end
 
-        src = File.join(base, profile[0], "places.sqlite")
+      # Search Zen history
+      #
+      # @param term [String] the search terms
+      #
+      # @return [Array, false] [url, title, date] or false
+      #
+      def search_zen_history(term)
+        search_mozilla_history(mozilla_places_db(ZEN_DIR), term, "Zen")
+      end
 
-        exact_match = false
-        match_phrases = []
+      # Search Zen bookmarks
+      #
+      # @param term [String] the search terms
+      #
+      # @return [Array, false] [url, title, date, score] or false
+      #
+      def search_zen_bookmarks(term)
+        search_mozilla_bookmarks(mozilla_places_db(ZEN_DIR), term, "Zen")
+      end
 
-        # If search terms start with ''term, only search for exact string matches
-        if term =~ /^ *'/
-          exact_match = true
-          term.gsub!(/(^ *'+|'+ *$)/, "")
-        elsif term =~ /%22(.*?)%22/
-          match_phrases = term.scan(/%22(\S.*?\S)%22/)
-          term.gsub!(/%22(\S.*?\S)%22/, "")
+      # Locate the places.sqlite database for a Mozilla-based browser. Profiles
+      # listed in profiles.ini are tried in order of preference (install
+      # default, then the profile marked Default=1, then any other profile),
+      # falling back to a *default-release folder.
+      #
+      # @param app_dir [String] the browser's Application Support folder
+      #
+      # @return [String, false] path to places.sqlite or false
+      #
+      def mozilla_places_db(app_dir)
+        base = File.expand_path(app_dir)
+        return false unless File.directory?(base)
+
+        ini = File.join(base, "profiles.ini")
+        candidates = File.exist?(ini) ? mozilla_ini_profiles(File.read(ini), base) : []
+        candidates.concat(Dir.glob(File.join(base, "Profiles", "*default-release")))
+
+        db = candidates.uniq.map { |dir| File.join(dir, "places.sqlite") }.find { |f| File.exist?(f) }
+        db || false
+      end
+
+      # Parse profiles.ini into a list of profile directories, most preferred first
+      #
+      # @param contents [String] the contents of profiles.ini
+      # @param base [String] the folder containing profiles.ini
+      #
+      # @return [Array<String>] absolute profile directories
+      #
+      def mozilla_ini_profiles(contents, base)
+        sections = []
+        contents.each_line do |line|
+          line = line.strip
+          if line =~ /^\[(.+)\]$/
+            sections << { name: Regexp.last_match(1) }
+          elsif line =~ /^([^=]+)=(.*)$/ && sections.any?
+            sections.last[Regexp.last_match(1).strip] = Regexp.last_match(2).strip
+          end
         end
 
-        if File.exist?(src)
-          SL.notify("Searching Firefox Bookmarks", term)
-          tmpfile = "#{src}.tmp"
-          FileUtils.cp(src, tmpfile)
+        absolute = ->(path) { path.start_with?("/") ? path : File.join(base, path) }
 
-          terms = []
-          terms.push("(h.url NOT LIKE '%search/?%'
-                     AND h.url NOT LIKE '%?q=%'
-                     AND h.url NOT LIKE '%?s=%'
-                     AND h.url NOT LIKE '%duckduckgo.com/?t%')")
-          if exact_match
-            terms.push("(h.url LIKE '%#{term.strip.downcase}%' OR h.title LIKE '%#{term.strip.downcase}%')")
-          else
-            terms.concat(term.split(/\s+/).map do |t|
-              "(h.url LIKE '%#{t.strip.downcase}%' OR h.title LIKE '%#{t.strip.downcase}%')"
-            end)
-            terms.concat(match_phrases.map do |t|
-              "(h.url LIKE '%#{t[0].strip.downcase}%' OR h.title LIKE '%#{t[0].strip.downcase}%')"
-            end)
-          end
+        installs = sections.select { |s| s[:name] =~ /^Install/ && s["Default"] }
+                           .map { |s| absolute.call(s["Default"]) }
+                           .sort_by { |dir| -places_mtime(dir) }
+        profiles = sections.select { |s| s[:name] =~ /^Profile/ && s["Path"] }
+        defaults, others = profiles.partition { |s| s["Default"] == "1" }
 
-          query = terms.join(" AND ")
+        installs + (defaults + others).map { |s| absolute.call(s["Path"]) }
+      end
 
-          most_recent = `sqlite3 -json '#{tmpfile}' "select h.url, b.title,
+      # Modification time of a profile's places.sqlite, used to prefer the
+      # most recently used install when several share a profiles.ini
+      #
+      # @param dir [String] the profile directory
+      #
+      # @return [Float] seconds since epoch, or 0 if there is no database
+      #
+      def places_mtime(dir)
+        db = File.join(dir, "places.sqlite")
+        File.exist?(db) ? File.mtime(db).to_f : 0
+      end
+
+      # Search the history of a Mozilla-based browser
+      #
+      # @param src [String, false] path to places.sqlite
+      # @param term [String] the search terms
+      # @param browser [String] browser name for notifications
+      #
+      # @return [Array, false] [url, title, date] or false
+      #
+      def search_mozilla_history(src, term, browser)
+        return false unless src && File.exist?(src)
+
+        SL.notify("Searching #{browser} History", term)
+        query = mozilla_query(term, "moz_places.url", "moz_places.title")
+        mark = query_places(src, "select moz_places.title, moz_places.url,
+          datetime(moz_historyvisits.visit_date/1000000, 'unixepoch', 'localtime') as datum
+          from moz_places, moz_historyvisits where moz_places.id = moz_historyvisits.place_id
+          and #{query} order by datum desc limit 1;")
+        return false unless mark
+
+        [mark["url"], mark["title"], Time.parse(mark["datum"])]
+      end
+
+      # Search the bookmarks of a Mozilla-based browser
+      #
+      # @param src [String, false] path to places.sqlite
+      # @param term [String] the search terms
+      # @param browser [String] browser name for notifications
+      #
+      # @return [Array, false] [url, title, date, score] or false
+      #
+      def search_mozilla_bookmarks(src, term, browser)
+        return false unless src && File.exist?(src)
+
+        SL.notify("Searching #{browser} Bookmarks", term)
+        query = mozilla_query(term, "h.url", "h.title")
+        mark = query_places(src, "select h.url, b.title,
           datetime(b.dateAdded/1000000, 'unixepoch', 'localtime') as datum
           FROM moz_places h JOIN moz_bookmarks b ON h.id = b.fk
-          where #{query} order by datum desc limit 1 COLLATE NOCASE;"`.strip
-          FileUtils.rm_f(tmpfile)
+          where #{query} order by datum desc limit 1;")
+        return false unless mark
 
-          return false if most_recent.strip.empty?
+        score = score_mark({ url: mark["url"], title: mark["title"] }, term)
+        [mark["url"], mark["title"], Time.parse(mark["datum"]), score]
+      end
 
-          bm = JSON.parse(most_recent)[0]
-
-          date = Time.parse(bm["datum"])
-          score = score_mark({ url: bm["url"], title: bm["title"] }, term)
-          [bm["url"], bm["title"], date, score]
+      # Build the WHERE clause for a places.sqlite search. Terms starting with
+      # a single quote match the exact string, %22-quoted phrases must match
+      # as a whole, and all other words must each match the url or title.
+      #
+      # @param term [String] the search terms
+      # @param url_col [String] the url column
+      # @param title_col [String] the title column
+      #
+      # @return [String] SQL conditions
+      #
+      def mozilla_query(term, url_col, title_col)
+        words = []
+        case term
+        when /^ *'/
+          words << term.gsub(/(^ *'+|'+ *$)/, "")
+        when /%22(.*?)%22/
+          words.concat(term.scan(/%22(\S.*?\S)%22/).flatten)
+          words.concat(term.gsub(/%22(\S.*?\S)%22/, "").split(/\s+/))
         else
-          false
+          words.concat(term.split(/\s+/))
         end
+
+        conditions = ["(#{url_col} NOT LIKE '%search/?%'
+                      AND #{url_col} NOT LIKE '%?q=%'
+                      AND #{url_col} NOT LIKE '%?s=%'
+                      AND #{url_col} NOT LIKE '%duckduckgo.com/?t%')"]
+        words.map(&:strip).reject(&:empty?).each do |word|
+          like = "'%#{word.downcase.gsub("'", "''")}%'"
+          conditions << "(#{url_col} LIKE #{like} OR #{title_col} LIKE #{like})"
+        end
+        conditions.join(" AND ")
+      end
+
+      # Run a query against a copy of places.sqlite, which the browser keeps
+      # locked while running. The write-ahead log is copied too so recent
+      # visits are included.
+      #
+      # @param src [String] path to places.sqlite
+      # @param sql [String] the query
+      #
+      # @return [Hash, nil] the first result row
+      #
+      def query_places(src, sql)
+        tmpfile = File.join(Dir.tmpdir, "searchlink-places-#{Process.pid}.sqlite")
+        FileUtils.cp(src, tmpfile)
+        FileUtils.cp("#{src}-wal", "#{tmpfile}-wal") if File.exist?("#{src}-wal")
+
+        out, status = Open3.capture2("sqlite3", "-json", tmpfile, sql)
+        return nil unless status.success? && !out.strip.empty?
+
+        JSON.parse(out).first
+      ensure
+        FileUtils.rm_f([tmpfile, "#{tmpfile}-wal", "#{tmpfile}-shm"]) if tmpfile
       end
     end
   end

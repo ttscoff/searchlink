@@ -23,6 +23,8 @@ describe "CLI" do
     # ['* An Edge history search [%](!heh brett terpstra)', 'https://brettterpstra.com/'],
     ["* A Firefox bookmark search [%](!hfb 2022 hardware)", "https://brettterpstra.com/2022/12/31/bretts-favorites-2022-hardware"],
     ["* A Firefox history search [markdown exports mindmeister](!hfh)", "https://gist.github.com/ttscoff/cd2a6c17964cccfb6665"],
+    ["* A Zen bookmark search [%](!hzb jekyll)", "https://j.scoffb.in:4123/"],
+    ["* A Zen history search [%](!hzh searchlink privacy)", "https://srchl.ink/privacy.html"],
     ["* A Safari bookmark search [%](!hsb mochajs)", "https://github.com/mochajs/mocha"],
     ["* A Safari history search [%](!hsh oracle template repo)", "oracle/template-repo"],
   ]

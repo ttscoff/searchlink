@@ -12,10 +12,20 @@ require_relative "helpers/safari"
 module SL
   # Browser history/bookmark search
   class HistorySearch
+    BROWSERS = {
+      "s" => "safari",
+      "c" => "chrome",
+      "f" => "firefox",
+      "z" => "zen",
+      "e" => "edge",
+      "b" => "brave",
+      "a" => "arc"
+    }.freeze
+
     class << self
       def settings
         {
-          trigger: "h(([scfabe])([hb])?)*",
+          trigger: "h(([scfzabe])([hb])?)*",
           searches: [
             ["h", "Browser History/Bookmark Search"],
             ["hsh", "Safari History Search"],
@@ -30,6 +40,10 @@ module SL
             ["hfb", "Firefox Bookmark Search"],
             ["hfhb", nil],
             ["hfbh", nil],
+            ["hzh", "Zen History Search"],
+            ["hzb", "Zen Bookmark Search"],
+            ["hzhb", nil],
+            ["hzbh", nil],
             ["hah", "Arc History Search"],
             ["hab", "Arc Bookmark Search"],
             ["hahb", nil],
@@ -59,6 +73,8 @@ module SL
                 chrome_bookmarks
                 firefox_bookmarks
                 firefox_history
+                zen_bookmarks
+                zen_history
                 edge_bookmarks
                 edge_history
                 brave_bookmarks
@@ -72,92 +88,30 @@ module SL
       end
 
       def search(search_type, search_terms, link_text)
-        str = search_type.match(/^h(([scfabe])([hb])?)*$/)[1]
-
-        types = []
-        while str&.length&.positive?
-          if str =~ /^s([hb]*)/
-            t = Regexp.last_match(1)
-            if t.length > 1 || t.empty?
-              types.push("safari_history")
-              types.push("safari_bookmarks")
-            elsif t == "h"
-              types.push("safari_history")
-            elsif t == "b"
-              types.push("safari_bookmarks")
-            end
-            str.sub!(/^s([hb]*)/, "")
-          end
-
-          if str =~ /^c([hb]*)/
-            t = Regexp.last_match(1)
-            if t.length > 1 || t.empty?
-              types.push("chrome_bookmarks")
-              types.push("chrome_history")
-            elsif t == "h"
-              types.push("chrome_history")
-            elsif t == "b"
-              types.push("chrome_bookmarks")
-            end
-            str.sub!(/^c([hb]*)/, "")
-          end
-
-          if str =~ /^f([hb]*)$/
-            t = Regexp.last_match(1)
-            if t.length > 1 || t.empty?
-              types.push("firefox_bookmarks")
-              types.push("firefox_history")
-            elsif t == "h"
-              types.push("firefox_history")
-            elsif t == "b"
-              types.push("firefox_bookmarks")
-            end
-            str.sub!(/^f([hb]*)/, "")
-          end
-
-          if str =~ /^e([hb]*)$/
-            t = Regexp.last_match(1)
-            if t.length > 1 || t.empty?
-              types.push("edge_bookmarks")
-              types.push("edge_history")
-            elsif t == "h"
-              types.push("edge_history")
-            elsif t == "b"
-              types.push("edge_bookmarks")
-            end
-            str.sub!(/^e([hb]*)/, "")
-          end
-
-          if str =~ /^b([hb]*)$/
-            t = Regexp.last_match(1)
-            if t.length > 1 || t.empty?
-              types.push("brave_bookmarks")
-              types.push("brave_history")
-            elsif t == "h"
-              types.push("brave_history")
-            elsif t == "b"
-              types.push("brave_bookmarks")
-            end
-            str.sub!(/^b([hb]*)/, "")
-          end
-
-          next unless str =~ /^a([hb]*)$/
-
-          t = Regexp.last_match(1)
-          if t.length > 1 || t.empty?
-            types.push("arc_bookmarks")
-            types.push("arc_history")
-          elsif t == "h"
-            types.push("arc_history")
-          elsif t == "b"
-            types.push("arc_bookmarks")
-          end
-          str.sub!(/^a([hb]*)/, "")
-        end
-
-        url, title = search_history(search_terms, types)
+        url, title = search_history(search_terms, history_types_for(search_type))
         link_text = title if link_text == ""
         [url, title, link_text]
+      end
+
+      # Convert a search type such as "hshcb" into history types. Each browser
+      # letter can be followed by "h" (history), "b" (bookmarks), or both;
+      # no suffix searches both.
+      #
+      # @param search_type [String] the search type, e.g. "hzh"
+      #
+      # @return [Array<String>] history types, e.g. ["zen_history"]
+      #
+      def history_types_for(search_type)
+        types = []
+        search_type.sub(/^h/, "").scan(/([scfzeba])([hb]*)/) do |browser, kinds|
+          name = BROWSERS[browser]
+          case kinds
+          when "h" then types.push("#{name}_history")
+          when "b" then types.push("#{name}_bookmarks")
+          else types.push("#{name}_history", "#{name}_bookmarks")
+          end
+        end
+        types
       end
 
       def search_history(term, types = [])
