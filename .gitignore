@@ -76,3 +76,4 @@ searchlink.taskpaper
 *.code-workspace
 .cursor
 .github
+commit_message.txt
