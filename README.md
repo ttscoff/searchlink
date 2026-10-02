@@ -1,4 +1,4 @@
-![Gem Version](https://img.shields.io/gem/v/searchlink)![Static Badge](https://img.shields.io/badge/Homepage-%2300afb9)![Static Badge](https://img.shields.io/badge/Privacy-%23fe6d73)![MIT License](https://img.shields.io/github/license/ttscoff/searchlink)
+![Gem Version](https://img.shields.io/gem/v/searchlink)[![srchl.ink](https://img.shields.io/badge/Homepage-%2300afb9)](https://srchl.ink)[![Privacy Policy](https://img.shields.io/badge/Privacy-%23fe6d73)](https://srchl.ink/privacy.html)![MIT License](https://img.shields.io/github/license/ttscoff/searchlink)
 
 
 
