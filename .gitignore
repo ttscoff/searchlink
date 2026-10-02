@@ -69,3 +69,8 @@ build-iPhoneSimulator/
 # End of https://www.toptal.com/developers/gitignore/api/ruby
 lib/searchlink/tokens.rb
 docs
+searchlink.taskpaper
+*/.DS_Store
+**/.DS_Store
+.r_completions~
+*.code-workspace

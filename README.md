@@ -1,11 +1,13 @@
+![Gem Version](https://img.shields.io/gem/v/searchlink)![Static Badge](https://img.shields.io/badge/Homepage-%2300afb9)![Static Badge](https://img.shields.io/badge/Privacy-%23fe6d73)![MIT License](https://img.shields.io/github/license/ttscoff/searchlink)
+
+
+
+[Homepage](https://srchl.ink) | [Privacy Policy](https://srchl.ink/privacy.html)
 
 ### Introduction
 
 
-
-
 ![](images/searchlink-text-short-400.jpg)
-
 
 SearchLink is a System Service (Quick Action) for macOS which searches multiple web sources and automatically generates Markdown links for text. It allows you to write without leaving your editor to run web searches for the items you want to link to. It's great for blogging, and excellent for creating podcast show notes, among other things.
 
