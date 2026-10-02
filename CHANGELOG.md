@@ -1,3 +1,22 @@
+### 2.3.93
+
+2026-10-02 07:39
+
+#### NEW
+
+- Add Kagi search +fastGPT
+- Search **Zen** history and bookmarks with `!hz`, `!hzh`, and `!hzb`
+
+#### IMPROVED
+
+- **Linkding** `!ld` searches the server, including archived bookmarks, notes, and `#tags`
+
+#### FIXED
+
+- **Firefox** and **Zen** history use the active profile and include recent visits
+- Multi-browser **history** shortcuts work in any order
+- **Linkding** searches keep the original **link text**
+
 ### 2.3.92
 
 2026-02-26 09:42
