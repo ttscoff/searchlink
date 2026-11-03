@@ -13,6 +13,62 @@ describe "CLI" do
     end
   end
 
+  describe SL::KeenableSearch do
+    let(:link_text) { "Brett Terpstra" }
+    before do
+      allow(SL).to receive(:notify)
+      allow(SL).to receive(:add_error)
+    end
+
+    it "falls back to DuckDuckGo when no API key is configured" do
+      allow(described_class).to receive(:api_key?).and_return(false)
+      allow(SL).to receive(:ddg).and_return(["https://example.com", "Example", link_text])
+
+      url, = described_class.search("kn", "brett terpstra", link_text)
+
+      expect(SL).to have_received(:ddg).with("brett terpstra", link_text, google: false)
+      expect(url).to eq("https://example.com")
+    end
+
+    it "posts the query with X-API-Key and returns the first result" do
+      described_class.instance_variable_set(:@api_key, "test_keenable_key")
+      allow(described_class).to receive(:api_key?).and_return(true)
+
+      response = {
+        results: [
+          { title: "No URL" },
+          { url: "https://brettterpstra.com/", title: "Brett Terpstra", description: "Writer and developer" }
+        ]
+      }
+      json_double = instance_double(Curl::Json, code: "200", json: response)
+      allow(Curl::Json).to receive(:new).and_return(json_double)
+
+      url, title, text = described_class.search("kn", "brett's site", link_text)
+
+      expect(Curl::Json).to have_received(:new).with(
+        "https://api.keenable.ai/v1/search",
+        hash_including(
+          data: '{"query":"brett\\u0027s site","max_results":1}',
+          headers: hash_including("X-API-Key" => "test_keenable_key")
+        )
+      )
+      expect(url).to eq("https://brettterpstra.com/")
+      expect(title).to eq("Brett Terpstra")
+      expect(text).to eq(link_text)
+    end
+
+    it "falls back to DuckDuckGo on a non-200 response" do
+      described_class.instance_variable_set(:@api_key, "test_keenable_key")
+      allow(described_class).to receive(:api_key?).and_return(true)
+      allow(Curl::Json).to receive(:new).and_return(instance_double(Curl::Json, code: "401", json: nil))
+      allow(SL).to receive(:ddg).and_return(["https://example.com", "Example", link_text])
+
+      url, = described_class.search("kn", "brett terpstra", link_text)
+
+      expect(url).to eq("https://example.com")
+    end
+  end
+
   describe SL::KagiSearch do
     let(:link_text) { "Brett Terpstra" }
     before do
