@@ -204,6 +204,8 @@ require_relative "searches/github"
 
 # import
 require_relative "searches/kagi"
+
+# import
 require_relative "searches/keenable"
 
 # import
