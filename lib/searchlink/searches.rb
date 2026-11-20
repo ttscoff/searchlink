@@ -124,11 +124,16 @@ module SL
           trigger: settings.fetch(:trigger, title).normalize_trigger,
           searches: settings[:searches],
           config: settings[:config],
+          allow_custom_override: settings[:allow_custom_override],
           class: klass
         }
       end
 
       def load_custom
+        search_plugins = plugins.fetch(:search)
+        overridable = search_plugins.select { |_, plugin| plugin[:allow_custom_override] }
+        overridable.each_key { |name| search_plugins.delete(name) }
+
         plugins_folder = File.expand_path("~/.local/searchlink/plugins")
         new_plugins_folder = File.expand_path("~/.config/searchlink/plugins")
 
@@ -147,6 +152,9 @@ module SL
         end
 
         load_custom_scripts(new_plugins_folder)
+      ensure
+        # Search order follows registration order, so custom shortcuts win these collisions.
+        overridable&.each { |name, plugin| search_plugins[name] ||= plugin }
       end
 
       def load_custom_scripts(plugins_folder)

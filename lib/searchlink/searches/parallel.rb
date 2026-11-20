@@ -6,13 +6,16 @@ module SL
     ENDPOINT = URI("https://mcp.parallel.ai/mcp")
     PROTOCOL_VERSION = "2025-03-26"
     USER_AGENT = "SearchLink/#{SL::VERSION}".freeze
-    NETWORK_ERRORS = [IOError, SystemCallError, SocketError, OpenSSL::SSL::SSLError, Net::ProtocolError, Net::OpenTimeout, Net::ReadTimeout].freeze
+    NETWORK_ERRORS = [
+      IOError, SystemCallError, SocketError, OpenSSL::SSL::SSLError,
+      Net::ProtocolError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::OpenTimeout, Net::ReadTimeout
+    ].freeze
 
     class RequestError < StandardError; end
 
     class << self
       def settings
-        { trigger: "parallel", searches: [["parallel", "Parallel Web Search"]] }
+        { trigger: "parallel", searches: [["parallel", "Parallel Web Search"]], allow_custom_override: true }
       end
 
       def search(_search_type, search_terms, link_text)
@@ -23,7 +26,6 @@ module SL
 
           url = result.fetch("url")
           title = safe_title(result["title"], url)
-          title.remove_seo!(url) if SL.config["remove_seo"]
           return [url, title, link_text]
         end
 
@@ -127,6 +129,11 @@ module SL
         uri = URI.parse(url)
         return false unless uri.is_a?(URI::HTTP) && uri.host && !uri.host.empty? && !uri.userinfo
 
+        # Optional confirmation, validation notifications, and shortening pass URLs to shell-backed tools.
+        shell_destination = SL.config["confirm"] || SL.shortener != :none ||
+                            (SL.config["validate_links"] && SL.config["notifications"])
+        return false if shell_destination && url.match?(/['$]/)
+
         # SearchLink inserts the URL verbatim in a Markdown link destination.
         depth = 0
         url.scan(/[()]/).each do |paren|
@@ -139,11 +146,13 @@ module SL
       end
 
       def safe_title(title, url)
-        text = title.is_a?(String) ? title.gsub(/[[:cntrl:]\p{Zl}\p{Zp}]/, " ").strip : ""
+        text = title.is_a?(String) ? title : ""
+        text = text.remove_seo(url) if SL.config["remove_seo"]
+        text = text.gsub(/[[:cntrl:]\p{Zl}\p{Zp}]/, " ").strip
         text = url if text.empty?
 
         # A page title can become the label of an otherwise empty Markdown link.
-        text.gsub(/[&<>"'\[\]\\`*_~]/) { |character| "&##{character.ord};" }
+        text.gsub(/[&<>"'\[\]\\`*_~|]/) { |character| "&##{character.ord};" }
       end
     end
 

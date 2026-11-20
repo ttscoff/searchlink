@@ -58,9 +58,40 @@ describe SL::ParallelSearch do
     expect(described_class.search("parallel", query, label)).to eq([false, "No Parallel search results", label])
   end
 
+  it "keeps markup in the page title escaped after SEO cleanup" do
+    allow(SL).to receive(:config).and_return("timeout" => 15, "remove_seo" => true)
+    title = "<b>Ruby reference</b> [docs](https://example.com) | Docs"
+    tool_result = { structuredContent: { results: [{ url: url, title: title }] } }
+    stub_responses(response(tool_result, 2))
+
+    expect(described_class.search("parallel", query, label)).to eq(
+      [url, "&#60;b&#62;Ruby reference&#60;/b&#62; &#91;docs&#93;(https://example.com)", label]
+    )
+  end
+
+  it "preserves URL punctuation unless shell-backed options are active" do
+    punctuated_url = "https://example.com/references/reader's-guide#currency-$usd"
+    tool_result = { structuredContent: { results: [{ url: punctuated_url }, { url: url }] } }
+    allow(SL).to receive(:shortener).and_return(:none)
+    stub_responses(response(tool_result, 2))
+
+    expect(described_class.search("parallel", query, label).first).to eq(punctuated_url)
+
+    allow(SL).to receive(:config).and_return("timeout" => 15, "confirm" => true)
+    stub_responses(response(tool_result, 2))
+
+    expect(described_class.search("parallel", query, label).first).to eq(url)
+  end
+
   it "reports an MCP tool error without sending the query to another provider" do
     stub_responses(response({ isError: true, content: [{ type: "text", text: "Service unavailable" }] }, 2))
     expect(SL).not_to receive(:ddg)
+
+    expect(described_class.search("parallel", query, label)).to eq([false, "Parallel search failed", label])
+  end
+
+  it "handles a malformed HTTP response as a failed search" do
+    allow(http).to receive(:post).and_raise(Net::HTTPBadResponse)
 
     expect(described_class.search("parallel", query, label)).to eq([false, "Parallel search failed", label])
   end
