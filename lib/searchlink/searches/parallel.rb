@@ -5,10 +5,10 @@ module SL
   class ParallelSearch
     ENDPOINT = URI("https://mcp.parallel.ai/mcp")
     PROTOCOL_VERSION = "2025-03-26"
-    USER_AGENT = "SearchLink/#{SL::VERSION}".freeze
+    USER_AGENT = "SearchLink/#{SL::VERSION}"
     NETWORK_ERRORS = [
       IOError, SystemCallError, SocketError, OpenSSL::SSL::SSLError,
-      Net::ProtocolError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::OpenTimeout, Net::ReadTimeout
+      Net::ProtocolError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::OpenTimeout, Net::ReadTimeout, Zlib::Error
     ].freeze
 
     class RequestError < StandardError; end
@@ -46,20 +46,19 @@ module SL
             "Content-Type" => "application/json",
             "User-Agent" => USER_AGENT
           }
-          session = post(http, headers, "initialize", 1, {
+          initialize_params = {
             protocolVersion: PROTOCOL_VERSION,
             capabilities: {},
             clientInfo: { name: "SearchLink", version: SL::VERSION }
-          })
+          }
+          session = post(http, headers, "initialize", 1, initialize_params)
           raise RequestError unless rpc_result(session, 1)["protocolVersion"] == PROTOCOL_VERSION
 
           headers["MCP-Protocol-Version"] = PROTOCOL_VERSION
           headers["Mcp-Session-Id"] = session["Mcp-Session-Id"] if session["Mcp-Session-Id"]
           post(http, headers, "notifications/initialized")
-          response = post(http, headers, "tools/call", 2, {
-            name: "web_search",
-            arguments: { objective: query, search_queries: [query] }
-          })
+          arguments = { objective: query, search_queries: [query] }
+          response = post(http, headers, "tools/call", 2, { name: "web_search", arguments: arguments })
           extract_results(rpc_result(response, 2))
         ensure
           close_session(http, headers) if headers["Mcp-Session-Id"]
@@ -85,12 +84,15 @@ module SL
       end
 
       def rpc_result(response, id)
+        body = response.body.to_s.dup.force_encoding(Encoding::UTF_8)
+        raise RequestError unless body.valid_encoding?
+
         messages = if response.content_type == "text/event-stream"
-                     response.body.to_s.split(/\r?\n\r?\n/).map do |event|
+                     body.split(/\r?\n\r?\n/).map do |event|
                        event.lines.grep(/\Adata:/).map { |line| line.sub(/\Adata: ?/, "") }.join
                      end
                    else
-                     [response.body.to_s]
+                     [body]
                    end
         messages.each do |message|
           next if message.empty?
@@ -124,7 +126,10 @@ module SL
       end
 
       def source_url?(url)
-        return false unless url.is_a?(String)
+        return false unless url.is_a?(String) && url.ascii_only?
+
+        # Ruby's URI parser accepts query characters that can change a Markdown destination.
+        return false if url.match?(/[[:cntrl:] <>`"\\]|&(?:[a-z][a-z0-9]*|\#(?:\d+|x[0-9a-f]+));/i)
 
         uri = URI.parse(url)
         return false unless uri.is_a?(URI::HTTP) && uri.host && !uri.host.empty? && !uri.userinfo

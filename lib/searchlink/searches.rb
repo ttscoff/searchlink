@@ -134,24 +134,12 @@ module SL
         overridable = search_plugins.select { |_, plugin| plugin[:allow_custom_override] }
         overridable.each_key { |name| search_plugins.delete(name) }
 
-        plugins_folder = File.expand_path("~/.local/searchlink/plugins")
-        new_plugins_folder = File.expand_path("~/.config/searchlink/plugins")
+        plugins_folder = File.expand_path("~/.config/searchlink/plugins")
+        plugins_folder = File.expand_path("~/.local/searchlink/plugins") unless File.directory?(plugins_folder)
+        return unless File.directory?(plugins_folder)
 
-        if File.directory?(plugins_folder) && !File.directory?(new_plugins_folder)
-          Dir.glob(File.join(plugins_folder, "**/*.rb")).sort.each do |plugin|
-            require plugin
-          end
-
-          load_custom_scripts(plugins_folder)
-        end
-
-        return unless File.directory?(new_plugins_folder)
-
-        Dir.glob(File.join(new_plugins_folder, "**/*.rb")).sort.each do |plugin|
-          require plugin
-        end
-
-        load_custom_scripts(new_plugins_folder)
+        Dir.glob(File.join(plugins_folder, "**/*.rb")).sort.each { |plugin| require plugin }
+        load_custom_scripts(plugins_folder)
       ensure
         # Search order follows registration order, so custom shortcuts win these collisions.
         overridable&.each { |name, plugin| search_plugins[name] ||= plugin }

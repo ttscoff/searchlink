@@ -36,6 +36,9 @@ describe SL::ParallelSearch do
     result = { results: [
       { url: "javascript:bad" },
       { url: "https://example.com/)" },
+      { url: "https://example.com/?q=first\nsecond" },
+      { url: "https://example.com/?q=\\(chapter)" },
+      { url: "https://example.com/?q=one&copy;=two" },
       { url: url, title: "Ruby [docs]\n<script>" }
     ] }
     tool_result = { content: [{ type: "text", text: JSON.generate(result) }] }
@@ -92,6 +95,20 @@ describe SL::ParallelSearch do
 
   it "handles a malformed HTTP response as a failed search" do
     allow(http).to receive(:post).and_raise(Net::HTTPBadResponse)
+
+    expect(described_class.search("parallel", query, label)).to eq([false, "Parallel search failed", label])
+  end
+
+  it "handles a malformed compressed response as a failed search" do
+    allow(http).to receive(:post).and_raise(Zlib::DataError)
+
+    expect(described_class.search("parallel", query, label)).to eq([false, "Parallel search failed", label])
+  end
+
+  it "rejects an RPC result with invalid UTF-8" do
+    search_response = response({}, 2)
+    allow(search_response).to receive(:body).and_return(%({"jsonrpc":"2.0","id":2,"result":{"title":"\xFF"}}).b)
+    stub_responses(search_response)
 
     expect(described_class.search("parallel", query, label)).to eq([false, "Parallel search failed", label])
   end
