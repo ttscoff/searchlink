@@ -5,25 +5,25 @@ module SL
   class VersionError < StandardError
     def initialize(msg)
       msg = msg ? ": #{msg}" : ""
-      puts "Versioning error#{msg}"
+      warn "Versioning error#{msg}"
 
-      super()
+      super("Versioning error#{msg}")
 
       Process.exit 1
     end
   end
 
-  # Custom plugin error
+  # Custom plugin error. Does not abort the process; callers that load
+  # optional plugins should rescue this and continue.
   class PluginError < StandardError
     def initialize(msg = nil, plugin: nil)
       plugin = %("#{plugin}") if plugin
       plugin ||= "plugin"
       msg = ": #{msg}" if msg
-      puts "Error in #{plugin}#{msg}"
+      message = "Error in #{plugin}#{msg}"
+      warn message
 
-      super()
-
-      Process.exit 1
+      super(message)
     end
   end
 end

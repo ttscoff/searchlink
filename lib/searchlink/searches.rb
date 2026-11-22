@@ -2,6 +2,7 @@
 
 module SL
   # Searches and plugin registration
+  # rubocop:disable Metrics/ModuleLength
   module Searches
     class << self
       def plugins
@@ -132,27 +133,24 @@ module SL
         plugins_folder = File.expand_path("~/.local/searchlink/plugins")
         new_plugins_folder = File.expand_path("~/.config/searchlink/plugins")
 
-        if File.directory?(plugins_folder) && !File.directory?(new_plugins_folder)
-          Dir.glob(File.join(plugins_folder, "**/*.rb")).sort.each do |plugin|
-            require plugin
-          end
+        load_custom_folder(plugins_folder) if File.directory?(plugins_folder) && !File.directory?(new_plugins_folder)
+        load_custom_folder(new_plugins_folder) if File.directory?(new_plugins_folder)
+      end
 
-          load_custom_scripts(plugins_folder)
-        end
-
-        return unless File.directory?(new_plugins_folder)
-
-        Dir.glob(File.join(new_plugins_folder, "**/*.rb")).sort.each do |plugin|
+      def load_custom_folder(plugins_folder)
+        Dir.glob(File.join(plugins_folder, "**/*.rb")).sort.each do |plugin|
           require plugin
+        rescue PluginError, LoadError, StandardError => e
+          warn "Skipping plugin #{File.basename(plugin)}: #{e.message}"
         end
 
-        load_custom_scripts(new_plugins_folder)
+        load_custom_scripts(plugins_folder)
       end
 
       def load_custom_scripts(plugins_folder)
         Dir.glob(File.join(plugins_folder, "**/*.{json,yml,yaml}")).each do |file|
           ext = File.extname(file).sub(/^\./, "")
-          config = IO.read(file)
+          config = File.read(file)
 
           cfg = case ext
                 when /^y/i
@@ -163,6 +161,9 @@ module SL
           cfg["filename"] = File.basename(file)
           cfg["path"] = file.shorten_path
           SL::ScriptSearch.new(cfg)
+        rescue PluginError, JSON::ParserError, Psych::SyntaxError => e
+          warn "Skipping plugin #{File.basename(file)}: #{e.message}"
+          next
         end
       end
 
@@ -179,6 +180,7 @@ module SL
       end
     end
   end
+  # rubocop:enable Metrics/ModuleLength
 end
 
 # import
